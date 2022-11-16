@@ -1,0 +1,64 @@
+package mySqlRepo
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"test-va/internals/Repository/taskRepo"
+	"test-va/internals/entity/taskEntity"
+)
+
+type sqlRepo struct {
+	conn *sql.DB
+}
+
+func NewSqlRepo(conn *sql.DB) taskRepo.TaskRepository {
+	return &sqlRepo{conn: conn}
+}
+
+func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	stmt := fmt.Sprintf(`INSERT 
+		INTO Tasks(
+				   task_id,
+				   title,
+				   description,
+				   user_id,
+				   start_time,
+				   end_time
+				   )
+		VALUES ('%v','%v','%v','%v','%v','%v')`, req.TaskId, req.Title, req.Description, req.UserId, req.StartTime, req.EndTime)
+
+	_, err = tx.ExecContext(ctx, stmt)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range req.Files {
+		stmt2 := fmt.Sprintf(`INSERT 
+		INTO Taskfiles(
+		               task_id,
+		               file_link,
+		               file_type
+		               ) 
+		VALUES ('%v', '%v', '%v')`, req.TaskId, file.FileLink, file.FileType)
+		_, err = tx.ExecContext(ctx, stmt2)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

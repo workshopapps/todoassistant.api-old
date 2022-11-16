@@ -24,3 +24,7 @@ func (m *mySQLServer) Ping() error {
 func (m *mySQLServer) Close() error {
 	return m.conn.Close()
 }
+
+func (m *mySQLServer) GetConn() *sql.DB {
+	return m.conn
+}
