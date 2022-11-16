@@ -10,7 +10,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"test-va/data-store/mysql"
+	"test-va/cmd/handlers/taskHandler"
+	"test-va/internals/Repository/taskRepo/mySqlRepo"
+	"test-va/internals/data-store/mysql"
+	"test-va/internals/service/taskService"
+	"test-va/internals/service/timeSrv"
 	"time"
 )
 
@@ -18,15 +22,27 @@ func main() {
 
 	dsn := os.Getenv("dsn")
 	if dsn == "" {
-		dsn = "hawaiian_comrade:YfqvJUSF43DtmH#^ad(K+pMI&@(team-ruler-todo.c6qozbcvfqxv.ap-south-1.rds.amazonaws.com:3306)/todo"
+		dsn = "hawaiian_comrade:YfqvJUSF43DtmH#^ad(K+pMI&@(team-ruler-todo.c6qozbcvfqxv.ap-south-1.rds.amazonaws.com:3306)/todoDB"
 	}
 
-	conn, err := mysql.NewMySQLServer(dsn)
+	connection, err := mysql.NewMySQLServer(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
 		return
 	}
-	defer conn.Close()
+	defer connection.Close()
+	conn := connection.GetConn()
+
+	// repo service
+	repo := mySqlRepo.NewSqlRepo(conn)
+
+	// time service
+	timeSrv := timeSrv.NewTimeStruct()
+
+	// create service
+	srv := taskService.NewTaskSrv(repo, timeSrv)
+
+	handler := taskHandler.NewTaskHandler(srv)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -42,6 +58,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("PONG"))
 	})
+
+	router.Post("/task", handler.CreateTask)
 
 	srvDetails := http.Server{
 		Addr:        fmt.Sprintf(":%s", port),
