@@ -58,6 +58,6 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 
 }
 
-func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService) TaskService {
-	return &taskSrv{repo: repo, timeSrv: timeSrv}
+func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv) TaskService {
+	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv}
 }
