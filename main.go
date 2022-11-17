@@ -33,6 +33,8 @@ func main() {
 	defer connection.Close()
 	conn := connection.GetConn()
 
+	// create cron tasks for checking if time is due
+
 	// repo service
 	repo := mySqlRepo.NewSqlRepo(conn)
 
