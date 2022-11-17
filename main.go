@@ -15,6 +15,7 @@ import (
 	"test-va/internals/data-store/mysql"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
+	"test-va/internals/service/validationService"
 	"time"
 )
 
@@ -41,8 +42,11 @@ func main() {
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
 
+	//validation service
+	validationSrv := validationService.NewValidationStruct()
+
 	// create service
-	srv := taskService.NewTaskSrv(repo, timeSrv)
+	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv)
 
 	handler := taskHandler.NewTaskHandler(srv)
 
