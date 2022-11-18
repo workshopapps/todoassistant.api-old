@@ -7,22 +7,24 @@ import (
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
+	"test-va/internals/service/loggerService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
 	"time"
 )
 
 type TaskService interface {
-	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ErrorRes)
+	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage)
 }
 
 type taskSrv struct {
 	repo          taskRepo.TaskRepository
 	timeSrv       timeSrv.TimeService
 	validationSrv validationService.ValidationSrv
+	logger        loggerService.LogSrv
 }
 
-func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ErrorRes) {
+func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -58,6 +60,6 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 
 }
 
-func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv) TaskService {
-	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv}
+func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv) TaskService {
+	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv}
 }

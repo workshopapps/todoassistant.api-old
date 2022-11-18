@@ -12,6 +12,7 @@ import (
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
+	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
@@ -42,9 +43,11 @@ func Setup() {
 
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
+	//logger service
+	logger := log_4_go.NewLogger()
 
 	// create service
-	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv)
+	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(srv)
 

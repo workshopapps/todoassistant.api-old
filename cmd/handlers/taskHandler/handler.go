@@ -23,7 +23,7 @@ func (t *taskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ResponseEntity.NewDecodingError())
+		json.NewEncoder(w).Encode(ResponseEntity.NewDecodingError(err))
 		return
 	}
 

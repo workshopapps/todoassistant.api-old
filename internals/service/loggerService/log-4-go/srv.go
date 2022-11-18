@@ -1,4 +1,4 @@
-package log4go
+package log_4_go
 
 import (
 	"encoding/json"
@@ -42,16 +42,17 @@ func (l logSrv) Audit(record *loggerEntity.AuditLog) {
 }
 
 func NewLogger() loggerService.LogSrv {
-	folder := "./logs"
-	logSettingsPath := "log.json"
-	appDir, err := os.Getwd()
-	if err != nil {
-		fmt.Printf("Could not load log location >> ", err)
-	}
-
-	_ = os.Mkdir(folder, os.ModePerm)
-
-	logs.LoadConfiguration(appDir + string(os.PathSeparator) + logSettingsPath)
+	//folder := "./logs"
+	//logSettingsPath := "log.json"
+	//appDir, err := os.Getwd()
+	//if err != nil {
+	//	fmt.Printf("Could not load log location >> ", err)
+	//}
+	//fmt.Println(appDir)
+	//
+	//_ = os.Mkdir(folder, os.ModePerm)
+	//
+	//logs.LoadConfiguration(appDir + string(os.PathSeparator) + logSettingsPath)
 
 	return &logSrv{
 		logger: logs.LOGGER("fileLogs"),
