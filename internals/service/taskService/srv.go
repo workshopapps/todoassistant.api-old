@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"log"
 	"test-va/internals/Repository/taskRepo"
-	"test-va/internals/entity/errorEntity"
+	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
@@ -13,7 +13,7 @@ import (
 )
 
 type TaskService interface {
-	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *errorEntity.ErrorRes)
+	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ErrorRes)
 }
 
 type taskSrv struct {
@@ -22,7 +22,7 @@ type taskSrv struct {
 	validationSrv validationService.ValidationSrv
 }
 
-func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *errorEntity.ErrorRes) {
+func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ErrorRes) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -31,7 +31,7 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	err := t.validationSrv.Validate(req)
 	if err != nil {
 		log.Println(err)
-		return nil, errorEntity.NewCustomError(400, "Bad system input")
+		return nil, ResponseEntity.NewCustomError(400, "Bad system input")
 	}
 
 	//set time
@@ -42,7 +42,7 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	err = t.repo.Persist(ctx, req)
 	if err != nil {
 		log.Println(err)
-		return nil, errorEntity.NewCustomError(500, "Error Saving to Database")
+		return nil, ResponseEntity.NewCustomError(500, "Error Saving to Database")
 	}
 	data := taskEntity.CreateTaskRes{
 		TaskId:      req.TaskId,

@@ -3,7 +3,7 @@ package taskHandler
 import (
 	"encoding/json"
 	"net/http"
-	"test-va/internals/entity/errorEntity"
+	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/service/taskService"
 )
@@ -23,7 +23,7 @@ func (t *taskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorEntity.NewDecodingError())
+		json.NewEncoder(w).Encode(ResponseEntity.NewDecodingError())
 		return
 	}
 
