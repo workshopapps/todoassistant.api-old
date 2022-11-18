@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"test-va/cmd/handlers/taskHandler"
+	"test-va/cmd/middlewares"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
@@ -56,21 +57,30 @@ func Setup() {
 		port = "2022"
 	}
 
-	router := chi.NewRouter()
+	r := gin.New()
 
-	router.Use(middleware.DefaultLogger)
-	router.Use(middleware.Recoverer)
+	// Middlewares
+	r.Use(gin.Logger())
+	//r.Use(middlewares.Logger())
 
-	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("PONG"))
+	r.Use(gin.Recovery())
+	r.Use(middlewares.CORS())
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
+
+	r.POST("/task", handler.CreateTask)
+
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"name":    "Not Found",
+			"message": "Page not found.",
+			"code":    404,
+			"status":  http.StatusNotFound,
+		})
 	})
-
-	router.Post("/task", handler.CreateTask)
 
 	srvDetails := http.Server{
 		Addr:        fmt.Sprintf(":%s", port),
-		Handler:     router,
+		Handler:     r,
 		IdleTimeout: 120 * time.Second,
 	}
 

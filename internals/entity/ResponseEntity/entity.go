@@ -35,10 +35,10 @@ func BuildSuccessResponse(code int, message string, data any, extra ...any) *Res
 	}
 }
 
-func BuildErrorResponse(code int, status string, message string, err interface{}, data interface{}) *ResponseMessage {
+func BuildErrorResponse(code int, message string, err interface{}, data interface{}) *ResponseMessage {
 
 	return &ResponseMessage{
-		Status:       status,
+		Status:       "failure",
 		ResponseCode: code,
 		Name:         "",
 		Message:      message,

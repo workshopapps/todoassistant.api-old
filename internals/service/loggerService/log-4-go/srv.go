@@ -59,14 +59,6 @@ func NewLogger() loggerService.LogSrv {
 	}
 }
 
-//func Header2Map(header http.Header) map[string]interface{} {
-//	head := make(map[string]interface{})
-//	for k, v := range header {
-//		head[k] = v
-//	}
-//	return head
-//}
-
 func getSource() (source string) {
 	if pc, _, line, ok := runtime.Caller(2); ok {
 		source = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), line)

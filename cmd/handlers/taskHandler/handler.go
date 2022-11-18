@@ -1,7 +1,7 @@
 package taskHandler
 
 import (
-	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
@@ -16,25 +16,21 @@ func NewTaskHandler(srv taskService.TaskService) *taskHandler {
 	return &taskHandler{srv: srv}
 }
 
-func (t *taskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
+func (t *taskHandler) CreateTask(c *gin.Context) {
 	var req taskEntity.CreateTaskReq
 
-	err := json.NewDecoder(r.Body).Decode(&req)
+	err := c.ShouldBind(&req)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ResponseEntity.NewDecodingError(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
 		return
 	}
 
 	task, errRes := t.srv.PersistTask(&req)
 	if errRes != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errRes)
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error saving into db", errRes, nil))
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(task)
+	c.JSON(http.StatusOK, task)
 
 }
