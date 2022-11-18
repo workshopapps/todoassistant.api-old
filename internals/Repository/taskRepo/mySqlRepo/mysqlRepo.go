@@ -116,28 +116,29 @@ func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) er
 // search by name
 func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.Context) ([]*taskEntity.SearchTaskRes ,error) {
 
-	tx, err := s.conn.BeginTx(ctx, nil)
+	//tx, err := s.conn.BeginTx(ctx, nil)
+	db, err := s.conn.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+	// defer func() {
+	// 	if err != nil {
+	// 		tx.Rollback()
+	// 	} else {
+	// 		tx.Commit()
+	// 	}
+	// }()
 
 
 	stmt := fmt.Sprintf(`
-		SELECT task_id, user_id, title, description, start_time, end_time, status
+		SELECT task_id, user_id, title, start_time
 		FROM Tasks
 		WHERE title LIKE "%%%s%%"
 	`, title.SearchQuery)
 
 
-	rows, err := tx.QueryContext(ctx, stmt)
+	rows, err := db.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -152,10 +153,7 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 			&singleTask.TaskId,
 			&singleTask.UserId,
 			&singleTask.Title,
-			&singleTask.Description,
-			&singleTask.StartTime,
-			&singleTask.EndTime,
-			&singleTask.Status,
+			&singleTask.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
