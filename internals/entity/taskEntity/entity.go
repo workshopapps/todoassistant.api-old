@@ -36,16 +36,7 @@ type GetPendingTasksRes struct {
 	Status      string `json:"status"`
 }
 
-type ViewTaskByIdReq struct {
-	TaskId      string     `json:"task_id"`
-	Title       string     `json:"title" validate:"required"`
-	Description string     `json:"description"`
-	Files       []TaskFile `json:"files"`
-	StartTime   string     `json:"start_time" validate:"required"`
-	EndTime     string     `json:"end_time" validate:"required"`
-	Status      string     `json:"status"`
-	Name        string     `json:"name"`
-}
+
 
 type GetPendingTasks struct {
 	TaskId      string `json:"task_id"`
@@ -53,4 +44,21 @@ type GetPendingTasks struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	EndTime     string `json:"end_time"`
+// request for searched task
+type SearchTitleReq struct {
+    Q       string `form:"q" validate:"required"`
+}
+
+// params for searched task
+type SearchTitleParams struct {
+    SearchQuery string `json:"search_query"`
+}
+
+// response for searched task
+type SearchTaskRes struct {
+	TaskId      string  `json:"task_id"`
+	Title       string  `json:"title"`
+	UserId      string  `json:"user_id"`
+	CreatedAt   string  `json:"created_at"`
+
 }

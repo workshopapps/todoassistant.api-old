@@ -45,3 +45,37 @@ func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, tasks)
 }
+
+
+// handle search function
+func (t *taskHandler) SearchTask (c *gin.Context) {
+
+	name:=c.Query("q")
+
+
+	if name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad params provided", "",nil))
+		return
+	}
+
+	title:= taskEntity.SearchTitleParams{
+		SearchQuery: name,
+	}
+
+	searchedTasks, errRes := t.srv.SearchTask(&title)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error getting tasks", errRes, nil))
+		return
+	}
+
+	length := len(searchedTasks)
+
+	if length == 0 {
+		message := "no Task with title "+title.SearchQuery+" found"
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message,searchedTasks,nil))
+		return
+	}
+	message := "successfully fetched Tasks with title "+title.SearchQuery+" and details"
+
+	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK, message,searchedTasks,nil))
+	}
