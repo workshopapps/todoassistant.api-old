@@ -1,11 +1,12 @@
 package taskHandler
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/service/taskService"
+
+	"github.com/gin-gonic/gin"
 )
 
 type taskHandler struct {
@@ -33,4 +34,14 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, task)
 
+}
+
+func (t *taskHandler) GetPendingTasks(c *gin.Context) {
+	userId := c.Params.ByName("userId")
+	tasks, errRes := t.srv.GetPendingTasks(userId)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, tasks)
 }

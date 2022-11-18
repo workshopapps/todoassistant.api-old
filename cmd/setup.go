@@ -78,6 +78,8 @@ func Setup() {
 
 	r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
+	r.GET("/task/pending/:userId", handler.GetPendingTasks)
+
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
