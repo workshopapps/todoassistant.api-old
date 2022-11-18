@@ -18,6 +18,7 @@ import (
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
+	"test-va/utils"
 	"time"
 
 	"github.com/gin-contrib/gzip"
@@ -25,7 +26,12 @@ import (
 )
 
 func Setup() {
-	dsn := os.Getenv("dsn")
+	config, err := utils.LoadConfig("../")
+	if err != nil {
+		log.Fatal("cannot load config", err)
+	}
+
+	dsn := config.DataSourceName
 	if dsn == "" {
 		dsn = "hawaiian_comrade:YfqvJUSF43DtmH#^ad(K+pMI&@(team-ruler-todo.c6qozbcvfqxv.ap-south-1.rds.amazonaws.com:3306)/todoDB"
 	}
@@ -56,12 +62,12 @@ func Setup() {
 	// create service
 	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
 
-	callSrv := callService.NewCallSrv(callRepo,timeSrv, validationSrv, logger)
+	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(srv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
-	port := os.Getenv("PORT")
+	port := config.SeverAddress
 	if port == "" {
 		port = "2022"
 	}
@@ -79,7 +85,6 @@ func Setup() {
 	r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
 	r.GET("/task/pending/:userId", handler.GetPendingTasks)
-
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
