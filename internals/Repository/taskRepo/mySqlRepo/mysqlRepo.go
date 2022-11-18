@@ -17,32 +17,20 @@ func NewSqlRepo(conn *sql.DB) taskRepo.TaskRepository {
 }
 
 func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEntity.GetPendingTasksRes, error) {
-	tx, err := s.conn.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
 
 	query := fmt.Sprintf(`
 		SELECT task_id, user_id, title, description, start_time, end_time, status
 		FROM Tasks
-		WHERE user_id = %s AND status = 'Pending'
+		WHERE user_id = '%s' AND status = 'PENDING'
 	`, userId)
 
-	rows, err := tx.QueryContext(ctx, query)
+	rows, err := s.conn.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	tasks := []*taskEntity.GetPendingTasksRes{}
+	var tasks []*taskEntity.GetPendingTasksRes
 
 	for rows.Next() {
 		var task taskEntity.GetPendingTasksRes
