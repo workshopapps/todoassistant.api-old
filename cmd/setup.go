@@ -68,6 +68,7 @@ func Setup() {
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	r.POST("/task", handler.CreateTask)
+	r.GET("/task/pending/:userId", handler.GetPendingTasks)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

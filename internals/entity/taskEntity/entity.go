@@ -25,3 +25,13 @@ type CreateTaskRes struct {
 	StartTime   string `json:"start_time"`
 	EndTime     string `json:"end_time"`
 }
+
+type GetPendingTasksRes struct {
+	TaskId      string `json:"task_id"`
+	UserId      string `json:"user_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	Status      string `json:"status"`
+}
