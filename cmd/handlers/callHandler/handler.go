@@ -28,9 +28,9 @@ func (t *callHandler) GetCalls(c *gin.Context) {
 	length := len(calls)
 
 	if length == 0 {
-		c.AbortWithStatusJSON(http.StatusAccepted, ResponseEntity.BuildSuccessResponse(http.StatusAccepted, "no calls found",nil,nil))
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "no calls found",calls,nil))
 		return
 	}
 
-	c.JSON(http.StatusOK,calls)
+	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK, "successfully fetched calls and details",calls,nil))
 }
