@@ -3,21 +3,25 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"test-va/cmd/handlers/callHandler"
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
+	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
+	"test-va/internals/service/callService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
 	"time"
+
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
 )
 
 func Setup() {
@@ -39,6 +43,8 @@ func Setup() {
 	// repo service
 	repo := mySqlRepo.NewSqlRepo(conn)
 
+	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
+
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
 
@@ -50,8 +56,11 @@ func Setup() {
 	// create service
 	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
 
+	callSrv := callService.NewCallSrv(callRepo,timeSrv, validationSrv, logger)
+
 	handler := taskHandler.NewTaskHandler(srv)
 
+	callHandler := callHandler.NewCallHandler(callSrv)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "2022"
@@ -68,6 +77,7 @@ func Setup() {
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	r.POST("/task", handler.CreateTask)
+	r.GET("/calls", callHandler.GetCalls)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
