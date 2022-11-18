@@ -79,6 +79,8 @@ func Setup() {
 	r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
 	r.GET("/task/pending/:userId", handler.GetPendingTasks)
+	// search route
+	r.GET("/search", handler.SearchTask)
 
 
 	r.NoRoute(func(c *gin.Context) {

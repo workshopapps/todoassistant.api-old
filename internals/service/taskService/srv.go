@@ -17,6 +17,7 @@ import (
 type TaskService interface {
 	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage)
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage)
+	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
 }
 
 type taskSrv struct {
@@ -73,6 +74,26 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 
 	return &data, nil
 
+}
+
+// search task by name func
+func (t *taskSrv) SearchTask (title *taskEntity.SearchTitleParams) ( []*taskEntity.SearchTaskRes,  *ResponseEntity.ResponseMessage){
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	err := t.validationSrv.Validate(title)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewCustomError(400, "Bad system input")
+	}
+	tasks, err := t.repo.SearchTasks(title, ctx)
+
+	if err != nil {
+		log.Println(err)
+		return nil,  ResponseEntity.NewCustomError(500, "Internal Server Error")
+	}
+	return tasks, nil
 }
 
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv) TaskService {
