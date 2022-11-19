@@ -60,8 +60,7 @@ func Setup() {
 	timeSrv := timeSrv.NewTimeStruct()
 
 	// create cron tasks for checking if time is due
-	s := gocron.NewScheduler(time.UTC)
-	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
+	reminderSrv := reminderService.NewReminderSrv(conn, repo)
 
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
