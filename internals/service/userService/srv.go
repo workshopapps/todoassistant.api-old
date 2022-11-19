@@ -42,6 +42,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 		return nil, ResponseEntity.NewCustomError(http.StatusUnauthorized, "invalid login credentials")
 	}
 	loggedInUser := userEntity.LoginRes{
+		UserId:    user.UserId,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
