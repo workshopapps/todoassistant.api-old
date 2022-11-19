@@ -3,10 +3,11 @@ package reminderService
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"test-va/internals/entity/taskEntity"
 	"time"
+
+	"github.com/go-co-op/gocron"
 )
 
 type ReminderSrv interface {
@@ -69,7 +70,7 @@ func NewReminderSrv(scheduler *gocron.Scheduler, conn *sql.DB) ReminderSrv {
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
 SELECT task_id, user_id, title,description, end_time
-FROM Tasks 
+FROM Tasks
 WHERE status = 'PENDING';
 `)
 	var tasks []taskEntity.GetPendingTasks

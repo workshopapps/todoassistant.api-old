@@ -79,3 +79,20 @@ func (t *taskHandler) SearchTask (c *gin.Context) {
 
 	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK, message,searchedTasks,nil))
 	}
+
+	// handle get by ID
+func (t *taskHandler) GetTaskByID(c *gin.Context) {
+	taskId := c.Params.ByName("taskId")
+	task, errRes := t.srv.GetTaskByID(taskId)
+
+	if task == nil {
+		message := "no Task with id "+taskId+" exists"
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message,task,nil))
+		return
+	}
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, task)
+}

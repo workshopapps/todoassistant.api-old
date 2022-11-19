@@ -79,6 +79,8 @@ func Setup() {
 	r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
 	r.GET("/task/pending/:userId", handler.GetPendingTasks)
+	// get task by id
+	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
 
