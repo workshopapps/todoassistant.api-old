@@ -38,6 +38,10 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 
 func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 	userId := c.Params.ByName("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+		return
+	}
 	tasks, errRes := t.srv.GetPendingTasks(userId)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
@@ -46,19 +50,17 @@ func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, tasks)
 }
 
-
 // handle search function
-func (t *taskHandler) SearchTask (c *gin.Context) {
+func (t *taskHandler) SearchTask(c *gin.Context) {
 
-	name:=c.Query("q")
-
+	name := c.Query("q")
 
 	if name == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad params provided", "",nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad params provided", "", nil))
 		return
 	}
 
-	title:= taskEntity.SearchTitleParams{
+	title := taskEntity.SearchTitleParams{
 		SearchQuery: name,
 	}
 
@@ -71,23 +73,27 @@ func (t *taskHandler) SearchTask (c *gin.Context) {
 	length := len(searchedTasks)
 
 	if length == 0 {
-		message := "no Task with title "+title.SearchQuery+" found"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message,searchedTasks,nil))
+		message := "no Task with title " + title.SearchQuery + " found"
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, searchedTasks, nil))
 		return
 	}
-	message := "successfully fetched Tasks with title "+title.SearchQuery+" and details"
+	message := "successfully fetched Tasks with title " + title.SearchQuery + " and details"
 
-	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK, message,searchedTasks,nil))
-	}
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, searchedTasks, nil))
+}
 
-	// handle get by ID
+// handle get by ID
 func (t *taskHandler) GetTaskByID(c *gin.Context) {
 	taskId := c.Params.ByName("taskId")
+	if taskId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+		return
+	}
 	task, errRes := t.srv.GetTaskByID(taskId)
 
 	if task == nil {
-		message := "no Task with id "+taskId+" exists"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message,task,nil))
+		message := "no Task with id " + taskId + " exists"
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, task, nil))
 		return
 	}
 	if errRes != nil {
