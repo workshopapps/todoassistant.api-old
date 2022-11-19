@@ -18,6 +18,7 @@ type TaskService interface {
 	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage)
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
+	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes ,*ResponseEntity.ResponseMessage)
 }
 
 type taskSrv struct {
@@ -96,6 +97,23 @@ func (t *taskSrv) SearchTask (title *taskEntity.SearchTitleParams) ( []*taskEnti
 	return tasks, nil
 }
 
+func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes ,*ResponseEntity.ResponseMessage){
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	task, err := t.repo.GetTaskByID(taskId, ctx)
+
+	if task == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+	}
+	return task, nil
+
+}
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv) TaskService {
 	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv}
 }

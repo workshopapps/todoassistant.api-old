@@ -150,3 +150,72 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 	}
 	return Searchedtasks, nil
 }
+
+// get task by ID
+func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.GetTasksByIdRes ,error) {
+
+	var res taskEntity.GetTasksByIdRes
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil,err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	stmt := fmt.Sprintf(`
+		SELECT T.task_id, T.user_id, T.title, T.description, T.status, T.start_time, T.end_time
+		FROM Tasks T
+		WHERE task_id = "%s"
+	`,taskId )
+
+
+	stmt2 := fmt.Sprintf(`
+		SELECT F.file_link, F.file_type
+		FROM Tasks AS T
+		JOIN Taskfiles as F
+		ON T.task_id = F.task_id
+		WHERE F.task_id = "%s"
+	`,taskId )
+
+
+	row := tx.QueryRow(stmt)
+	if err := row.Scan(
+		&res.TaskId,
+		&res.UserId,
+		&res.Title,
+		&res.Description,
+		&res.Status,
+		&res.StartTime,
+		&res.EndTime,
+	);
+	err != nil {
+		return nil, err
+	}
+
+	rows, err := tx.QueryContext(ctx, stmt2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next(){
+		var taskFile taskEntity.TaskFile
+
+		err := rows.Scan(
+			&taskFile.FileLink,
+			&taskFile.FileType,
+		)
+		if err != nil {
+			return nil, err
+		}
+		res.Files = append(res.Files, taskFile)
+	}
+
+	return &res, nil
+}
