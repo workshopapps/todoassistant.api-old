@@ -12,6 +12,15 @@ type sqlRepo struct {
 	conn *sql.DB
 }
 
+func (s *sqlRepo) SetTaskToExpired(id string) error {
+	stmt := fmt.Sprintf(`UPDATE Tasks SET STATUS='EXPIRED' WHERE task_id ='%v'`, id)
+	_, err := s.conn.Exec(stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewSqlRepo(conn *sql.DB) taskRepo.TaskRepository {
 	return &sqlRepo{conn: conn}
 }
@@ -159,7 +168,7 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 	stmt := fmt.Sprintf(`
 		SELECT task_id, user_id, title, start_time
 		FROM Tasks
-		WHERE title LIKE '%s%'
+		WHERE title LIKE '%s%%'
 	`, title.SearchQuery)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -251,4 +260,52 @@ func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.G
 	}
 
 	return &res, nil
+}
+
+
+
+func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error) {
+
+	//tx, err := s.conn.BeginTx(ctx, nil)
+	db, err := s.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	// defer func() {
+	// 	if err != nil {
+	// 		tx.Rollback()
+	// 	} else {
+	// 		tx.Commit()
+	// 	}
+	// }()
+
+	stmt := fmt.Sprintf(`
+		SELECT task_id, user_id, title, start_time
+		FROM Tasks
+		WHERE status = 'EXPIRED'`)
+
+	rows, err := db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	Searchedtasks := []*taskEntity.GetAllExpiredRes{}
+
+	for rows.Next() {
+		var singleTask taskEntity.GetAllExpiredRes
+
+		err := rows.Scan(
+			&singleTask.TaskId,
+			&singleTask.UserId,
+			&singleTask.Title,
+			&singleTask.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		Searchedtasks = append(Searchedtasks, &singleTask)
+	}
+	return Searchedtasks, nil
 }

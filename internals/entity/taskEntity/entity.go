@@ -36,6 +36,9 @@ type GetPendingTasksRes struct {
 	Status      string `json:"status"`
 }
 
+
+
+
 type GetPendingTasks struct {
 	TaskId      string `json:"task_id"`
 	UserId      string `json:"user_id"`
@@ -84,4 +87,11 @@ type GetExpiredTaskRes struct {
 	StartTime   string `json:"start_time"`
 	EndTime     string `json:"end_time"`
 	Status      string `json:"status"`
+}
+
+type GetAllExpiredRes struct {
+	TaskId      string  `json:"task_id"`
+	Title       string  `json:"title"`
+	UserId      string  `json:"user_id"`
+	CreatedAt   string  `json:"created_at"`
 }

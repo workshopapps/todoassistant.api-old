@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/taskEntity"
 	"time"
 
@@ -11,13 +12,14 @@ import (
 )
 
 type ReminderSrv interface {
-	SetReminder(dueDate string) error
+	SetReminder(dueDate, taskId string) error
 	SetReminderEveryXMin(x int)
 }
 
 type reminderSrv struct {
 	cron *gocron.Scheduler
 	conn *sql.DB
+	repo taskRepo.TaskRepository
 }
 
 func (r *reminderSrv) SetReminderEveryXMin(x int) {
@@ -37,8 +39,8 @@ func (r *reminderSrv) SetReminderEveryXMin(x int) {
 	}
 }
 
-func (r *reminderSrv) SetReminder(dueDate string) error {
-
+func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
+	s := gocron.NewScheduler(time.UTC)
 	// get string of date and convert it to Time.Time
 	dDate, err := time.Parse(time.RFC3339, dueDate)
 	if err != nil {
@@ -46,25 +48,32 @@ func (r *reminderSrv) SetReminder(dueDate string) error {
 	}
 
 	// find time till time is expired
+	fmt.Println(dDate)
 
 	duration := time.Until(dDate)
 
 	// convert to minutes
 	minutes := duration.Minutes()
-	ss := fmt.Sprintf("%vs", minutes)
+	ss := fmt.Sprintf("%.2fm", minutes)
+	log.Println(ss)
 
-	r.cron.Every(ss).Do(func() {
-		log.Println("Doing... set task status to expired")
+	var count int
+	s.Every("ss").Do(func() {
+		if count >= 1 {
+			log.Println("setting status to pending")
+			r.repo.SetTaskToExpired(taskId)
+		}
+		count++
 	})
 
-	r.cron.LimitRunsTo(1)
-	r.cron.StartAsync()
-
+	s.LimitRunsTo(2)
+	s.StartAsync()
 	return nil
 }
 
-func NewReminderSrv(scheduler *gocron.Scheduler, conn *sql.DB) ReminderSrv {
-	return &reminderSrv{cron: scheduler, conn: conn}
+func NewReminderSrv(conn *sql.DB, taskrepo taskRepo.TaskRepository) ReminderSrv {
+	s := gocron.NewScheduler(time.UTC)
+	return &reminderSrv{cron: s, conn: conn, repo: taskrepo}
 }
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
@@ -103,4 +112,9 @@ func checkIfTimeElapsedXMinutes(due string, x int) bool {
 	} else {
 		return false
 	}
+}
+
+func (r *reminderSrv) work(id string) {
+	log.Println("Doing... set task status to expired")
+	r.repo.SetTaskToExpired(id)
 }
