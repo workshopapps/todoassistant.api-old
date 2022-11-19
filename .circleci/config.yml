@@ -21,10 +21,34 @@ jobs:
           paths:
             - "/go/pkg/mod"
 
+   publish-docker-image:
+       executor: dockecho "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+             er-publisher
+
+       steps: 
+         - checkout
+         - setup_remote_docker
+         - run:
+           name: Publish docker image to docker hub
+           command : |
+             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+             docker build . -t ocheotobo/backend:v1
+             docker push ocheotobo/backend:v1
+
+
+
 workflows:
-  build: 
+  my-workflow: 
       jobs: 
          - Build
+         - publish-docker-image:
+                 filters: 
+                     branches:
+                       only: 
+                         - main
+                         - staging
+
+                          
          
 
 
