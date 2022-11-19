@@ -48,6 +48,5 @@ func (u *userHandler) Login(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "invalid login credentials", errorRes, nil))
 		return
 	}
-
 	c.JSON(http.StatusOK, user)
 }
