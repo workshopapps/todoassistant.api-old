@@ -22,7 +22,6 @@ type TaskService interface {
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage)
 	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ResponseMessage)
-	
 }
 
 type taskSrv struct {
@@ -88,9 +87,10 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,
 	}
-
+	log.Println(req.EndTime)
 	// create a reminder
 	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewCustomError(http.StatusInternalServerError, "Error Creating Reminder")
@@ -151,9 +151,7 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 	}
 	return task, nil
 
-
 }
-
 
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv, reminderSrv reminderService.ReminderSrv) TaskService {
 	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv, remindSrv: reminderSrv}
