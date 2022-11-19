@@ -22,8 +22,8 @@ jobs:
             - "/go/pkg/mod"
 
    publish-docker-image:
-       executor: dockecho "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-             er-publisher
+       docker:
+         - image: docker:17.05.0-ce-git
 
        steps: 
          - checkout
@@ -46,7 +46,7 @@ workflows:
                      branches:
                        only: 
                          - main
-                         - staging
+                         
 
                           
          
