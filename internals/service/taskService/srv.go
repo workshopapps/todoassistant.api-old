@@ -18,7 +18,7 @@ type TaskService interface {
 	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage)
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
-	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes ,*ResponseEntity.ResponseMessage)
+	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage)
 }
 
 type taskSrv struct {
@@ -45,12 +45,24 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
+
 	// implement validation for struct
 
 	err := t.validationSrv.Validate(req)
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewCustomError(400, "Bad system input")
+	}
+
+	//check if timeDueDate and StartDate is valid
+	err = t.timeSrv.CheckFor339Format(req.EndTime)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomError(400, "Bad Time Input")
+	}
+
+	err = t.timeSrv.CheckFor339Format(req.StartTime)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomError(400, "Bad Time Input")
 	}
 
 	//set time
@@ -78,7 +90,7 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 }
 
 // search task by name func
-func (t *taskSrv) SearchTask (title *taskEntity.SearchTitleParams) ( []*taskEntity.SearchTaskRes,  *ResponseEntity.ResponseMessage){
+func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -92,12 +104,12 @@ func (t *taskSrv) SearchTask (title *taskEntity.SearchTitleParams) ( []*taskEnti
 
 	if err != nil {
 		log.Println(err)
-		return nil,  ResponseEntity.NewCustomError(500, "Internal Server Error")
+		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
 	}
 	return tasks, nil
 }
 
-func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes ,*ResponseEntity.ResponseMessage){
+func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()

@@ -102,7 +102,7 @@ func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) er
 }
 
 // search by name
-func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.Context) ([]*taskEntity.SearchTaskRes ,error) {
+func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.Context) ([]*taskEntity.SearchTaskRes, error) {
 
 	//tx, err := s.conn.BeginTx(ctx, nil)
 	db, err := s.conn.Begin()
@@ -118,13 +118,11 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 	// 	}
 	// }()
 
-
 	stmt := fmt.Sprintf(`
 		SELECT task_id, user_id, title, start_time
 		FROM Tasks
-		WHERE title LIKE "%%%s%%"
+		WHERE title LIKE '%s%'
 	`, title.SearchQuery)
-
 
 	rows, err := db.QueryContext(ctx, stmt)
 	if err != nil {
@@ -134,7 +132,7 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 
 	Searchedtasks := []*taskEntity.SearchTaskRes{}
 
-	for rows.Next(){
+	for rows.Next() {
 		var singleTask taskEntity.SearchTaskRes
 
 		err := rows.Scan(
@@ -152,12 +150,12 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 }
 
 // get task by ID
-func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.GetTasksByIdRes ,error) {
+func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.GetTasksByIdRes, error) {
 
 	var res taskEntity.GetTasksByIdRes
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	defer func() {
@@ -171,18 +169,16 @@ func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.G
 	stmt := fmt.Sprintf(`
 		SELECT T.task_id, T.user_id, T.title, T.description, T.status, T.start_time, T.end_time
 		FROM Tasks T
-		WHERE task_id = "%s"
-	`,taskId )
-
+		WHERE task_id = '%s'
+	`, taskId)
 
 	stmt2 := fmt.Sprintf(`
 		SELECT F.file_link, F.file_type
 		FROM Tasks AS T
 		JOIN Taskfiles as F
 		ON T.task_id = F.task_id
-		WHERE F.task_id = "%s"
-	`,taskId )
-
+		WHERE F.task_id = '%s'
+	`, taskId)
 
 	row := tx.QueryRow(stmt)
 	if err := row.Scan(
@@ -193,8 +189,7 @@ func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.G
 		&res.Status,
 		&res.StartTime,
 		&res.EndTime,
-	);
-	err != nil {
+	); err != nil {
 		return nil, err
 	}
 
@@ -204,7 +199,7 @@ func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.G
 	}
 	defer rows.Close()
 
-	for rows.Next(){
+	for rows.Next() {
 		var taskFile taskEntity.TaskFile
 
 		err := rows.Scan(
