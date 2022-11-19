@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +25,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/go-co-op/gocron"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -108,6 +109,7 @@ func Setup() {
 	// USER
 	//create user
 	r.POST("/user", userHandler.CreateUser)
+	r.POST("/user/login", userHandler.Login)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

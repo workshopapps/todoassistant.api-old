@@ -1,6 +1,7 @@
 package mySqlRepo
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"test-va/internals/Repository/userRepo"
@@ -13,6 +14,30 @@ type mySql struct {
 
 func NewMySqlUserRepo(conn *sql.DB) userRepo.UserRepository {
 	return &mySql{conn: conn}
+}
+
+func (m *mySql) GetByEmail(email string) (*userEntity.GetByEmailRes, error) {
+	query := fmt.Sprintf(`
+		SELECT user_id, email, password, first_name, last_name, phone, gender 
+		FROM Users
+		WHERE email = '%s'
+	`, email)
+	var user userEntity.GetByEmailRes
+	ctx := context.Background()
+	err := m.conn.QueryRowContext(ctx, query).Scan(
+		&user.UserId,
+		&user.Email,
+		&user.Password,
+		&user.FirstName,
+		&user.LastName,
+		&user.Phone,
+		&user.Gender,
+	)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (m *mySql) Persist(req *userEntity.CreateUserReq) error {
