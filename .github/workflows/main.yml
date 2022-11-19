@@ -10,11 +10,11 @@ jobs:
         steps: 
           - name: checkout repository code 
             uses: actions/checkout@v2
-#             env: 
-#                 DOCKER_USER: ${{ secrets.DOCKER_USER }}
-#                 DOCKER_PASS : ${{ secrets.DOCKER_PASS }}
-#             run: |
-#                 docker login -u $DOCKER_USER -p $DOCKER_PASS
+            env: 
+                 DOCKER_USER: ${{ secrets.DOCKER_USER }}
+                 DOCKER_PASS : ${{ secrets.DOCKER_PASS }}
+            run: |
+                 docker login -u $DOCKER_USER -p $DOCKER_PASS
 
           - name: setup Go
             uses: actions/setup-go@v2
@@ -72,4 +72,4 @@ jobs:
                   
 
 
-                  
+
