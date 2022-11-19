@@ -9,14 +9,18 @@ import (
 	"os/signal"
 	"test-va/cmd/handlers/callHandler"
 	"test-va/cmd/handlers/taskHandler"
+	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
 	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
+	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
 	"test-va/internals/service/callService"
+	"test-va/internals/service/cryptoService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
+	"test-va/internals/service/userService"
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
@@ -48,9 +52,8 @@ func Setup() {
 
 	// repo service
 	repo := mySqlRepo.NewSqlRepo(conn)
-
 	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
-
+	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
 
@@ -58,13 +61,17 @@ func Setup() {
 	validationSrv := validationService.NewValidationStruct()
 	//logger service
 	logger := log_4_go.NewLogger()
+	//crypto service
+	cryptoSrv := cryptoService.NewCryptoSrv()
 
 	// create service
-	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
+	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
+	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
 
 	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
-	handler := taskHandler.NewTaskHandler(srv)
+	handler := taskHandler.NewTaskHandler(taskSrv)
+	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
 	port := config.SeverAddress
@@ -89,6 +96,11 @@ func Setup() {
 	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
+
+
+	// USER
+	//create user
+	r.POST("/user", userHandler.CreateUser)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
