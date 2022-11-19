@@ -42,12 +42,29 @@ func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
 		return
 	}
+
 	tasks, errRes := t.srv.GetPendingTasks(userId)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
 		return
 	}
 	c.JSON(http.StatusOK, tasks)
+}
+
+func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
+	// userId := c.Params.ByName("userId")
+	// 	if userId == "" {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+	// 		return
+	// 	}
+
+	tasks, errRes := t.srv.GetListOfExpiredTasks()
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, tasks)
+
 }
 
 // handle search function

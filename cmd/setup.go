@@ -98,6 +98,8 @@ func Setup() {
 	r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
 	r.GET("/task/pending/:userId", handler.GetPendingTasks)
+	//get list of pending tasks belonging to a user
+	r.GET("/task/expired/", handler.GetListOfExpiredTasks)
 	// get task by id
 	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
