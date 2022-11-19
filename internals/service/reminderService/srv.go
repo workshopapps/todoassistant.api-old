@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/taskEntity"
 	"time"
 
@@ -11,13 +12,14 @@ import (
 )
 
 type ReminderSrv interface {
-	SetReminder(dueDate string) error
+	SetReminder(dueDate, taskId string) error
 	SetReminderEveryXMin(x int)
 }
 
 type reminderSrv struct {
 	cron *gocron.Scheduler
 	conn *sql.DB
+	repo taskRepo.TaskRepository
 }
 
 func (r *reminderSrv) SetReminderEveryXMin(x int) {
@@ -37,7 +39,7 @@ func (r *reminderSrv) SetReminderEveryXMin(x int) {
 	}
 }
 
-func (r *reminderSrv) SetReminder(dueDate string) error {
+func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 
 	// get string of date and convert it to Time.Time
 	dDate, err := time.Parse(time.RFC3339, dueDate)
@@ -46,15 +48,18 @@ func (r *reminderSrv) SetReminder(dueDate string) error {
 	}
 
 	// find time till time is expired
+	fmt.Println(dDate)
 
 	duration := time.Until(dDate)
 
 	// convert to minutes
 	minutes := duration.Minutes()
-	ss := fmt.Sprintf("%vs", minutes)
+	ss := fmt.Sprintf("%vm", minutes)
+	log.Println(ss)
 
-	r.cron.Every(ss).Do(func() {
+	r.cron.Every(2).Minutes().Do(func() {
 		log.Println("Doing... set task status to expired")
+		r.repo.SetTaskToExpired(taskId)
 	})
 
 	r.cron.LimitRunsTo(1)
@@ -63,8 +68,8 @@ func (r *reminderSrv) SetReminder(dueDate string) error {
 	return nil
 }
 
-func NewReminderSrv(scheduler *gocron.Scheduler, conn *sql.DB) ReminderSrv {
-	return &reminderSrv{cron: scheduler, conn: conn}
+func NewReminderSrv(scheduler *gocron.Scheduler, conn *sql.DB, taskrepo taskRepo.TaskRepository) ReminderSrv {
+	return &reminderSrv{cron: scheduler, conn: conn, repo: taskrepo}
 }
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {

@@ -15,6 +15,7 @@ import (
 
 type UserSrv interface {
 	SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ResponseMessage)
+	Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ResponseMessage)
 }
 
 type userSrv struct {
@@ -22,6 +23,17 @@ type userSrv struct {
 	validator validationService.ValidationSrv
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
+}
+
+func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ResponseMessage) {
+	err := u.validator.Validate(req)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "Bad Input Request")
+	}
+	// FIND BY EMAIL
+
+	//compare password
+	return nil, nil
 }
 
 func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ResponseMessage) {
@@ -59,6 +71,8 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 		Email:     req.Email,
 		Phone:     req.Phone,
 	}
+	// set Reminder
+
 	return data, nil
 }
 

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ import (
 	"test-va/internals/service/callService"
 	"test-va/internals/service/cryptoService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
+	"test-va/internals/service/reminderService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/userService"
@@ -30,12 +32,13 @@ import (
 )
 
 func Setup() {
-	config, err := utils.LoadConfig("../")
+	config, err := utils.LoadConfig("./")
 	if err != nil {
 		log.Fatal("cannot load config", err)
 	}
 
 	dsn := config.DataSourceName
+	log.Println(dsn)
 	if dsn == "" {
 		dsn = "hawaiian_comrade:YfqvJUSF43DtmH#^ad(K+pMI&@(team-ruler-todo.c6qozbcvfqxv.ap-south-1.rds.amazonaws.com:3306)/todoDB"
 	}
@@ -48,14 +51,16 @@ func Setup() {
 	defer connection.Close()
 	conn := connection.GetConn()
 
-	// create cron tasks for checking if time is due
-
 	// repo service
 	repo := mySqlRepo.NewSqlRepo(conn)
 	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
+
+	// create cron tasks for checking if time is due
+	s := gocron.NewScheduler(time.UTC)
+	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
 
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
@@ -65,7 +70,7 @@ func Setup() {
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
 	// create service
-	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
+	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
 
 	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
@@ -75,6 +80,7 @@ func Setup() {
 
 	callHandler := callHandler.NewCallHandler(callSrv)
 	port := config.SeverAddress
+	log.Println(port)
 	if port == "" {
 		port = "2022"
 	}
@@ -96,7 +102,6 @@ func Setup() {
 	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
-
 
 	// USER
 	//create user

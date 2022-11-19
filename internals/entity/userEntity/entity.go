@@ -21,3 +21,16 @@ type CreateUserRes struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 }
+
+type LoginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginRes struct {
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Phone     string `json:"phone"`
+	Gender    string `json:"gender"`
+}

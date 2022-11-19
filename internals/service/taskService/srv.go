@@ -3,10 +3,12 @@ package taskService
 import (
 	"context"
 	"log"
+	"net/http"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/service/loggerService"
+	"test-va/internals/service/reminderService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
 	"time"
@@ -26,6 +28,7 @@ type taskSrv struct {
 	timeSrv       timeSrv.TimeService
 	validationSrv validationService.ValidationSrv
 	logger        loggerService.LogSrv
+	remindSrv     reminderService.ReminderSrv
 }
 
 func (t taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage) {
@@ -69,6 +72,7 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	req.CreatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
 	//set id
 	req.TaskId = uuid.New().String()
+	req.Status = "PENDING"
 	// insert into db
 	err = t.repo.Persist(ctx, req)
 	if err != nil {
@@ -84,7 +88,11 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	}
 
 	// create a reminder
-
+	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewCustomError(http.StatusInternalServerError, "Error Creating Reminder")
+	}
 	return &data, nil
 
 }
@@ -126,6 +134,6 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 	return task, nil
 
 }
-func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv) TaskService {
-	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv}
+func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv, reminderSrv reminderService.ReminderSrv) TaskService {
+	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv, remindSrv: reminderSrv}
 }
