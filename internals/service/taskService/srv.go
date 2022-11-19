@@ -19,6 +19,8 @@ type TaskService interface {
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage)
+	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ResponseMessage)
+	
 }
 
 type taskSrv struct {
@@ -126,6 +128,25 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 	return task, nil
 
 }
+func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ResponseMessage) {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	task, err := t.repo.GetListOfExpiredTasks(ctx)
+
+	if task == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+	}
+	return task, nil
+
+
+}
+
+
+
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv) TaskService {
 	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv}
 }
