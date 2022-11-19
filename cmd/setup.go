@@ -22,6 +22,7 @@ import (
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/userService"
 	"test-va/internals/service/validationService"
+	"test-va/utils"
 	"time"
 
 	"github.com/gin-contrib/gzip"
@@ -29,7 +30,12 @@ import (
 )
 
 func Setup() {
-	dsn := os.Getenv("dsn")
+	config, err := utils.LoadConfig("../")
+	if err != nil {
+		log.Fatal("cannot load config", err)
+	}
+
+	dsn := config.DataSourceName
 	if dsn == "" {
 		dsn = "hawaiian_comrade:YfqvJUSF43DtmH#^ad(K+pMI&@(team-ruler-todo.c6qozbcvfqxv.ap-south-1.rds.amazonaws.com:3306)/todoDB"
 	}
@@ -68,7 +74,7 @@ func Setup() {
 	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
-	port := os.Getenv("PORT")
+	port := config.SeverAddress
 	if port == "" {
 		port = "2022"
 	}
@@ -90,6 +96,7 @@ func Setup() {
 	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
+
 
 	// USER
 	//create user
