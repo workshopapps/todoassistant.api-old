@@ -1,0 +1,31 @@
+version: 2.1
+
+jobs:
+   Build:
+     working_directory: ~/circleci-go
+   
+     docker: 
+       - image: "circleci/golang"
+
+     steps: 
+       - checkout
+       - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+       
+       - run: 
+            go mod download
+
+       - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+
+workflows:
+  build: 
+      jobs: 
+         - build
+         
+
+
+
