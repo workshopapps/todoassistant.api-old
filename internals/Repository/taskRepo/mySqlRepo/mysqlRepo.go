@@ -54,6 +54,44 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 	return tasks, nil
 }
 
+func (s *sqlRepo) GetExpiredTasks(userId string, ctx context.Context) ([]*taskEntity.GetExpiredTaskRes, error) {
+
+	query := fmt.Sprintf(`
+		SELECT task_id, user_id, title, description, start_time, end_time, status
+		FROM Tasks
+		WHERE user_id = '%s' AND status = 'EXPIRED'
+	`, userId)
+
+	rows, err := s.conn.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*taskEntity.GetExpiredTaskRes
+
+	for rows.Next() {
+		var task taskEntity.GetExpiredTaskRes
+		err := rows.Scan(
+			&task.TaskId,
+			&task.UserId,
+			&task.Title,
+			&task.Description,
+			&task.StartTime,
+			&task.EndTime,
+			&task.Status,
+		)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, &task)
+	}
+	if rows.Err(); err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
 func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {

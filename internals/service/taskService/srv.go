@@ -19,6 +19,7 @@ type TaskService interface {
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage)
+	GetExpiredTasks(userId string) ([]*taskEntity.GetExpiredTaskRes, * ResponseEntity.ResponseMessage)
 }
 
 type taskSrv struct {
@@ -34,6 +35,19 @@ func (t taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRe
 	defer cancelFunc()
 
 	tasks, err := t.repo.GetPendingTasks(userId, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+	}
+	return tasks, nil
+}
+
+func (t taskSrv) GetExpiredTasks(userId string) ([]*taskEntity.GetExpiredTaskRes, *ResponseEntity.ResponseMessage) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	tasks, err := t.repo.GetExpiredTasks(userId, ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")

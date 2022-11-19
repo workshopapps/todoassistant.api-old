@@ -84,6 +84,9 @@ func Setup() {
 	// search route
 	r.GET("/search", handler.SearchTask)
 
+	// Get expired task
+	r.GET("/task/expired/:userId", handler.GetExpiredTasks)
+
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

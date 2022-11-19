@@ -102,3 +102,25 @@ func (t *taskHandler) GetTaskByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, task)
 }
+
+// handle Get expired Tasks
+
+func (t *taskHandler) GetExpiredTasks(c *gin.Context) {
+	userId := c.Params.ByName("userId")
+
+
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+		return
+	}
+
+	
+
+	task, errRes := t.srv.GetExpiredTasks(userId)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error saving into db", errRes, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
+}
