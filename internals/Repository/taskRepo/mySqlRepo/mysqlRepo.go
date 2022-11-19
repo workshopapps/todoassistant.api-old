@@ -12,6 +12,15 @@ type sqlRepo struct {
 	conn *sql.DB
 }
 
+func (s *sqlRepo) SetTaskToExpired(id string) error {
+	stmt := fmt.Sprintf(`UPDATE Tasks SET STATUS='EXPIRED' WHERE task_id ='%v'`, id)
+	_, err := s.conn.Exec(stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewSqlRepo(conn *sql.DB) taskRepo.TaskRepository {
 	return &sqlRepo{conn: conn}
 }
@@ -121,7 +130,7 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 	stmt := fmt.Sprintf(`
 		SELECT task_id, user_id, title, start_time
 		FROM Tasks
-		WHERE title LIKE '%s%'
+		WHERE title LIKE '%s%%'
 	`, title.SearchQuery)
 
 	rows, err := db.QueryContext(ctx, stmt)
