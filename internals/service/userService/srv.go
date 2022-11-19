@@ -59,7 +59,10 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	}
 	// check if user with that email exists already
 
-	//------GET BY EMAIL----------
+	_, err = u.repo.GetByEmail(req.Email)
+	if err == nil {
+		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "User Exists Already")
+	}
 
 	//hash password
 	password, err := u.cryptoSrv.HashPassword(req.Password)

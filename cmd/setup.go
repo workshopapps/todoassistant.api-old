@@ -26,8 +26,6 @@ import (
 	"test-va/utils"
 	"time"
 
-	"github.com/go-co-op/gocron"
-
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
