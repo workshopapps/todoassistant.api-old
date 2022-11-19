@@ -1,7 +1,6 @@
 package userService
 
 import (
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"test-va/internals/Repository/userRepo"
@@ -11,6 +10,8 @@ import (
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserSrv interface {
@@ -31,9 +32,23 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "Bad Input Request")
 	}
 	// FIND BY EMAIL
-
+	user, err := u.repo.GetByEmail(req.Email)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomError(http.StatusNotFound, "user not found in database")
+	}
 	//compare password
-	return nil, nil
+	err = u.cryptoSrv.ComparePassword(user.Password, req.Password)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomError(http.StatusUnauthorized, "invalid login credentials")
+	}
+	loggedInUser := userEntity.LoginRes{
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
+		Gender:    user.Gender,
+	}
+	return &loggedInUser, nil
 }
 
 func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ResponseMessage) {

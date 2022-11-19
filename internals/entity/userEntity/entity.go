@@ -34,3 +34,13 @@ type LoginRes struct {
 	Phone     string `json:"phone"`
 	Gender    string `json:"gender"`
 }
+
+type GetByEmailRes struct {
+	UserId    string `json:"user_id"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Phone     string `json:"phone"`
+	Gender    string `json:"gender"`
+}
