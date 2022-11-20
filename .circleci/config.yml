@@ -71,7 +71,7 @@ workflows:
 
          - Deploy-staging:
                 requires: 
-                    - build
+                    - Build
                     - publish-docker-image
                              
 
