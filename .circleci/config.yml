@@ -34,8 +34,8 @@ jobs:
     
    
    publish-docker-image:
-   executors:
-   steps:
+    executors:
+    steps:
          - checkout
          - setup_remote_docker
          - run:
