@@ -54,6 +54,16 @@ jobs:
             command : |
              ssh $SSH_USER@$SSH_HOST "pwd"
 
+   
+    Deploy-prod:
+     machine:
+        enabled: true
+     steps:
+        - run:
+            name: Deploy Over SSH
+            command : |
+             ssh $SSH_PROD_USER@$SSH_PROD_HOST "pwd"
+
 
 
 workflows:
@@ -68,6 +78,7 @@ workflows:
                      branches:
                        only: 
                          - main
+                         - dev
 
          - Deploy-staging:
                 requires: 
@@ -77,6 +88,14 @@ workflows:
                       branches:
                         only:
                           - main
+         - Deploy-prod:
+                requires:
+                    - Build
+                    - publish-docker-image
+                filters:
+                      branches:
+                         only:
+                           - dev 
 
                           
                              
