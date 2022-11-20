@@ -55,7 +55,7 @@ jobs:
              ssh $SSH_USER@$SSH_HOST "pwd"
 
    
-    Deploy-prod:
+   Deploy-prod:
      machine:
         enabled: true
      steps:
