@@ -62,7 +62,7 @@ workflows:
          - Build
          - publish-docker-image:
                  requires:
-                   - build
+                   - Build
 
                  filters: 
                      branches:
