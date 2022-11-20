@@ -45,6 +45,19 @@ jobs:
              docker build . -t ocheotobo/backend:v1
              docker push ocheotobo/backend:v1
 
+   Deploy-staging:
+    machine:
+        enabled: true
+    steps:
+        - run:
+            name: Deploy Over SSH
+            command : |
+             ssh $SSH_USER@$SSH_HOST 
+             echo "hello"
+
+
+
+
 
 
 workflows:
@@ -56,6 +69,7 @@ workflows:
                      branches:
                        only: 
                          - main
+         - Deploy-staging
                          
 
                           
