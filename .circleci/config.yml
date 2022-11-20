@@ -92,10 +92,11 @@ workflows:
                 requires:
                     - Build
                     - publish-docker-image
+                type: approval
                 filters:
                       branches:
                          only:
-                           - dev 
+                           - main
 
                           
                              
