@@ -107,6 +107,7 @@ func Setup() {
 	//create user
 	r.POST("/user", userHandler.CreateUser)
 	r.POST("/user/login", userHandler.Login)
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})

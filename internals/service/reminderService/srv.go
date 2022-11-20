@@ -49,6 +49,12 @@ func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 
 	// find time till time is expired
 	fmt.Println(dDate)
+	min := dDate.Minute()
+	sec := dDate.Second()
+
+	fmt.Println(min, sec)
+	ttn := fmt.Sprintf(`"%v:%v"`, min, sec)
+	fmt.Println(ttn)
 
 	duration := time.Until(dDate)
 

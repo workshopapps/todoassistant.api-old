@@ -27,11 +27,11 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 	}
 	user, errorRes := u.srv.SaveUser(&req)
 	if errorRes != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error saving into db", errorRes, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "error saving into db", errorRes, nil))
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "created user successfully", user, nil))
 }
 
 func (u *userHandler) Login(c *gin.Context) {
