@@ -8,4 +8,6 @@ WORKDIR /home/backend/
 
 RUN go build -o main
 
-CMD ["/app/main"]
+EXPOSE  2022
+
+ENTRYPOINT [ "go", "run", "main.go" ]
