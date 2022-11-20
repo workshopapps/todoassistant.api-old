@@ -42,7 +42,7 @@ jobs:
             name: Publish docker image to docker hub
             command : |
              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-             docker build . -t ocheotobo/backend:v1
+             docker build . -t ocheotobo/backend:latest
              docker push ocheotobo/backend:v1
 
    Deploy-staging:
@@ -52,11 +52,7 @@ jobs:
         - run:
             name: Deploy Over SSH
             command : |
-             ssh $SSH_USER@$SSH_HOST 
-             echo "hello"
-
-
-
+             ssh $SSH_USER@$SSH_HOST "pwd""
 
 
 
@@ -65,12 +61,19 @@ workflows:
       jobs: 
          - Build
          - publish-docker-image:
+                 requires:
+                   - build
+
                  filters: 
                      branches:
                        only: 
                          - main
-         - Deploy-staging
-                         
+
+         - Deploy-staging:
+                requires: 
+                    - build
+                    - publish-docker-image
+                             
 
                           
          
