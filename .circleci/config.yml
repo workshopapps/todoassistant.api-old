@@ -52,7 +52,8 @@ jobs:
         - run:
             name: Deploy Over SSH
             command : |
-             ssh $SSH_USER@$SSH_HOST "cd todoassistant.api" || "docker-compose down" || "docker-compose up -d" 
+             ssh $SSH_USER@$SSH_HOST  "docker-compose pull" 
+             ssh $SSH_USER@$SSH_HOST  "docker-compose up -d" 
             
    Deploy-prod:
      machine:
@@ -61,7 +62,10 @@ jobs:
         - run:
             name: Deploy Over SSH
             command : |
-             ssh $SSH_PROD_USER@$SSH_PROD_HOST "cd todo-docker" || "docker-compose down" || "docker-compose up -d"
+             ssh $SSH_PROD_USER@$SSH_PROD_HOST "docker-compose pull"
+             ssh $SSH_PROD_USER@$SSH_PROD_HOST "docker-compose up -d"
+             
+             
 
 
 
