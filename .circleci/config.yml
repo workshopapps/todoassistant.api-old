@@ -92,11 +92,11 @@ workflows:
                     - Build
                     - publish-docker-image
                     - Deploy-staging
-                type: approval
+    
                 filters:
                       branches:
                          only:
-                           - dev
+                           - main
 
 
                            
