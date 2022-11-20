@@ -43,7 +43,7 @@ jobs:
             command : |
              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
              docker build . -t ocheotobo/backend:latest
-             docker push ocheotobo/backend:v1
+             docker push ocheotobo/backend:latest
 
    Deploy-staging:
     machine:
