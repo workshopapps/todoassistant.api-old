@@ -7,7 +7,7 @@ type TaskFile struct {
 
 type CreateTaskReq struct {
 	TaskId      string     `json:"task_id"`
-	UserId      string     `json:"user_id" validate:"required"`
+	UserId      string     `json:"user_id"`
 	Title       string     `json:"title" validate:"required"`
 	Description string     `json:"description"`
 	Files       []TaskFile `json:"files"`
@@ -36,16 +36,13 @@ type GetPendingTasksRes struct {
 	Status      string `json:"status"`
 }
 
-
-
-
 type GetPendingTasks struct {
 	TaskId      string `json:"task_id"`
 	UserId      string `json:"user_id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	EndTime     string `json:"end_time"`
-// request for searched task
+	// request for searched task
 }
 
 type GetTasksByIdRes struct {
@@ -62,26 +59,25 @@ type GetTasksByIdRes struct {
 }
 
 type SearchTitleReq struct {
-    Q       string `form:"q" validate:"required"`
+	Q string `form:"q" validate:"required"`
 }
 
 // params for searched task
 type SearchTitleParams struct {
-    SearchQuery string `json:"search_query"`
+	SearchQuery string `json:"search_query"`
 }
 
 // response for searched task
 type SearchTaskRes struct {
-	TaskId      string  `json:"task_id"`
-	Title       string  `json:"title"`
-	UserId      string  `json:"user_id"`
-	CreatedAt   string  `json:"created_at"`
-
+	TaskId    string `json:"task_id"`
+	Title     string `json:"title"`
+	UserId    string `json:"user_id"`
+	CreatedAt string `json:"created_at"`
 }
 
 type GetAllExpiredRes struct {
-	TaskId      string  `json:"task_id"`
-	Title       string  `json:"title"`
-	UserId      string  `json:"user_id"`
-	CreatedAt   string  `json:"created_at"`
+	TaskId    string `json:"task_id"`
+	Title     string `json:"title"`
+	UserId    string `json:"user_id"`
+	CreatedAt string `json:"created_at"`
 }
