@@ -1,7 +1,6 @@
 package userService
 
 import (
-	"log"
 	"net/http"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/ResponseEntity"
@@ -61,7 +60,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 
 	_, err = u.repo.GetByEmail(req.Email)
 	if err == nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "User Exists Already")
+		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "User with email Exists Already")
 	}
 
 	//hash password
@@ -78,8 +77,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// save to DB
 	err = u.repo.Persist(req)
 	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(http.StatusInternalServerError, "Error Saving To DB")
+		return nil, ResponseEntity.NewCustomError(500, err.Error())
 	}
 
 	data := &userEntity.CreateUserRes{
