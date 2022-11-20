@@ -46,9 +46,9 @@ jobs:
              docker push teamrulerhng9/backend:latest
 
    Deploy-staging:
-    machine:
+     machine:
         enabled: true
-    steps:
+     steps:
         - run:
             name: Deploy Over SSH
             command : |
