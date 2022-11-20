@@ -52,6 +52,7 @@ jobs:
         - run:
             name: Deploy Over SSH
             command : |
+             ssh $SSH_USER@$SSH_HOST "cd todoassistant.api" 
              ssh $SSH_USER@$SSH_HOST "docker-compose down" 
              ssh $SSH_USER@$SSH_HOST "docker-compose up -d" 
 
