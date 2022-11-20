@@ -111,6 +111,10 @@ func Setup() {
 		c.String(http.StatusOK, "pong")
 	})
 
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Welcome to Ticked Backend Server - V1.0.0")
+	})
+
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"name":    "Not Found",
