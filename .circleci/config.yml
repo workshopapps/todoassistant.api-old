@@ -42,8 +42,8 @@ jobs:
             name: Publish docker image to docker hub
             command : |
              echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-             docker build . -t ocheotobo/backend:latest
-             docker push ocheotobo/backend:latest
+             docker build . -t teamrulerhng9/backend:latest
+             docker push teamrulerhng9/backend:latest
 
    Deploy-staging:
     machine:
@@ -73,6 +73,10 @@ workflows:
                 requires: 
                     - Build
                     - publish-docker-image
+                filters:
+                      branches:
+                        only:
+                          - main
                              
 
                           
