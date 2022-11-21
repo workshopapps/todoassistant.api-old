@@ -3,12 +3,11 @@ package reminderService
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-co-op/gocron"
 	"log"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/taskEntity"
 	"time"
-
-	"github.com/go-co-op/gocron"
 )
 
 type ReminderSrv interface {
@@ -46,33 +45,12 @@ func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 	if err != nil {
 		return err
 	}
-
-	// find time till time is expired
-	fmt.Println(dDate)
-	min := dDate.Minute()
-	sec := dDate.Second()
-
-	fmt.Println(min, sec)
-	ttn := fmt.Sprintf(`"%v:%v"`, min, sec)
-	fmt.Println(ttn)
-
-	duration := time.Until(dDate)
-
-	// convert to minutes
-	minutes := duration.Minutes()
-	ss := fmt.Sprintf("%.2fm", minutes)
-	log.Println(ss)
-
-	var count int
-	s.Every("ss").Do(func() {
-		if count >= 1 {
-			log.Println("setting status to pending")
-			r.repo.SetTaskToExpired(taskId)
-		}
-		count++
+	s.Every(1).StartAt(dDate).Do(func() {
+		log.Println("setting status to expired")
+		r.repo.SetTaskToExpired(taskId)
 	})
 
-	s.LimitRunsTo(2)
+	s.LimitRunsTo(1)
 	s.StartAsync()
 	return nil
 }

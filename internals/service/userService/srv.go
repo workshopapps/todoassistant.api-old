@@ -1,7 +1,7 @@
 package userService
 
 import (
-	"net/http"
+	"fmt"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/userEntity"
@@ -14,8 +14,8 @@ import (
 )
 
 type UserSrv interface {
-	SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ResponseMessage)
-	Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ResponseMessage)
+	SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ServiceError)
+	Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError)
 }
 
 type userSrv struct {
@@ -25,20 +25,20 @@ type userSrv struct {
 	cryptoSrv cryptoService.CryptoSrv
 }
 
-func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ResponseMessage) {
+func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "Bad Input Request")
+		return nil, ResponseEntity.NewValidatingError(err)
 	}
 	// FIND BY EMAIL
 	user, err := u.repo.GetByEmail(req.Email)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusNotFound, "user not found in database")
+		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("No User Found in DB: %v", err))
 	}
 	//compare password
 	err = u.cryptoSrv.ComparePassword(user.Password, req.Password)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusUnauthorized, "invalid login credentials")
+		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
 	}
 	loggedInUser := userEntity.LoginRes{
 		Email:     user.Email,
@@ -50,23 +50,23 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	return &loggedInUser, nil
 }
 
-func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ResponseMessage) {
+func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ServiceError) {
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "Bad Input Request")
+		return nil, ResponseEntity.NewValidatingError(err)
 	}
 	// check if user with that email exists already
 
 	_, err = u.repo.GetByEmail(req.Email)
 	if err == nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusBadRequest, "User with email Exists Already")
+		return nil, ResponseEntity.NewInternalServiceError("Error Already Exists")
 	}
 
 	//hash password
 	password, err := u.cryptoSrv.HashPassword(req.Password)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(http.StatusInternalServerError, "Error Hashing Password")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	//set time and etc
 	req.UserId = uuid.New().String()
@@ -77,7 +77,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// save to DB
 	err = u.repo.Persist(req)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(500, err.Error())
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
 	data := &userEntity.CreateUserRes{

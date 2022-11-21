@@ -139,7 +139,7 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 	}
 	defer rows.Close()
 
-	Searchedtasks := []*taskEntity.SearchTaskRes{}
+	var Searchedtasks []*taskEntity.SearchTaskRes
 
 	for rows.Next() {
 		var singleTask taskEntity.SearchTaskRes
@@ -223,8 +223,6 @@ func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.G
 
 	return &res, nil
 }
-
-
 
 func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error) {
 

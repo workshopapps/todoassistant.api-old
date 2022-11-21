@@ -3,7 +3,6 @@ package taskService
 import (
 	"context"
 	"log"
-	"net/http"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
@@ -17,11 +16,11 @@ import (
 )
 
 type TaskService interface {
-	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage)
-	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage)
-	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage)
-	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage)
-	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ResponseMessage)
+	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError)
+	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError)
+	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError)
+	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
+	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -32,7 +31,7 @@ type taskSrv struct {
 	remindSrv     reminderService.ReminderSrv
 }
 
-func (t taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ResponseMessage) {
+func (t *taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -40,12 +39,12 @@ func (t taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRe
 	tasks, err := t.repo.GetPendingTasks(userId, ctx)
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	return tasks, nil
 }
 
-func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ResponseMessage) {
+func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -55,18 +54,18 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	err := t.validationSrv.Validate(req)
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(400, "Bad system input")
+		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
 	}
 
 	//check if timeDueDate and StartDate is valid
 	err = t.timeSrv.CheckFor339Format(req.EndTime)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(400, "Bad Time Input")
+		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
 	}
 
 	err = t.timeSrv.CheckFor339Format(req.StartTime)
 	if err != nil {
-		return nil, ResponseEntity.NewCustomError(400, "Bad Time Input")
+		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
 	}
 
 	//set time
@@ -77,8 +76,8 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	// insert into db
 	err = t.repo.Persist(ctx, req)
 	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(500, "Error Saving to Database")
+		log.Println(err, "rrrr")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	data := taskEntity.CreateTaskRes{
 		TaskId:      req.TaskId,
@@ -87,20 +86,21 @@ func (t taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,
 	}
-	log.Println(req.EndTime)
+
 	// create a reminder
 	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
 
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(http.StatusInternalServerError, "Error Creating Reminder")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	return &data, nil
 
 }
 
 // search task by name func
-func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ResponseMessage) {
+
+func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -108,18 +108,17 @@ func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity
 	err := t.validationSrv.Validate(title)
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(400, "Bad system input")
+		return nil, ResponseEntity.NewValidatingError(err)
 	}
 	tasks, err := t.repo.SearchTasks(title, ctx)
-
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	return tasks, nil
 }
 
-func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ResponseMessage) {
+func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -131,13 +130,13 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 	}
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	return task, nil
 
 }
 
-func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ResponseMessage) {
+func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 	task, err := t.repo.GetListOfExpiredTasks(ctx)
@@ -147,7 +146,7 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 	}
 	if err != nil {
 		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	return task, nil
 
