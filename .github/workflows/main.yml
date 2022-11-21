@@ -43,26 +43,26 @@ jobs:
     
     
     Build-and-push-image:
-     runs-on: ubuntu-latest
-     needs: Build
-     if: success() && github.ref == 'refs/heads/main'
+      runs-on: ubuntu-latest
+      needs: Build
+      if: success() && github.ref == 'refs/heads/main'
      
-     steps:
-      - name: checkout code
-      - uses: actions/checkout@v2
+      steps:
+       - name: checkout code
+       - uses: actions/checkout@v2
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
+       - name: Login to DockerHub
+         uses: docker/login-action@v2
+         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
         
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: teamrulerhng9/backend:latest
+       - name: Build and push
+         uses: docker/build-push-action@v3
+         with:
+           context: .
+           push: true
+           tags: teamrulerhng9/backend:latest
 
       
       
