@@ -87,5 +87,5 @@ jobs:
                     password: ${{ secrets.Password }}
                     port: ${{ secrets.PORT }}
                     script: |
-                       sudo docker-compose down pull
-                        sudo docker-compose up -d
+                       sudo docker-compose pull
+                       sudo docker-compose up -d
