@@ -33,7 +33,7 @@ jobs:
     Build-image:
            runs-on: ubuntu-latest
            needs: Build
-           if: success() && github.ref == 'refs/heads/staging'
+           if: success() && github.ref == 'refs/heads/main'
            steps:
              - name: build image
                run: |
@@ -45,7 +45,7 @@ jobs:
     Deploy-staging:
            runs-on: ubuntu-latest
            needs: Build
-           if: success() && github.ref == 'refs/heads/staging' 
+           if: success() && github.ref == 'refs/heads/main' 
            steps:
 
              - name: deploy to staging server
