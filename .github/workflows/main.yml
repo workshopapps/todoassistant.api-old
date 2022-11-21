@@ -48,12 +48,13 @@ jobs:
       if: success() && github.ref == 'refs/heads/main'
      
       steps:
-      
+       - name: checkout code
+         uses: actions/checkout@v2
+         
        - name: set up QEMU
          uses: docker/setup-qemu-action@v2
        
-       #- name: checkout code
-       #- uses: actions/checkout@v2
+       
        - name: set up docker buildx
          uses: docker/setup-buildx-action@v2 
          with:
