@@ -26,6 +26,16 @@ func NewSqlRepo(conn *sql.DB) taskRepo.TaskRepository {
 }
 
 func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEntity.GetPendingTasksRes, error) {
+	userIdQuery := fmt.Sprintf(`
+		SELECT user_id
+		FROM Users
+		WHERE user_id = '%s'
+	`, userId)
+	var userIdHolder interface{}
+	err := s.conn.QueryRowContext(ctx, userIdQuery).Scan(&userIdHolder)
+	if err != nil {
+		return nil, err
+	}
 
 	query := fmt.Sprintf(`
 		SELECT task_id, user_id, title, description, start_time, end_time, status
@@ -37,8 +47,8 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
+	defer rows.Close()
 	var tasks []*taskEntity.GetPendingTasksRes
 
 	for rows.Next() {
@@ -223,8 +233,6 @@ func (s *sqlRepo) GetTaskByID(taskId string, ctx context.Context) (*taskEntity.G
 
 	return &res, nil
 }
-
-
 
 func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error) {
 
