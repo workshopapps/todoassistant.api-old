@@ -45,8 +45,11 @@ func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 
 	tasks, errRes := t.srv.GetPendingTasks(userId)
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		c.AbortWithStatusJSON(errRes.ResponseCode, ResponseEntity.BuildErrorResponse(errRes.ResponseCode, errRes.Message, errRes, nil))
 		return
+	}
+	if len(tasks) < 1 {
+		tasks = []*taskEntity.GetPendingTasksRes{}
 	}
 	c.JSON(http.StatusOK, tasks)
 }

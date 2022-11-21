@@ -2,6 +2,8 @@ package taskService
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"test-va/internals/Repository/taskRepo"
@@ -39,8 +41,12 @@ func (t taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRe
 
 	tasks, err := t.repo.GetPendingTasks(userId, ctx)
 	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ResponseEntity.NewCustomError(400, "Invalid UserId")
+		default:
+			return nil, ResponseEntity.NewCustomError(500, "Internal Server Error")
+		}
 	}
 	return tasks, nil
 }
