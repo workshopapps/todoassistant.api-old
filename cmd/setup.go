@@ -56,7 +56,7 @@ func Setup() {
 	// create service
 	srv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger)
 
-	callSrv := callService.NewCallSrv(callRepo,timeSrv, validationSrv, logger)
+	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(srv)
 
@@ -83,7 +83,6 @@ func Setup() {
 	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
-
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
