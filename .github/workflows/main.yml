@@ -36,7 +36,7 @@ jobs:
            #steps:
             # - name: build image
              #  run: |
-                    docker build . -t teamrulerhng9/frontend:latest
+                    #docker build . -t teamrulerhng9/frontend:latest
              #- name: deploy image
               # run: |
                #     docker push teamrulerhng9/frontend:latest
