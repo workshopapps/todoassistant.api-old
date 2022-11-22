@@ -71,7 +71,7 @@ func Setup() {
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
 
-	callSrv := callService.NewCallSrv(callRepo,timeSrv, validationSrv, logger)
+	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(taskSrv)
 	userHandler := userHandler.NewUserHandler(userSrv)
