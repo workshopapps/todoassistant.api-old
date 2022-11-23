@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"os"
@@ -58,7 +59,21 @@ func Setup() {
 	timeSrv := timeSrv.NewTimeStruct()
 
 	// create cron tasks for checking if time is due
-	reminderSrv := reminderService.NewReminderSrv(conn, repo)
+
+	s := gocron.NewScheduler(time.UTC)
+	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
+
+	s.Every(5).Minutes().Do(func() {
+		log.Println("checking for 5 minutes reminders")
+		reminderSrv.SetReminderEvery5Min()
+	})
+
+	s.Every(30).Minutes().Do(func() {
+		log.Println("checking for 30 minutes reminders")
+		reminderSrv.SetReminderEvery30Min()
+	})
+
+	s.StartAsync()
 
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
