@@ -16,6 +16,10 @@ import (
 type UserSrv interface {
 	SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ServiceError)
 	Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError)
+	GetUsers(page int) ([]*userEntity.UsersRes, error)
+	GetUser(user_id string) (*userEntity.GetByIdRes, error)
+	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, *ResponseEntity.ServiceError)
+	DeleteUser(user_id string) error
 }
 
 type userSrv struct {
@@ -60,7 +64,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 
 	_, err = u.repo.GetByEmail(req.Email)
 	if err == nil {
-		return nil, ResponseEntity.NewInternalServiceError("Error Already Exists")
+		return nil, ResponseEntity.NewInternalServiceError("Email Already Exists")
 	}
 
 	//hash password
@@ -90,6 +94,52 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// set Reminder
 
 	return data, nil
+}
+
+func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, *ResponseEntity.ServiceError) {
+	err := u.validator.Validate(req)
+	if err != nil {
+		return nil, ResponseEntity.NewValidatingError(err)
+	}
+
+	result, err := u.repo.UpdateUser(req, userId)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+
+	return result, nil
+}
+
+func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
+	users, err := u.repo.GetUsers(page)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
+	user, err := u.repo.GetById(user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (u *userSrv) DeleteUser(user_id string) error {
+	_, idErr := u.repo.GetById(user_id)
+	if idErr != nil {
+		return idErr
+	}
+
+	delErr := u.repo.DeleteUser(user_id)
+	if delErr != nil {
+		return delErr
+	}
+
+	return nil
 }
 
 func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) UserSrv {
