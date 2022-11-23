@@ -1,0 +1,97 @@
+package userService
+
+import (
+	"fmt"
+	"test-va/internals/Repository/userRepo"
+	"test-va/internals/entity/ResponseEntity"
+	"test-va/internals/entity/userEntity"
+	"test-va/internals/service/cryptoService"
+	"test-va/internals/service/timeSrv"
+	"test-va/internals/service/validationService"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type UserSrv interface {
+	SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ServiceError)
+	Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError)
+}
+
+type userSrv struct {
+	repo      userRepo.UserRepository
+	validator validationService.ValidationSrv
+	timeSrv   timeSrv.TimeService
+	cryptoSrv cryptoService.CryptoSrv
+}
+
+func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
+	err := u.validator.Validate(req)
+	if err != nil {
+		return nil, ResponseEntity.NewValidatingError(err)
+	}
+	// FIND BY EMAIL
+	user, err := u.repo.GetByEmail(req.Email)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("No User Found in DB: %v", err))
+	}
+	//compare password
+	err = u.cryptoSrv.ComparePassword(user.Password, req.Password)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
+	}
+	loggedInUser := userEntity.LoginRes{
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
+		Gender:    user.Gender,
+	}
+	return &loggedInUser, nil
+}
+
+func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ServiceError) {
+	// validate request
+	err := u.validator.Validate(req)
+	if err != nil {
+		return nil, ResponseEntity.NewValidatingError(err)
+	}
+	// check if user with that email exists already
+
+	_, err = u.repo.GetByEmail(req.Email)
+	if err == nil {
+		return nil, ResponseEntity.NewInternalServiceError("Error Already Exists")
+	}
+
+	//hash password
+	password, err := u.cryptoSrv.HashPassword(req.Password)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	//set time and etc
+	req.UserId = uuid.New().String()
+	req.Password = password
+	req.AccountStatus = "ACTIVE"
+	req.DateCreated = u.timeSrv.CurrentTime().Format(time.RFC3339)
+
+	// save to DB
+	err = u.repo.Persist(req)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+
+	data := &userEntity.CreateUserRes{
+		UserId:    req.UserId,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Phone:     req.Phone,
+	}
+	// set Reminder
+
+	return data, nil
+}
+
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv}
+}
