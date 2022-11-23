@@ -14,8 +14,8 @@ type Token struct{
 }
 
 type TokenSrv interface{
-	createToken(email string, id string) (string, string, error)
-	validateToken(token string) (*Token,error)
+	CreateToken(email string, id string) (string, string, error)
+	ValidateToken(token string) (*Token,error)
 }
 
 type tokenSrv struct {
@@ -23,7 +23,7 @@ type tokenSrv struct {
 }
 
 
-func (t *tokenSrv) createToken(email string, id string) (string, string, error){
+func (t *tokenSrv) CreateToken(email string, id string) (string, string, error){
 	tokenDetails := &Token{
 		Email: email,
 		Id: id,
@@ -36,7 +36,7 @@ func (t *tokenSrv) createToken(email string, id string) (string, string, error){
 		Email: email,
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(30)).Unix(),
+			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(60)).Unix(),
 		},
 	}
 
@@ -51,7 +51,7 @@ func (t *tokenSrv) createToken(email string, id string) (string, string, error){
 	return token, refreshToken, err
 }
 
-func (t *tokenSrv) validateToken( tokenUrl string) (*Token, error){
+func (t *tokenSrv) ValidateToken( tokenUrl string) (*Token, error){
 		token, err := jwt.ParseWithClaims(
 			tokenUrl,
 			&Token{},
@@ -75,6 +75,6 @@ func (t *tokenSrv) validateToken( tokenUrl string) (*Token, error){
 }
 
 
-func NewTokenSrv(token string) TokenSrv {
-	return &tokenSrv{token}
+func NewTokenSrv(secret string) TokenSrv {
+	return &tokenSrv{secret}
 }
