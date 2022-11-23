@@ -12,7 +12,8 @@ import (
 
 type ReminderSrv interface {
 	SetReminder(dueDate, taskId string) error
-	SetReminderEveryXMin(x int)
+	SetReminderEvery30Min()
+	SetReminderEvery5Min()
 }
 
 type reminderSrv struct {
@@ -21,7 +22,7 @@ type reminderSrv struct {
 	repo taskRepo.TaskRepository
 }
 
-func (r *reminderSrv) SetReminderEveryXMin(x int) {
+func (r *reminderSrv) SetReminderEvery5Min() {
 	tasks, err := getPendingTasks(r.conn)
 	if err != nil {
 		log.Println(err)
@@ -29,12 +30,72 @@ func (r *reminderSrv) SetReminderEveryXMin(x int) {
 	}
 
 	for _, task := range tasks {
-		//check if time until is <=30 minutes
-		yes := checkIfTimeElapsedXMinutes(task.EndTime, x)
+		//check if time until is <=30 minutes or 5 minutes
+		yes := checkIfTimeElapsed5Minutes(task.EndTime)
+
 		if yes {
-			fmt.Println("notification sent.....")
+			fmt.Println("notification sent")
+			// send a notification
 			continue
 		}
+	}
+}
+
+func (r *reminderSrv) SetReminderEvery30Min() {
+	tasks, err := getPendingTasks(r.conn)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	for _, task := range tasks {
+		//check if time until is <=30 minutes and greater than 5 minutes
+		yes := checkIfTimeElapsed30Minutes(task.EndTime)
+
+		if yes {
+			fmt.Println("notification sent")
+			// send a notification
+			continue
+		}
+	}
+}
+
+func checkIfTimeElapsed30Minutes(endTime string) bool {
+	dueTime, err := time.Parse(time.RFC3339, endTime)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	if dueTime.Before(time.Now()) {
+		return false
+	}
+
+	minutes := time.Until(dueTime).Minutes()
+	if minutes <= float64(30) && minutes > float64(5) {
+		return true
+	} else {
+		return false
+	}
+}
+
+func checkIfTimeElapsed5Minutes(due string) bool {
+
+	dueTime, err := time.Parse(time.RFC3339, due)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	if dueTime.Before(time.Now()) {
+		return false
+	}
+
+	minutes := time.Until(dueTime).Minutes()
+	if minutes <= float64(5) {
+		return true
+	} else {
+		return false
 	}
 }
 
@@ -55,16 +116,15 @@ func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 	return nil
 }
 
-func NewReminderSrv(conn *sql.DB, taskrepo taskRepo.TaskRepository) ReminderSrv {
-	s := gocron.NewScheduler(time.UTC)
+func NewReminderSrv(s *gocron.Scheduler, conn *sql.DB, taskrepo taskRepo.TaskRepository) ReminderSrv {
 	return &reminderSrv{cron: s, conn: conn, repo: taskrepo}
 }
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
-SELECT task_id, user_id, title,description, end_time
-FROM Tasks
-WHERE status = 'PENDING';
+		SELECT task_id, user_id, title,description, end_time
+		FROM Tasks
+		WHERE status = 'PENDING';
 `)
 	var tasks []taskEntity.GetPendingTasks
 	query, err := conn.Query(stmt)
@@ -80,25 +140,4 @@ WHERE status = 'PENDING';
 		tasks = append(tasks, task)
 	}
 	return tasks, nil
-}
-
-func checkIfTimeElapsedXMinutes(due string, x int) bool {
-	dueTime, err := time.Parse(time.RFC3339, due)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-
-	minutes := time.Until(dueTime).Minutes()
-	log.Println(minutes)
-	if minutes <= float64(x) {
-		return true
-	} else {
-		return false
-	}
-}
-
-func (r *reminderSrv) work(id string) {
-	log.Println("Doing... set task status to expired")
-	r.repo.SetTaskToExpired(id)
 }
