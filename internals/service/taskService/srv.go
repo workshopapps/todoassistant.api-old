@@ -237,13 +237,12 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.CreateTaskReq) (*t
 
 	if req.TaskId == "" {
 		task.TaskId = taskId
-		return nil, ResponseEntity.NewInternalServiceError(err)
 	} else {
 		task.TaskId = req.TaskId
 
 	}
 	if req.Title == "" {
-		task.TaskId = task.TaskId
+		task.Title = task.Title
 	} else {
 		task.Title = req.Title
 	}
@@ -254,16 +253,16 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.CreateTaskReq) (*t
 		task.Description = req.Description
 	}
 
-	if req.Description == "" {
-		task.Description = task.Description
+	if req.EndTime == "" {
+		task.EndTime = task.EndTime
 	} else {
 		task.EndTime = req.EndTime
 	}
 
 	task.UpdatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
 
-	//persit the task
-	err = t.repo.Persist(ctx, req)
+	//Update Task
+	err = t.repo.EditTaskById(taskId, req, ctx)
 
 	if err != nil {
 		log.Println(err, "error creating data")
@@ -289,4 +288,3 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.CreateTaskReq) (*t
 	return &data, nil
 
 }
-

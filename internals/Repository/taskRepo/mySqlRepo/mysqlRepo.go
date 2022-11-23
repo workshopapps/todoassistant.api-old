@@ -379,23 +379,23 @@ func (s *sqlRepo) UpdateTaskStatusByID(taskId string, status string, ctx context
 	return nil
 }
 
-//func (s *sqlRepo) EditTaskById(taskId string, status string, ctx context.Context) error {
-//	//var res taskEntity.GetTasksByIdRes
-//	tx, err := s.conn.BeginTx(ctx, nil)
-//	if err != nil {
-//		return err
-//	}
-//
-//	defer func() {
-//		if err != nil {
-//			tx.Rollback()
-//		} else {
-//			tx.Commit()
-//		}
-//	}()
-//	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = %s WHERE task_id = %s`, status, taskId))
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	return nil
-//}
+func (s *sqlRepo) EditTaskById(taskId string, req *taskEntity.CreateTaskReq, ctx context.Context) error {
+	//var res taskEntity.GetTasksByIdRes
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET task_id = %s, title = %s, description = %s, end_time = %s, updated_at = %s WHERE task_id = %s`, req.TaskId, req.Title, req.Description, req.EndTime, req.UpdatedAt))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
