@@ -14,8 +14,8 @@ type Token struct{
 }
 
 type TokenSrv interface{
-	createToken(email string, id string) (string, string, error)
-	validateToken(token string) (*Token,error)
+	CreateToken(email string, id string) (string, string, error)
+	ValidateToken(token string) (*Token,error)
 }
 
 type tokenSrv struct {
@@ -75,6 +75,6 @@ func (t *tokenSrv) validateToken( tokenUrl string) (*Token, error){
 }
 
 
-func NewTokenSrv(token string) TokenSrv {
-	return &tokenSrv{token}
+func NewTokenSrv(secret string) TokenSrv {
+	return &tokenSrv{secret}
 }
