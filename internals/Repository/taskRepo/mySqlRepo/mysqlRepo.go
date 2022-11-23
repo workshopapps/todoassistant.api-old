@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/taskEntity"
 )
@@ -269,3 +270,132 @@ func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetA
 	}
 	return Searchedtasks, nil
 }
+
+//Get All task
+func (s *sqlRepo) GetAllTasks(ctx context.Context) ([]*taskEntity.GetAllTaskRes, error) {
+
+	//tx, err := s.conn.BeginTx(ctx, nil)
+	db, err := s.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := fmt.Sprintf(`
+		SELECT task_id, user_id, title, start_time, end_time
+		FROM Tasks`)
+
+	rows, err := db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var AllTasks []*taskEntity.GetAllTaskRes
+
+	for rows.Next() {
+		var singleTask taskEntity.GetAllTaskRes
+
+		err := rows.Scan(
+			&singleTask.TaskId,
+			&singleTask.UserId,
+			&singleTask.Title,
+			&singleTask.CreatedAt,
+			&singleTask.EndTime,
+		)
+		if err != nil {
+			return nil, err
+		}
+		AllTasks = append(AllTasks, &singleTask)
+	}
+	return AllTasks, nil
+}
+
+//Delete task by id
+func (s *sqlRepo) DeleteTaskByID(taskId string, ctx context.Context) error {
+
+	//var res taskEntity.GetTasksByIdRes
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Tasks where WHERE task_id = '%s'`, taskId))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
+//Delete All
+func (s *sqlRepo) DeleteAllTask(ctx context.Context) error {
+
+	//var res taskEntity.GetTasksByIdRes
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Tasks `))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
+func (s *sqlRepo) UpdateTaskStatusByID(taskId string, status string, ctx context.Context) error {
+	//var res taskEntity.GetTasksByIdRes
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = %s WHERE task_id = %s`, status, taskId))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+//func (s *sqlRepo) EditTask(taskId string, status string, ctx context.Context) error {
+//	//var res taskEntity.GetTasksByIdRes
+//	tx, err := s.conn.BeginTx(ctx, nil)
+//	if err != nil {
+//		return err
+//	}
+//
+//	defer func() {
+//		if err != nil {
+//			tx.Rollback()
+//		} else {
+//			tx.Commit()
+//		}
+//	}()
+//	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = %s WHERE task_id = %s`, status, taskId))
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	return nil
+//}

@@ -12,4 +12,8 @@ type TaskRepository interface {
 	SearchTasks(title *taskEntity.SearchTitleParams, ctx context.Context) ([]*taskEntity.SearchTaskRes, error)
 	GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error)
 	SetTaskToExpired(id string) error
+	GetAllTasks(ctx context.Context) ([]*taskEntity.GetAllTaskRes, error)
+	DeleteTaskByID(id string, ctx context.Context) error
+	DeleteAllTask(ctx context.Context) error
+	UpdateTaskStatusByID(taskId string, status string, ctx context.Context) error
 }

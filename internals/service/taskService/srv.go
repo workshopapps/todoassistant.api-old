@@ -21,6 +21,9 @@ type TaskService interface {
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
 	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError)
+	DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
+	GetAllTask() ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError)
+	DeleteAllTask() (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -29,6 +32,10 @@ type taskSrv struct {
 	validationSrv validationService.ValidationSrv
 	logger        loggerService.LogSrv
 	remindSrv     reminderService.ReminderSrv
+}
+
+func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv, reminderSrv reminderService.ReminderSrv) TaskService {
+	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv, remindSrv: reminderSrv}
 }
 
 func (t *taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError) {
@@ -99,7 +106,6 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 }
 
 // search task by name func
-
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -152,7 +158,68 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 
 }
 
-func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv, reminderSrv reminderService.ReminderSrv) TaskService {
-	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv, remindSrv: reminderSrv}
+//Get all task service
+func (t *taskSrv) GetAllTask() ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	task, err := t.repo.GetAllTasks(ctx)
+
+	if task == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return task, nil
 
 }
+
+//Delete task by Id
+func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	err := t.repo.DeleteTaskByID(taskId, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
+}
+
+//Delete All task
+func (t *taskSrv) DeleteAllTask() (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	err := t.repo.DeleteAllTask(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
+
+}
+
+//Update task status
+func (t *taskSrv) UpdateTaskStatusByID(taskId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	err := t.repo.UpdateTaskStatusByID(taskId, status, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return ResponseEntity.BuildSuccessResponse(200, "Updated successfully successfully", nil), nil
+
+}
+
+// Edit task by Id
+func (t *taskSrv) Edit(title string, description string, endtime time.Time)
