@@ -23,7 +23,7 @@ type tokenSrv struct {
 }
 
 
-func (t *tokenSrv) createToken(email string, id string) (string, string, error){
+func (t *tokenSrv) CreateToken(email string, id string) (string, string, error){
 	tokenDetails := &Token{
 		Email: email,
 		Id: id,
@@ -51,7 +51,7 @@ func (t *tokenSrv) createToken(email string, id string) (string, string, error){
 	return token, refreshToken, err
 }
 
-func (t *tokenSrv) validateToken( tokenUrl string) (*Token, error){
+func (t *tokenSrv) ValidateToken( tokenUrl string) (*Token, error){
 		token, err := jwt.ParseWithClaims(
 			tokenUrl,
 			&Token{},
