@@ -222,4 +222,71 @@ func (t *taskSrv) UpdateTaskStatusByID(taskId string, status string) (*ResponseE
 }
 
 // Edit task by Id
-func (t *taskSrv) Edit(title string, description string, endtime time.Time)
+func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	//validating the struct
+	err := t.validationSrv.Validate(req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
+	}
+	//Get the task by the ID
+	task, err := t.repo.GetTaskByID(taskId, ctx)
+
+	if req.TaskId == "" {
+		task.TaskId = taskId
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	} else {
+		task.TaskId = req.TaskId
+
+	}
+	if req.Title == "" {
+		task.TaskId = task.TaskId
+	} else {
+		task.Title = req.Title
+	}
+
+	if req.Description == "" {
+		task.Description = task.Description
+	} else {
+		task.Description = req.Description
+	}
+
+	if req.Description == "" {
+		task.Description = task.Description
+	} else {
+		task.EndTime = req.EndTime
+	}
+
+	task.UpdatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
+
+	//persit the task
+	err = t.repo.Persist(ctx, req)
+
+	if err != nil {
+		log.Println(err, "error creating data")
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+
+	//Returning Data
+	data := taskEntity.CreateTaskRes{
+		TaskId:      req.TaskId,
+		Title:       req.Title,
+		Description: req.Description,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
+	}
+
+	// create a reminder
+	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return &data, nil
+
+}
+

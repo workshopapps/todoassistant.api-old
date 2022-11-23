@@ -379,7 +379,7 @@ func (s *sqlRepo) UpdateTaskStatusByID(taskId string, status string, ctx context
 	return nil
 }
 
-//func (s *sqlRepo) EditTask(taskId string, status string, ctx context.Context) error {
+//func (s *sqlRepo) EditTaskById(taskId string, status string, ctx context.Context) error {
 //	//var res taskEntity.GetTasksByIdRes
 //	tx, err := s.conn.BeginTx(ctx, nil)
 //	if err != nil {
