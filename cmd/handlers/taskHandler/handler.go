@@ -22,13 +22,15 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
 		return
 	}
 
 	task, errRes := t.srv.PersistTask(&req)
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "error creating Task", errRes, nil))
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "error creating Task", errRes, nil))
 		return
 	}
 
@@ -39,28 +41,26 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 	userId := c.Params.ByName("userId")
 	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
 		return
 	}
 
 	tasks, errRes := t.srv.GetPendingTasks(userId)
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error Finding Pending Tasks", errRes, nil))
 		return
 	}
 	c.JSON(http.StatusOK, tasks)
 }
 
 func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
-	// userId := c.Params.ByName("userId")
-	// 	if userId == "" {
-	// 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
-	// 		return
-	// 	}
 
 	tasks, errRes := t.srv.GetListOfExpiredTasks()
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error finding Expired Tasks", errRes, nil))
 		return
 	}
 	c.JSON(http.StatusOK, tasks)
@@ -83,7 +83,7 @@ func (t *taskHandler) SearchTask(c *gin.Context) {
 
 	searchedTasks, errRes := t.srv.SearchTask(&title)
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error getting tasks", errRes, nil))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error searching for tasks", errRes, nil))
 		return
 	}
 
@@ -103,18 +103,21 @@ func (t *taskHandler) SearchTask(c *gin.Context) {
 func (t *taskHandler) GetTaskByID(c *gin.Context) {
 	taskId := c.Params.ByName("taskId")
 	if taskId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
 		return
 	}
 	task, errRes := t.srv.GetTaskByID(taskId)
 
 	if task == nil {
 		message := "no Task with id " + taskId + " exists"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, task, nil))
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, task, nil))
 		return
 	}
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "internal server error", errRes, nil))
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find Task By Id", errRes, nil))
 		return
 	}
 	c.JSON(http.StatusOK, task)
