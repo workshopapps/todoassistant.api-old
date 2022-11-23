@@ -36,7 +36,7 @@ func (t *tokenSrv) CreateToken(email string, id string) (string, string, error){
 		Email: email,
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(30)).Unix(),
+			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(60)).Unix(),
 		},
 	}
 
