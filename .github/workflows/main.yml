@@ -73,7 +73,10 @@ jobs:
                      sudo docker-compose up -d
                   
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7e323ec4e8fe1d75789484806e3b6ff9427d3bd7
 =======
 >>>>>>> 7e323ec4e8fe1d75789484806e3b6ff9427d3bd7
     Deploy-prod: 
