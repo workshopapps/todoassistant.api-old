@@ -93,13 +93,22 @@ func Setup() {
 	r.Use(middlewares.CORS())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	r.POST("/task", handler.CreateTask)
+	v1 := r.Group("/api/v1")
+	task := v1.Group("/task")
+	{
+		task.POST("", handler.CreateTask)
+		task.GET("/:taskId", handler.GetTaskByID)
+		task.GET("/pending/:userId", handler.GetPendingTasks)
+		task.GET("/expired", handler.GetListOfExpiredTasks)
+	}
+
+	//r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
-	r.GET("/task/pending/:userId", handler.GetPendingTasks)
+	//r.GET("/task/pending/:userId", handler.GetPendingTasks)
 	//get list of pending tasks belonging to a user
-	r.GET("/task/expired/", handler.GetListOfExpiredTasks)
+	//r.GET("/task/expired/", handler.GetListOfExpiredTasks)
 	// get task by id
-	r.GET("/task/:taskId", handler.GetTaskByID)
+	//r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
 
