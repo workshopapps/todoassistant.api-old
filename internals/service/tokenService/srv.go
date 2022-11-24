@@ -1,9 +1,10 @@
 package tokenservice
 
 import (
-	"github.com/golang-jwt/jwt/v4"
 	"log"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Token struct {
@@ -58,10 +59,12 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 		},
 	)
 
+
 	claims, ok := token.Claims.(*Token)
 	if !ok {
 		return nil, err
 	}
+
 
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		return nil, err

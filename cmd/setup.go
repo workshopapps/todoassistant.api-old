@@ -129,14 +129,30 @@ func Setup() {
 
 	// USER
 	//create user
-	r.POST("/user", userHandler.CreateUser)
-	r.POST("/user/login", userHandler.Login)
+	users := v1.Group("/user")
+	{
+		// Register a user
+		users.POST("", userHandler.CreateUser)
+		// Login into the user account
+		users.POST("/login", userHandler.Login)
+		// Get all users
+		users.GET("", userHandler.GetUsers)
+		// Get a specific user
+		users.GET("/:user_id", userHandler.GetUser)
+		// Update a specific user
+		users.PUT("/:user_id", userHandler.UpdateUser)
+		// Change user password
+		users.PUT("/change-password", userHandler.ChangePassword)
+		// Delete a user
+		users.DELETE("/:user_id", userHandler.DeleteUser)
 
-	r.GET("/ping", func(c *gin.Context) {
+	}
+
+	v1.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
 
-	r.GET("/", func(c *gin.Context) {
+	v1.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to Ticked Backend Server - V1.0.0")
 	})
 
