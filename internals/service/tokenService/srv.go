@@ -59,10 +59,12 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 		},
 	)
 
+
 	claims, ok := token.Claims.(*Token)
 	if !ok {
 		return nil, err
 	}
+
 
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		return nil, err
