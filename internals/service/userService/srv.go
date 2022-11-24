@@ -7,6 +7,7 @@ import (
 	"test-va/internals/entity/userEntity"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/timeSrv"
+	tokenservice "test-va/internals/service/tokenService"
 	"test-va/internals/service/validationService"
 	"time"
 
@@ -45,12 +46,21 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	if err != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
 	}
+
+	tokenSrv := tokenservice.NewTokenSrv("tokenString")
+	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, req.Email)
+	if errToken != nil {
+		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
+	}
+
 	loggedInUser := userEntity.LoginRes{
-		Email:     user.Email,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Phone:     user.Phone,
-		Gender:    user.Gender,
+		Email:        user.Email,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Phone:        user.Phone,
+		Gender:       user.Gender,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 	return &loggedInUser, nil
 }

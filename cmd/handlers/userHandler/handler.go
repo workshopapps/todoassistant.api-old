@@ -1,6 +1,7 @@
 package userHandler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"test-va/internals/entity/ResponseEntity"
@@ -32,7 +33,7 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "created user successfully", user, nil))
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "Created user successfully", user, nil))
 }
 
 func (u *userHandler) Login(c *gin.Context) {
@@ -115,6 +116,11 @@ func (u *userHandler) UpdateUser(c *gin.Context) {
 
 func (u *userHandler) ChangePassword(c *gin.Context) {
 	var req userEntity.ChangePasswordReq
+
+	fmt.Println(c.Get("userId"))
+
+	// userURL := userFromRequest(c)
+	// ctx := middlewares.ValidateJWT()
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {

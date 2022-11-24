@@ -28,11 +28,13 @@ type LoginReq struct {
 }
 
 type LoginRes struct {
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Phone     string `json:"phone"`
-	Gender    string `json:"gender"`
+	Email        string `json:"email"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	Phone        string `json:"phone"`
+	Gender       string `json:"gender"`
+	Token        string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type GetByEmailRes struct {

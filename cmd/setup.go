@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +25,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/go-co-op/gocron"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -142,7 +143,7 @@ func Setup() {
 		// Update a specific user
 		users.PUT("/:user_id", userHandler.UpdateUser)
 		// Change user password
-		users.PUT("/change-password", userHandler.ChangePassword)
+		users.PUT("/:user_id/change-password", userHandler.ChangePassword)
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
 
