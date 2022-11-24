@@ -8,8 +8,8 @@ type TaskFile struct {
 type CreateTaskReq struct {
 	TaskId      string     `json:"task_id"`
 	UserId      string     `json:"user_id" validate:"required"`
-	Title       string     `json:"title" validate:"required"`
-	Description string     `json:"description"`
+	Title       string     `json:"title" validate:"required,min=3"`
+	Description string     `json:"description" validate:"required,min=3"`
 	Repeat      string     `json:"repeat"`
 	Files       []TaskFile `json:"files"`
 	StartTime   string     `json:"start_time" validate:"required"`

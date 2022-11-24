@@ -30,7 +30,7 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 	task, errRes := t.srv.PersistTask(&req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "error creating Task", errRes, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error creating Task", errRes, nil))
 		return
 	}
 
