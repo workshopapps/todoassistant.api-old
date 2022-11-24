@@ -15,11 +15,13 @@ type CreateUserReq struct {
 }
 
 type CreateUserRes struct {
-	UserId    string `json:"user_id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
+	UserId       string `json:"user_id"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	Email        string `json:"email"`
+	Phone        string `json:"phone"`
+	Token        string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type LoginReq struct {

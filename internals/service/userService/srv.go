@@ -95,12 +95,20 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
+	tokenSrv := tokenservice.NewTokenSrv("tokenString")
+	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, req.Email)
+	if errToken != nil {
+		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
+	}
+
 	data := &userEntity.CreateUserRes{
-		UserId:    req.UserId,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Email:     req.Email,
-		Phone:     req.Phone,
+		UserId:       req.UserId,
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		Email:        req.Email,
+		Phone:        req.Phone,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 	// set Reminder
 
