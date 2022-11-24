@@ -73,10 +73,49 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	//set id
 	req.TaskId = uuid.New().String()
 	req.Status = "PENDING"
+
+	// create a reminder
+	switch req.Repeat {
+	case "never":
+		err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+
+		if err != nil {
+			log.Println(err)
+			return nil, ResponseEntity.NewInternalServiceError(err)
+		}
+	case "daily":
+		err = t.remindSrv.SetDailyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+		}
+	case "weekly":
+		err = t.remindSrv.SetWeeklyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+		}
+	case "bi-weekly":
+		err = t.remindSrv.SetBiWeeklyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+		}
+	case "monthly":
+		err = t.remindSrv.SetMonthlyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+		}
+	case "yearly":
+		err = t.remindSrv.SetYearlyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+		}
+	default:
+		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+	}
+
 	// insert into db
 	err = t.repo.Persist(ctx, req)
 	if err != nil {
-		log.Println(err, "rrrr")
+		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	data := taskEntity.CreateTaskRes{
@@ -85,21 +124,15 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		Description: req.Description,
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,
+		VAOption:    req.VAOption,
+		Repeat:      req.Repeat,
 	}
 
-	// create a reminder
-	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
-
-	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewInternalServiceError(err)
-	}
 	return &data, nil
 
 }
 
 // search task by name func
-
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
