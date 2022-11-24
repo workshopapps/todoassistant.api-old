@@ -81,10 +81,49 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	//set id
 	req.TaskId = uuid.New().String()
 	req.Status = "PENDING"
+
+	// create a reminder
+	switch req.Repeat {
+	case "never":
+		err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+
+		if err != nil {
+			log.Println(err)
+			return nil, ResponseEntity.NewInternalServiceError(err)
+		}
+	case "daily":
+		err = t.remindSrv.SetDailyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Daily Input")
+		}
+	case "weekly":
+		err = t.remindSrv.SetWeeklyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Weekly Input")
+		}
+	case "bi-weekly":
+		err = t.remindSrv.SetBiWeeklyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Bi Weekly Input")
+		}
+	case "monthly":
+		err = t.remindSrv.SetMonthlyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Monthly Input")
+		}
+	case "yearly":
+		err = t.remindSrv.SetYearlyReminder(req)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Yearly Input")
+		}
+	default:
+		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
+	}
+
 	// insert into db
 	err = t.repo.Persist(ctx, req)
 	if err != nil {
-		log.Println(err, "rrrr")
+		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	data := taskEntity.CreateTaskRes{
@@ -93,18 +132,14 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		Description: req.Description,
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,
+		VAOption:    req.VAOption,
+		Repeat:      req.Repeat,
 	}
 
-	// create a reminder
-	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
-
-	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewInternalServiceError(err)
-	}
 	return &data, nil
 
 }
+
 
 //Create Task
 func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {

@@ -7,12 +7,14 @@ type TaskFile struct {
 
 type CreateTaskReq struct {
 	TaskId      string     `json:"task_id"`
-	UserId      string     `json:"user_id" validate:"required"`
+	UserId      string     `json:"user_id"`
 	Title       string     `json:"title" validate:"required"`
 	Description string     `json:"description"`
+	Repeat      string     `json:"repeat"`
 	Files       []TaskFile `json:"files"`
 	StartTime   string     `json:"start_time" validate:"required"`
 	EndTime     string     `json:"end_time" validate:"required"`
+	VAOption    string     `json:"va_option"`
 	Status      string     `json:"status"`
 	CreatedAt   string     `json:"created_at"`
 	UpdatedAt   string     `json:"updated_at"`
@@ -24,6 +26,8 @@ type CreateTaskRes struct {
 	Description string `json:"description"`
 	StartTime   string `json:"start_time"`
 	EndTime     string `json:"end_time"`
+	VAOption    string `json:"va_option"`
+	Repeat      string `json:"repeat"`
 }
 
 type GetPendingTasksRes struct {
@@ -80,6 +84,7 @@ type GetAllExpiredRes struct {
 	Title     string `json:"title"`
 	UserId    string `json:"user_id"`
 	CreatedAt string `json:"created_at"`
+
 }
 
 //GetAllTaskRes is the struct for task assocaited with a user
@@ -89,4 +94,5 @@ type GetAllTaskRes struct {
 	UserId    string `json:"user_id"`
 	CreatedAt string `json:"created_at"`
 	EndTime   string `json:"end_time" validate:"required"`
+
 }

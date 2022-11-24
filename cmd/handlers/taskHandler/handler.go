@@ -1,6 +1,7 @@
 package taskHandler
 
 import (
+	"log"
 	"net/http"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
@@ -20,7 +21,13 @@ func NewTaskHandler(srv taskService.TaskService) *taskHandler {
 
 func (t *taskHandler) CreateTask(c *gin.Context) {
 	var req taskEntity.CreateTaskReq
-
+	value := c.GetString("userId")
+	log.Println("value is: ", value)
+	if value == "" {
+		log.Println("112")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "you are not allowed to access this resource", nil, nil))
+		return
+	}
 	err := c.ShouldBind(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
@@ -28,6 +35,7 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
+	req.UserId = value
 	task, errRes := t.srv.PersistTask(&req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,

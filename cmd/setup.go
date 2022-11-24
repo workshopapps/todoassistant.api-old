@@ -26,6 +26,8 @@ import (
 	"test-va/utils"
 	"time"
 
+	"github.com/go-co-op/gocron"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +60,21 @@ func Setup() {
 	timeSrv := timeSrv.NewTimeStruct()
 
 	// create cron tasks for checking if time is due
-	reminderSrv := reminderService.NewReminderSrv(conn, repo)
+
+	s := gocron.NewScheduler(time.UTC)
+	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
+
+	s.Every(5).Minutes().Do(func() {
+		log.Println("checking for 5 minutes reminders")
+		reminderSrv.SetReminderEvery5Min()
+	})
+
+	s.Every(30).Minutes().Do(func() {
+		log.Println("checking for 30 minutes reminders")
+		reminderSrv.SetReminderEvery30Min()
+	})
+
+	s.StartAsync()
 
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
@@ -94,13 +110,23 @@ func Setup() {
 	r.Use(middlewares.CORS())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	r.POST("/task", handler.CreateTask)
+	v1 := r.Group("/api/v1")
+	task := v1.Group("/task")
+	task.Use(middlewares.ValidateJWT())
+	{
+		task.POST("", handler.CreateTask)
+		task.GET("/:taskId", handler.GetTaskByID)
+		task.GET("/pending/:userId", handler.GetPendingTasks)
+		task.GET("/expired", handler.GetListOfExpiredTasks)
+	}
+
+	//r.POST("/task", handler.CreateTask)
 	r.GET("/calls", callHandler.GetCalls)
-	r.GET("/task/pending/:userId", handler.GetPendingTasks)
+	//r.GET("/task/pending/:userId", handler.GetPendingTasks)
 	//get list of pending tasks belonging to a user
-	r.GET("/task/expired/", handler.GetListOfExpiredTasks)
+	//r.GET("/task/expired/", handler.GetListOfExpiredTasks)
 	// get task by id
-	r.GET("/task/:taskId", handler.GetTaskByID)
+	//r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
 
@@ -121,14 +147,31 @@ func Setup() {
 
 	// USER
 	//create user
+	// Register a user
 	r.POST("/user", userHandler.CreateUser)
+	// Login into the user account
 	r.POST("/user/login", userHandler.Login)
+	users := v1.Group("/user")
+	users.Use(middlewares.ValidateJWT())
+	{
+		// Get all users
+		users.GET("", userHandler.GetUsers)
+		// Get a specific user
+		users.GET("/:user_id", userHandler.GetUser)
+		// Update a specific user
+		users.PUT("/:user_id", userHandler.UpdateUser)
+		// Change user password
 
-	r.GET("/ping", func(c *gin.Context) {
+		users.PUT("/:user_id/change-password", userHandler.ChangePassword)
+		// Delete a user
+		users.DELETE("/:user_id", userHandler.DeleteUser)
+	}
+
+	v1.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
 
-	r.GET("/", func(c *gin.Context) {
+	v1.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to Ticked Backend Server - V1.0.0")
 	})
 

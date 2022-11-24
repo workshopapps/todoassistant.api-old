@@ -2,13 +2,14 @@ package reminderService
 
 import (
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"os"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
 	"testing"
 	"time"
+
+	"github.com/go-co-op/gocron"
 )
 
 func Test_reminderSrv_SetReminder(t *testing.T) {
@@ -28,8 +29,8 @@ func Test_reminderSrv_SetReminder(t *testing.T) {
 	conn := connection.GetConn()
 	repo := mySqlRepo.NewSqlRepo(conn)
 
-	//gcrn := gocron.NewScheduler(time.UTC)
-	srv := NewReminderSrv(conn, repo)
+	gcrn := gocron.NewScheduler(time.UTC)
+	srv := NewReminderSrv(gcrn, conn, repo)
 	due := time.Now().Add(15 * time.Second).Format(time.RFC3339)
 	srv.SetReminder(due, taskId)
 

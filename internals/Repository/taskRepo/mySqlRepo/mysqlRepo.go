@@ -13,6 +13,29 @@ type sqlRepo struct {
 	conn *sql.DB
 }
 
+func (s *sqlRepo) SetNewEvent(req *taskEntity.CreateTaskReq) error {
+	stmt := fmt.Sprintf(`INSERT INTO Tasks(
+                  task_id,
+                  user_id, 
+                  title, 
+                  description,
+                  start_time,
+                  end_time,
+                  created_at,
+                  va_option,
+                  repeat_frequency
+                  )
+	VALUES ('%v','%v','%v','%v','%v','%v','%v','%v','%v')
+	`, req.TaskId, req.UserId, req.Title, req.Description, req.StartTime, req.EndTime, req.CreatedAt, req.VAOption, req.Repeat)
+	_, err := s.conn.Exec(stmt)
+	if err != nil {
+		log.Println(stmt)
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
 func (s *sqlRepo) SetTaskToExpired(id string) error {
 	stmt := fmt.Sprintf(`UPDATE Tasks SET STATUS='EXPIRED' WHERE task_id ='%v'`, id)
 	_, err := s.conn.Exec(stmt)
@@ -79,15 +102,19 @@ func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) er
 	}()
 
 	stmt := fmt.Sprintf(`INSERT
-		INTO Tasks(
-				   task_id,
-				   title,
-				   description,
-				   user_id,
-				   start_time,
-				   end_time
+		INTO Tasks( 
+					task_id,
+                  user_id, 
+                  title, 
+                  description,
+                  start_time,
+                  end_time,
+                  created_at,
+                  va_option,
+                  repeat_frequency
 				   )
-		VALUES ('%v','%v','%v','%v','%v','%v')`, req.TaskId, req.Title, req.Description, req.UserId, req.StartTime, req.EndTime)
+		VALUES ('%v','%v','%v','%v','%v','%v','%v', '%v', '%v')`, req.TaskId, req.UserId, req.Title, req.Description,
+		req.StartTime, req.EndTime, req.CreatedAt, req.VAOption, req.Repeat)
 
 	_, err = tx.ExecContext(ctx, stmt)
 	if err != nil {
