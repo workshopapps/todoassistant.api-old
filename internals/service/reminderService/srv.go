@@ -222,7 +222,7 @@ func (r *reminderSrv) SetReminderEvery5Min() {
 		yes := checkIfTimeElapsed5Minutes(task.EndTime)
 
 		if yes {
-			fmt.Println("notification sent")
+			fmt.Println("notification sent out")
 			// send a notification
 			continue
 		}
