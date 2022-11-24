@@ -192,3 +192,4 @@ func Setup() {
 	ctx := context.Background()
 	srvDetails.Shutdown(ctx)
 }
+
