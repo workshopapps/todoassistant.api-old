@@ -41,6 +41,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/pusher/pusher-http-go v4.0.1+incompatible // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/toolkits/file v0.0.0-20160325033739-a5b3c5147e07 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
