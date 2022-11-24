@@ -28,6 +28,7 @@ import (
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/pusher/pusher-http-go"
 )
 
 func Setup() {
@@ -102,6 +103,28 @@ func Setup() {
 	r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
+
+	//chat service connection
+
+	pusherClient := pusher.Client{
+		AppID:   "1512808",
+		Key:     "f79030d90753a91854e6",
+		Secret:  "06b8abef8713abd21cc9",
+		Cluster: "eu",
+		Secure:  true,
+	}
+
+	r.POST("dashboard/assistant", func(c *gin.Context) {
+		// var data map[string]string
+		var data map[string]string
+
+		if err := c.BindJSON(&data); err != nil {
+			return
+		}
+		pusherClient.Trigger("vachat", "message", data)
+
+		c.JSON(http.StatusOK, []string{})
+	})
 
 	// USER
 	//create user
