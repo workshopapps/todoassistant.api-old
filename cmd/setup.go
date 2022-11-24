@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +25,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/go-co-op/gocron"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -89,6 +90,7 @@ func Setup() {
 	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(taskSrv)
+
 	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
@@ -110,11 +112,18 @@ func Setup() {
 
 	v1 := r.Group("/api/v1")
 	task := v1.Group("/task")
+	task.Use(middlewares.ValidateJWT())
 	{
 		task.POST("", handler.CreateTask)
 		task.GET("/:taskId", handler.GetTaskByID)
 		task.GET("/pending/:userId", handler.GetPendingTasks)
 		task.GET("/expired", handler.GetListOfExpiredTasks)
+		task.GET("/", handler.GetAllTask)                     //Get all task by a user
+		task.DELETE("/:taskId", handler.DeleteTaskById)       //Delete Task By ID
+		task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
+		task.PUT("/:taskId/status", handler.UpdateUserStatus) //Update User Status
+		task.PUT("/:taskId", handler.EditTaskById)            //EditTaskById
+
 	}
 
 	//r.POST("/task", handler.CreateTask)
@@ -129,14 +138,32 @@ func Setup() {
 
 	// USER
 	//create user
+	// Register a user
 	r.POST("/user", userHandler.CreateUser)
+	// Login into the user account
 	r.POST("/user/login", userHandler.Login)
+	users := v1.Group("/user")
 
-	r.GET("/ping", func(c *gin.Context) {
+	users.Use(middlewares.ValidateJWT())
+	{
+		// Get all users
+		users.GET("", userHandler.GetUsers)
+		// Get a specific user
+		users.GET("/:user_id", userHandler.GetUser)
+		// Update a specific user
+		users.PUT("/:user_id", userHandler.UpdateUser)
+		// Change user password
+
+		users.PUT("/:user_id/change-password", userHandler.ChangePassword)
+		// Delete a user
+		users.DELETE("/:user_id", userHandler.DeleteUser)
+	}
+
+	v1.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
 
-	r.GET("/", func(c *gin.Context) {
+	v1.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to Ticked Backend Server - V1.0.0")
 	})
 

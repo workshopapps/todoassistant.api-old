@@ -2,6 +2,7 @@ package reminderService
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/go-co-op/gocron"
 	"log"
@@ -14,12 +15,199 @@ type ReminderSrv interface {
 	SetReminder(dueDate, taskId string) error
 	SetReminderEvery30Min()
 	SetReminderEvery5Min()
+	SetDailyReminder(data *taskEntity.CreateTaskReq) error
+	SetWeeklyReminder(data *taskEntity.CreateTaskReq) error
+	SetBiWeeklyReminder(data *taskEntity.CreateTaskReq) error
+	SetMonthlyReminder(data *taskEntity.CreateTaskReq) error
+	SetYearlyReminder(data *taskEntity.CreateTaskReq) error
 }
 
 type reminderSrv struct {
 	cron *gocron.Scheduler
 	conn *sql.DB
 	repo taskRepo.TaskRepository
+}
+
+func (r *reminderSrv) SetBiWeeklyReminder(data *taskEntity.CreateTaskReq) error {
+	s := gocron.NewScheduler(time.UTC)
+	// get string of date and convert it to Time.Time
+	dDate, err := time.Parse(time.RFC3339, data.EndTime)
+	if err != nil {
+		return err
+	}
+	s.Every(14).Weeks().StartAt(dDate).Do(func() error {
+		log.Println("setting status to expired")
+		r.repo.SetTaskToExpired(data.TaskId)
+		endDate, err := time.Parse(time.RFC3339, data.EndTime)
+		if err != nil {
+			return err
+		}
+
+		data.StartTime = data.EndTime
+		data.EndTime = endDate.AddDate(0, 0, 14).Format(time.RFC3339)
+		data.Status = "PENDING"
+		log.Println(data)
+
+		err = r.repo.SetNewEvent(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	s.StartAsync()
+	log.Println("created new event.")
+	return nil
+}
+
+func (r *reminderSrv) SetYearlyReminder(data *taskEntity.CreateTaskReq) error {
+	s := gocron.NewScheduler(time.UTC)
+	// get string of date and convert it to Time.Time
+	dDate, err := time.Parse(time.RFC3339, data.EndTime)
+	if err != nil {
+		return err
+	}
+	s.Every(12).Months().StartAt(dDate).Do(func() error {
+		log.Println("setting status to expired")
+		r.repo.SetTaskToExpired(data.TaskId)
+		endDate, err := time.Parse(time.RFC3339, data.EndTime)
+		if err != nil {
+			return err
+		}
+
+		data.StartTime = data.EndTime
+		data.EndTime = endDate.AddDate(1, 0, 0).Format(time.RFC3339)
+		data.Status = "PENDING"
+		log.Println(data)
+
+		err = r.repo.SetNewEvent(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	s.StartAsync()
+	log.Println("created new event.")
+	return nil
+}
+
+func (r *reminderSrv) SetMonthlyReminder(data *taskEntity.CreateTaskReq) error {
+	s := gocron.NewScheduler(time.UTC)
+	// get string of date and convert it to Time.Time
+	dDate, err := time.Parse(time.RFC3339, data.EndTime)
+	if err != nil {
+		return err
+	}
+	s.Every(1).Months().StartAt(dDate).Do(func() error {
+		log.Println("setting status to expired")
+		r.repo.SetTaskToExpired(data.TaskId)
+		endDate, err := time.Parse(time.RFC3339, data.EndTime)
+		if err != nil {
+			return err
+		}
+
+		data.StartTime = data.EndTime
+		data.EndTime = endDate.AddDate(0, 0, 1).Format(time.RFC3339)
+		data.Status = "PENDING"
+		log.Println(data)
+
+		err = r.repo.SetNewEvent(data)
+		if err != nil {
+			return err
+		}
+		s.StartAsync()
+		return nil
+	})
+	log.Println("created new event.")
+	return nil
+}
+
+func (r *reminderSrv) SetWeeklyReminder(data *taskEntity.CreateTaskReq) error {
+	s := gocron.NewScheduler(time.UTC)
+	// get string of date and convert it to Time.Time
+	dDate, err := time.Parse(time.RFC3339, data.EndTime)
+	if err != nil {
+		return err
+	}
+	s.Every(7).Day().StartAt(dDate).Do(func() error {
+		log.Println("setting status to expired")
+		r.repo.SetTaskToExpired(data.TaskId)
+		endDate, err := time.Parse(time.RFC3339, data.EndTime)
+		if err != nil {
+			return err
+		}
+
+		data.StartTime = data.EndTime
+		data.EndTime = endDate.AddDate(0, 0, 7).Format(time.RFC3339)
+		data.Status = "PENDING"
+		log.Println(data)
+
+		err = r.repo.SetNewEvent(data)
+		if err != nil {
+			return err
+		}
+		s.StartAsync()
+		return nil
+	})
+	log.Println("created new event.")
+	return nil
+}
+
+func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
+	s := gocron.NewScheduler(time.UTC)
+	// get string of date and convert it to Time.Time
+	dDate, err := time.Parse(time.RFC3339, data.EndTime)
+	if err != nil {
+		return err
+	}
+	if dDate.Before(time.Now()) {
+		log.Println("this")
+		return errors.New("invalid Time")
+	}
+
+	s.Every(1).Day().StartAt(dDate).Do(func() error {
+		log.Println("setting status to expired")
+		log.Printf("\n")
+		r.repo.SetTaskToExpired(data.TaskId)
+		endDate, err := time.Parse(time.RFC3339, data.EndTime)
+		if err != nil {
+			return err
+		}
+
+		data.StartTime = data.EndTime
+		data.EndTime = endDate.AddDate(0, 0, 1).Format(time.RFC3339)
+		data.Status = "PENDING"
+		log.Println(data.StartTime)
+		log.Println("------------------------------")
+		log.Println("------------------------------")
+		log.Println(data.EndTime)
+
+		err = r.repo.SetNewEvent(data)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		log.Println("created new event.")
+		return nil
+	})
+	s.StartAsync()
+	return nil
+}
+
+func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
+	s := gocron.NewScheduler(time.UTC)
+	// get string of date and convert it to Time.Time
+	dDate, err := time.Parse(time.RFC3339, dueDate)
+	if err != nil {
+		return err
+	}
+	s.Every(1).StartAt(dDate).Do(func() {
+		log.Println("setting status to expired")
+		r.repo.SetTaskToExpired(taskId)
+	})
+
+	s.LimitRunsTo(1)
+	s.StartAsync()
+	return nil
 }
 
 func (r *reminderSrv) SetReminderEvery5Min() {
@@ -34,7 +222,7 @@ func (r *reminderSrv) SetReminderEvery5Min() {
 		yes := checkIfTimeElapsed5Minutes(task.EndTime)
 
 		if yes {
-			fmt.Println("notification sent")
+			fmt.Println("notification sent out")
 			// send a notification
 			continue
 		}
@@ -97,23 +285,6 @@ func checkIfTimeElapsed5Minutes(due string) bool {
 	} else {
 		return false
 	}
-}
-
-func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
-	s := gocron.NewScheduler(time.UTC)
-	// get string of date and convert it to Time.Time
-	dDate, err := time.Parse(time.RFC3339, dueDate)
-	if err != nil {
-		return err
-	}
-	s.Every(1).StartAt(dDate).Do(func() {
-		log.Println("setting status to expired")
-		r.repo.SetTaskToExpired(taskId)
-	})
-
-	s.LimitRunsTo(1)
-	s.StartAsync()
-	return nil
 }
 
 func NewReminderSrv(s *gocron.Scheduler, conn *sql.DB, taskrepo taskRepo.TaskRepository) ReminderSrv {
