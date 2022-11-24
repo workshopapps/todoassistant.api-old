@@ -8,9 +8,17 @@ import (
 type TaskRepository interface {
 	Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error
 	GetPendingTasks(userId string, ctx context.Context) ([]*taskEntity.GetPendingTasksRes, error)
-	GetTaskByID(taskId string, ctx context.Context) (*taskEntity.GetTasksByIdRes, error)
+	GetTaskByID(ctx context.Context, taskId string, userId string) (*taskEntity.GetTasksByIdRes, error)
 	SearchTasks(title *taskEntity.SearchTitleParams, ctx context.Context) ([]*taskEntity.SearchTaskRes, error)
 	GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error)
 	SetTaskToExpired(id string) error
+
+
+	GetAllTasks(ctx context.Context, userId string) ([]*taskEntity.GetAllTaskRes, error)
+	DeleteTaskByID(ctx context.Context, taskId string, userId string) error
+	DeleteAllTask(ctx context.Context, userId string) error
+	UpdateTaskStatusByID(ctx context.Context, taskId string, userId string, status string) error
+	EditTaskById(ctx context.Context, taskId string, userId string, req *taskEntity.CreateTaskReq) error
 	SetNewEvent(req *taskEntity.CreateTaskReq) error
+
 }

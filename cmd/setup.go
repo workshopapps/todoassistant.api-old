@@ -90,6 +90,7 @@ func Setup() {
 	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(taskSrv)
+
 	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
@@ -128,6 +129,21 @@ func Setup() {
 	//r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	r.GET("/search", handler.SearchTask)
+
+	//Get all task by a user
+	r.GET("/task", handler.GetAllTask)
+
+	//Delete Task By ID
+	r.DELETE("/task/:taskId", handler.DeleteTaskById)
+
+	//Delete all task of a user
+	r.DELETE("/task", handler.DeleteAllTask)
+
+	//Update User Status
+	r.PUT("/task/:taskId/status", handler.UpdateUserStatus)
+
+	//EditTaskById
+	r.PUT("/task/:taskId", handler.EditTaskById)
 
 	// USER
 	//create user
