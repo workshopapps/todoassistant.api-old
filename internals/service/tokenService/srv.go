@@ -14,7 +14,7 @@ type Token struct {
 }
 
 type TokenSrv interface {
-	CreateToken(email string, id string) (string, string, error)
+	CreateToken(id, email string) (string, string, error)
 	ValidateToken(token string) (*Token, error)
 }
 
@@ -22,7 +22,7 @@ type tokenSrv struct {
 	SecretKey string
 }
 
-func (t *tokenSrv) CreateToken(email string, id string) (string, string, error) {
+func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 	tokenDetails := &Token{
 		Email: email,
 		Id:    id,
