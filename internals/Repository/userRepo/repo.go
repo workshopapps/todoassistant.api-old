@@ -11,4 +11,5 @@ type UserRepository interface {
 	GetById(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, error)
 	DeleteUser(user_id string) error
+	ChangePassword(userId, newPassword string) error
 }

@@ -88,7 +88,7 @@ func (m *mySql) GetByEmail(email string) (*userEntity.GetByEmailRes, error) {
 
 func (m *mySql) GetById(user_id string) (*userEntity.GetByIdRes, error) {
 	query := fmt.Sprintf(`
-		SELECT user_id, email, first_name, last_name, phone, gender 
+		SELECT user_id, password, email, first_name, last_name, phone, gender 
 		FROM Users
 		WHERE user_id = '%s'
 	`, user_id)
@@ -97,6 +97,7 @@ func (m *mySql) GetById(user_id string) (*userEntity.GetByIdRes, error) {
 	ctx := context.Background()
 	err := m.conn.QueryRowContext(ctx, query).Scan(
 		&user.UserId,
+		&user.Password,
 		&user.Email,
 		&user.FirstName,
 		&user.LastName,
@@ -136,36 +137,54 @@ func (m *mySql) Persist(req *userEntity.CreateUserReq) error {
 
 // Create function to update user in database
 func (m *mySql) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, error) {
-	// stmt := fmt.Sprintf(`UDPATE Users
-	// 	SET first_name = '%v',
-	// 	last_name = '%v',
-	// 	email = '%v',
-	// 	phone = '%v',
-	// 	gender = '%v',
-	// 	date_of_birth = '%v',
-	// 	account_status = '%v',
-	// 	payment_status = '%v',
-	// 	WHERE user_id='%v'
-	// 	`,
-	// 	req.FirstName, req.LastName, req.Email, req.Phone, req.Gender, req.DateOfBirth, req.AccountStatus, req.PaymentStatus, userId)
-
-	// _, err := m.conn.Exec(stmt)
-	// if err != nil {
-	// 	return err
-	// }
-
 	tx, err := m.conn.BeginTx(context.Background(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = updateFieldIfSet(tx, "first_name", req.FirstName)
+	_, err = updateFieldIfSet(tx, userId, "first_name", req.FirstName)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	_, err = updateFieldIfSet(tx, "last_name", req.LastName)
+	_, err = updateFieldIfSet(tx, userId, "last_name", req.LastName)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = updateFieldIfSet(tx, userId, "email", req.Email)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = updateFieldIfSet(tx, userId, "phone", req.Phone)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = updateFieldIfSet(tx, userId, "gender", req.Gender)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = updateFieldIfSet(tx, userId, "date_of_birth", req.DateOfBirth)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = updateFieldIfSet(tx, userId, "account_status", req.AccountStatus)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = updateFieldIfSet(tx, userId, "payment_status", req.PaymentStatus)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -180,16 +199,29 @@ func (m *mySql) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userE
 	return m.GetById(userId)
 }
 
-func updateField(tx *sql.Tx, field string, val interface{}) (sql.Result, error) {
-	return tx.Exec(fmt.Sprintf(`UPDATE Users SET %s = '%v'`, field, val))
+// Auxillary function to update user
+func updateField(tx *sql.Tx, userId string, field string, val interface{}) (sql.Result, error) {
+	return tx.Exec(fmt.Sprintf(`UPDATE Users SET %s = '%v' WHERE user_id = '%v'`, field, val, userId))
 }
 
-func updateFieldIfSet(tx *sql.Tx, field string, val interface{}) (sql.Result, error) {
+// Auxillary function to update user
+func updateFieldIfSet(tx *sql.Tx, userId string, field string, val interface{}) (sql.Result, error) {
 	v, ok := val.(string)
 	if ok && v != "" {
-		return updateField(tx, field, v)
+		return updateField(tx, userId, field, v)
 	}
 	return nil, nil
+}
+
+func (m *mySql) ChangePassword(user_id, newPassword string) error {
+	query := fmt.Sprintf(`UPDATE Users SET password = '%v' WHERE user_id = '%v'`, newPassword, user_id)
+	_, err := m.conn.Exec(query)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 func (m *mySql) DeleteUser(user_id string) error {

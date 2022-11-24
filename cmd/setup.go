@@ -124,9 +124,13 @@ func Setup() {
 		users.GET("", userHandler.GetUsers)
 		// Get a specific user
 		users.GET("/:user_id", userHandler.GetUser)
+		// Update a specific user
+		users.PUT("/:user_id", userHandler.UpdateUser)
+		// Change user password
+		users.PUT("/change-password", userHandler.ChangePassword)
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
-		users.PUT("/:user_id", userHandler.UpdateUser)
+
 	}
 
 	v1.GET("/ping", func(c *gin.Context) {
