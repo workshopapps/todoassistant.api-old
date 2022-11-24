@@ -1,7 +1,6 @@
 package userHandler
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"test-va/internals/entity/ResponseEntity"
@@ -116,11 +115,12 @@ func (u *userHandler) UpdateUser(c *gin.Context) {
 
 func (u *userHandler) ChangePassword(c *gin.Context) {
 	var req userEntity.ChangePasswordReq
-
-	fmt.Println(c.Get("userId"))
-
-	// userURL := userFromRequest(c)
-	// ctx := middlewares.ValidateJWT()
+	userSession, _ := c.Get("userId")
+	userURL := userFromRequest(c)
+	if userSession != userURL {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Authorization error", nil, nil))
+		return
+	}
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -128,7 +128,7 @@ func (u *userHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	errRes := u.srv.ChangePassword(&req)
+	errRes := u.srv.ChangePassword(&req, userURL)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Cannot Change Password", errRes, nil))
 		return

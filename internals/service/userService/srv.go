@@ -20,7 +20,7 @@ type UserSrv interface {
 	GetUsers(page int) ([]*userEntity.UsersRes, error)
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, *ResponseEntity.ServiceError)
-	ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError
+	ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
 }
 
@@ -121,7 +121,7 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 	return result, nil
 }
 
-func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError {
+func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError {
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -129,7 +129,7 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEnt
 	}
 
 	// Get user by user id
-	user, err := u.repo.GetById(req.UserId)
+	user, err := u.repo.GetById(userId)
 	if err != nil {
 		return ResponseEntity.NewInternalServiceError("Check the access token!")
 	}
@@ -148,7 +148,7 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEnt
 
 	// Create a new password hash
 	newPassword, _ := u.cryptoSrv.HashPassword(req.NewPassword)
-	err = u.repo.ChangePassword(req.UserId, newPassword)
+	err = u.repo.ChangePassword(userId, newPassword)
 	if err != nil {
 		return ResponseEntity.NewInternalServiceError("Could not change password!")
 	}
