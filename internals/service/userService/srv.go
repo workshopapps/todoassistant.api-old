@@ -54,6 +54,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	}
 
 	loggedInUser := userEntity.LoginRes{
+		UserId:       user.UserId,
 		Email:        user.Email,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
