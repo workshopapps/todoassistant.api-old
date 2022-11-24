@@ -1,6 +1,7 @@
 package userHandler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"test-va/internals/entity/ResponseEntity"
@@ -31,8 +32,8 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failed To Save User", errorRes, nil))
 		return
 	}
-
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "created user successfully", user, nil))
+	//c.Set("userId", user.UserId)
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "Created user successfully", user, nil))
 }
 
 func (u *userHandler) Login(c *gin.Context) {
@@ -51,7 +52,9 @@ func (u *userHandler) Login(c *gin.Context) {
 			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "Authorization Error", errorRes, nil))
 		return
 	}
-
+	log.Println("userid -", user.UserId)
+	c.Set("userId", user.UserId)
+	println(c.GetString("userId"))
 	c.JSON(http.StatusOK, user)
 }
 
@@ -115,6 +118,12 @@ func (u *userHandler) UpdateUser(c *gin.Context) {
 
 func (u *userHandler) ChangePassword(c *gin.Context) {
 	var req userEntity.ChangePasswordReq
+	userSession, _ := c.Get("userId")
+	userURL := userFromRequest(c)
+	if userSession != userURL {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Authorization error", nil, nil))
+		return
+	}
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -122,7 +131,7 @@ func (u *userHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	errRes := u.srv.ChangePassword(&req)
+	errRes := u.srv.ChangePassword(&req, userURL)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Cannot Change Password", errRes, nil))
 		return

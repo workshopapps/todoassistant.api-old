@@ -7,6 +7,7 @@ import (
 	"test-va/internals/entity/userEntity"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/timeSrv"
+	tokenservice "test-va/internals/service/tokenService"
 	"test-va/internals/service/validationService"
 	"time"
 
@@ -19,7 +20,7 @@ type UserSrv interface {
 	GetUsers(page int) ([]*userEntity.UsersRes, error)
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, *ResponseEntity.ServiceError)
-	ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError
+	ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
 }
 
@@ -45,12 +46,22 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	if err != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
 	}
+
+	tokenSrv := tokenservice.NewTokenSrv("tokenString")
+	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, req.Email)
+	if errToken != nil {
+		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
+	}
+
 	loggedInUser := userEntity.LoginRes{
-		Email:     user.Email,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Phone:     user.Phone,
-		Gender:    user.Gender,
+		UserId:       user.UserId,
+		Email:        user.Email,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Phone:        user.Phone,
+		Gender:       user.Gender,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 	return &loggedInUser, nil
 }
@@ -85,12 +96,20 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
+	tokenSrv := tokenservice.NewTokenSrv("tokenString")
+	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, req.Email)
+	if errToken != nil {
+		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
+	}
+
 	data := &userEntity.CreateUserRes{
-		UserId:    req.UserId,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Email:     req.Email,
-		Phone:     req.Phone,
+		UserId:       req.UserId,
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		Email:        req.Email,
+		Phone:        req.Phone,
+		Token:        token,
+		RefreshToken: refreshToken,
 	}
 	// set Reminder
 
@@ -111,7 +130,7 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 	return result, nil
 }
 
-func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError {
+func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError {
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -119,7 +138,7 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEnt
 	}
 
 	// Get user by user id
-	user, err := u.repo.GetById(req.UserId)
+	user, err := u.repo.GetById(userId)
 	if err != nil {
 		return ResponseEntity.NewInternalServiceError("Check the access token!")
 	}
@@ -138,7 +157,7 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEnt
 
 	// Create a new password hash
 	newPassword, _ := u.cryptoSrv.HashPassword(req.NewPassword)
-	err = u.repo.ChangePassword(req.UserId, newPassword)
+	err = u.repo.ChangePassword(userId, newPassword)
 	if err != nil {
 		return ResponseEntity.NewInternalServiceError("Could not change password!")
 	}
