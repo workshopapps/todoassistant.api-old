@@ -104,6 +104,21 @@ func Setup() {
 	// search route
 	r.GET("/search", handler.SearchTask)
 
+	//Get all task by a user
+	r.GET("/task", handler.GetAllTask)
+
+	//Delete Task By ID
+	r.DELETE("/task/:taskId", handler.DeleteTaskById)
+
+	//Delete all task of a user
+	r.DELETE("/task", handler.DeleteAllTask)
+
+	//Update User Status
+	r.PUT("/task/:taskId/status", handler.UpdateUserStatus)
+
+	//EditTaskById
+	r.PUT("/task/:taskId", handler.EditTaskById)
+
 	// USER
 	//create user
 	r.POST("/user", userHandler.CreateUser)
