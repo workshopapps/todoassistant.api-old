@@ -111,6 +111,7 @@ func Setup() {
 
 	v1 := r.Group("/api/v1")
 	task := v1.Group("/task")
+	task.Use(middlewares.ValidateJWT())
 	{
 		task.POST("", handler.CreateTask)
 		task.GET("/:taskId", handler.GetTaskByID)

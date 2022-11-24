@@ -164,7 +164,7 @@ func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
 		return errors.New("invalid Time")
 	}
 
-	s.Every(1).Minutes().StartAt(dDate).Do(func() error {
+	s.Every(1).Day().StartAt(dDate).Do(func() error {
 		log.Println("setting status to expired")
 		log.Printf("\n")
 		r.repo.SetTaskToExpired(data.TaskId)

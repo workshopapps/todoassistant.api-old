@@ -1,6 +1,7 @@
 package userHandler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"test-va/internals/entity/ResponseEntity"
@@ -31,7 +32,7 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failed To Save User", errorRes, nil))
 		return
 	}
-
+	//c.Set("userId", user.UserId)
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "Created user successfully", user, nil))
 }
 
@@ -51,7 +52,9 @@ func (u *userHandler) Login(c *gin.Context) {
 			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "Authorization Error", errorRes, nil))
 		return
 	}
-
+	log.Println("userid -", user.UserId)
+	c.Set("userId", user.UserId)
+	println(c.GetString("userId"))
 	c.JSON(http.StatusOK, user)
 }
 

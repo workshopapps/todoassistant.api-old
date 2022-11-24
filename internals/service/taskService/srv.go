@@ -86,30 +86,30 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	case "daily":
 		err = t.remindSrv.SetDailyReminder(req)
 		if err != nil {
-			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Daily Input")
 		}
 	case "weekly":
 		err = t.remindSrv.SetWeeklyReminder(req)
 		if err != nil {
-			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Weekly Input")
 		}
 	case "bi-weekly":
 		err = t.remindSrv.SetBiWeeklyReminder(req)
 		if err != nil {
-			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Bi Weekly Input")
 		}
 	case "monthly":
 		err = t.remindSrv.SetMonthlyReminder(req)
 		if err != nil {
-			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Monthly Input")
 		}
 	case "yearly":
 		err = t.remindSrv.SetYearlyReminder(req)
 		if err != nil {
-			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Yearly Input")
 		}
 	default:
-		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input")
+		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
 	// insert into db

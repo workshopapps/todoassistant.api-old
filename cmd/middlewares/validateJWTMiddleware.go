@@ -16,6 +16,10 @@ func ValidateJWT() gin.HandlerFunc {
 		// const BEARER_HEADER = "Bearer "
 		authHeader := c.GetHeader("Authorization")
 		auth := strings.Split(authHeader, " ")
+		if len(auth) < 2 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, "Invalid Token")
+			return
+		}
 
 		token, err := tokenSrv.ValidateToken(auth[1])
 
