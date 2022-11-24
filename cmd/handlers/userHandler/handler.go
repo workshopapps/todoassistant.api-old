@@ -98,6 +98,9 @@ func (u *userHandler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+
+
+
 func (u *userHandler) UpdateUser(c *gin.Context) {
 	var req userEntity.UpdateUserReq
 
@@ -153,3 +156,4 @@ func (u *userHandler) DeleteUser(c *gin.Context) {
 func userFromRequest(c *gin.Context) string {
 	return c.Param("user_id")
 }
+

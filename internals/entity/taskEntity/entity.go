@@ -7,9 +7,9 @@ type TaskFile struct {
 
 type CreateTaskReq struct {
 	TaskId      string     `json:"task_id"`
-	UserId      string     `json:"user_id"`
-	Title       string     `json:"title" validate:"required"`
-	Description string     `json:"description"`
+	UserId      string     `json:"user_id" validate:"required"`
+	Title       string     `json:"title" validate:"required,min=3"`
+	Description string     `json:"description" validate:"required,min=3"`
 	Repeat      string     `json:"repeat"`
 	Files       []TaskFile `json:"files"`
 	StartTime   string     `json:"start_time" validate:"required"`
@@ -84,4 +84,15 @@ type GetAllExpiredRes struct {
 	Title     string `json:"title"`
 	UserId    string `json:"user_id"`
 	CreatedAt string `json:"created_at"`
+
+}
+
+//GetAllTaskRes is the struct for task assocaited with a user
+type GetAllTaskRes struct {
+	TaskId    string `json:"task_id"`
+	Title     string `json:"title"`
+	UserId    string `json:"user_id"`
+	CreatedAt string `json:"created_at"`
+	EndTime   string `json:"end_time" validate:"required"`
+
 }

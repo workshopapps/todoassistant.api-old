@@ -90,6 +90,7 @@ func Setup() {
 	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
 
 	handler := taskHandler.NewTaskHandler(taskSrv)
+
 	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
@@ -117,6 +118,12 @@ func Setup() {
 		task.GET("/:taskId", handler.GetTaskByID)
 		task.GET("/pending/:userId", handler.GetPendingTasks)
 		task.GET("/expired", handler.GetListOfExpiredTasks)
+		task.GET("/", handler.GetAllTask)                     //Get all task by a user
+		task.DELETE("/:taskId", handler.DeleteTaskById)       //Delete Task By ID
+		task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
+		task.PUT("/:taskId/status", handler.UpdateUserStatus) //Update User Status
+		task.PUT("/:taskId", handler.EditTaskById)            //EditTaskById
+
 	}
 
 	//r.POST("/task", handler.CreateTask)
@@ -136,6 +143,7 @@ func Setup() {
 	// Login into the user account
 	r.POST("/user/login", userHandler.Login)
 	users := v1.Group("/user")
+
 	users.Use(middlewares.ValidateJWT())
 	{
 		// Get all users
