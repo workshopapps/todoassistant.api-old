@@ -47,6 +47,7 @@ type GetByEmailRes struct {
 
 type GetByIdRes struct {
 	UserId      string `json:"user_id"`
+	Password    string `json:"password"`
 	Email       string `json:"email"`
 	FirstName   string `json:"first_name"`
 	LastName    string `json:"last_name"`
@@ -82,4 +83,10 @@ type UsersRes struct {
 	Phone       string `json:"phone"`
 	DateOfBirth string `json:"date_of_birth"`
 	DateCreated string `json:"date_created"`
+}
+
+type ChangePasswordReq struct {
+	UserId      string `json:"user_id"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }

@@ -113,6 +113,24 @@ func (u *userHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+func (u *userHandler) ChangePassword(c *gin.Context) {
+	var req userEntity.ChangePasswordReq
+
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
+		return
+	}
+
+	errRes := u.srv.ChangePassword(&req)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Cannot Change Password", errRes, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Password updated successfully", nil))
+}
+
 func (u *userHandler) DeleteUser(c *gin.Context) {
 	err := u.srv.DeleteUser(userFromRequest(c))
 	if err != nil {
