@@ -2,7 +2,6 @@ package taskService
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"log"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
@@ -12,6 +11,8 @@ import (
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type TaskService interface {
@@ -228,6 +229,7 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
+	log.Println("From getByID",task)
 	return task, nil
 
 }
@@ -330,13 +332,23 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
 	}
 
-	//Update Task
-	err = t.repo.EditTaskById(ctx, taskId, req)
-
+	// Get task by ID
+	task, err := t.repo.GetTaskByID(ctx, taskId)
+		if task == nil {
+		log.Println("no rows returned")
+	}
 	if err != nil {
-		log.Println(err, "error creating data")
+		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
+	log.Println(req)
+	//Update Task
+	//err = t.repo.EditTaskById(ctx, taskId, req)
+
+	// if err != nil {
+	// 	log.Println(err, "error creating data")
+	// 	return nil, ResponseEntity.NewInternalServiceError(err)
+	// }
 
 	//Returning Data
 	data := taskEntity.EditTaskRes{
@@ -348,9 +360,10 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		VAOption:    req.VAOption,
 		Status:      req.Status,
 	}
+	updateAt :=t.timeSrv.CurrentTime().Format(time.RFC3339)
 	ndate := &taskEntity.CreateTaskReq{
 		TaskId:      taskId,
-		UserId:      data.Status,
+		UserId:      task.UserId,
 		Title:       data.Title,
 		Description: data.Description,
 		Repeat:      data.Repeat,
@@ -358,11 +371,38 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		EndTime:     data.EndTime,
 		VAOption:    data.VAOption,
 		Status:      data.Status,
+		UpdatedAt: 	 updateAt,
+		CreatedAt: 	 task.CreatedAt,
 	}
 
+	// delete former task
+	_, err2 := t.DeleteTaskByID(taskId)
+	if err2 != nil {
+		log.Println(err2)
+		return nil, err2
+	}
+	log.Println("Deleted task line 381")
+
+
+	// create new task
+
+
+	//check if timeDueDate and StartDate is valid
+	err = t.timeSrv.CheckFor339Format( ndate.EndTime)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
+	}
+
+	err = t.timeSrv.CheckFor339Format(ndate.StartTime)
+	if err != nil {
+		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
+	}
+
+
+	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(req.EndTime, taskId)
+		err = t.remindSrv.SetReminder(ndate.EndTime, ndate.TaskId)
 
 		if err != nil {
 			log.Println(err)
@@ -397,14 +437,13 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
-	// create a reminder
-	//err = t.remindSrv.SetReminder(.EndTime, req.TaskId)
-	//set reminder service
-
+	// insert into db
+	err = t.repo.Persist(ctx, ndate)
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return &data, nil
+	log.Println("update complete")
 
+	return &data, nil
 }
