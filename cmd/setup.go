@@ -30,6 +30,7 @@ import (
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/pusher/pusher-http-go"
 )
 
 func Setup() {
@@ -118,30 +119,53 @@ func Setup() {
 		task.GET("/:taskId", handler.GetTaskByID)
 		task.GET("/pending/:userId", handler.GetPendingTasks)
 		task.GET("/expired", handler.GetListOfExpiredTasks)
-		task.GET("/", handler.GetAllTask)                     //Get all task by a user
-		task.DELETE("/:taskId", handler.DeleteTaskById)       //Delete Task By ID
-		task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
-		task.PUT("/:taskId/status", handler.UpdateUserStatus) //Update User Status
-		task.PUT("/:taskId", handler.EditTaskById)            //EditTaskById
+		task.GET("/", handler.GetAllTask)               //Get all task by a user
+		task.DELETE("/:taskId", handler.DeleteTaskById) //Delete Task By ID
+		//task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
+		//task.POST("/:taskId", handler.UpdateUserStatus) //Update User Status
+		task.PUT("/:taskId", handler.EditTaskById) //EditTaskById
 
 	}
 
 	//r.POST("/task", handler.CreateTask)
-	r.GET("/calls", callHandler.GetCalls)
+	v1.GET("/calls", callHandler.GetCalls)
 	//r.GET("/task/pending/:userId", handler.GetPendingTasks)
 	//get list of pending tasks belonging to a user
 	//r.GET("/task/expired/", handler.GetListOfExpiredTasks)
 	// get task by id
 	//r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
-	r.GET("/search", handler.SearchTask)
+	v1.GET("/search", handler.SearchTask)
+
+	//chat service connection
+
+	pusherClient := pusher.Client{
+		AppID:   "1512808",
+		Key:     "f79030d90753a91854e6",
+		Secret:  "06b8abef8713abd21cc9",
+		Cluster: "eu",
+		Secure:  true,
+	}
+
+	v1.POST("dashboard/assistant", func(c *gin.Context) {
+		// var data map[string]string
+		var data map[string]string
+
+		if err := c.BindJSON(&data); err != nil {
+			return
+		}
+		pusherClient.Trigger("vachat", "message", data)
+
+		c.JSON(http.StatusOK, []string{})
+	})
 
 	// USER
 	//create user
 	// Register a user
-	r.POST("/user", userHandler.CreateUser)
+
+	v1.POST("/user", userHandler.CreateUser)
 	// Login into the user account
-	r.POST("/user/login", userHandler.Login)
+	v1.POST("/user/login", userHandler.Login)
 	users := v1.Group("/user")
 
 	users.Use(middlewares.ValidateJWT())

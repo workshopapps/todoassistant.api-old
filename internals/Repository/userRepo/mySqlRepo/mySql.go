@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/userEntity"
+	"time"
 )
 
 type mySql struct {
@@ -136,67 +137,25 @@ func (m *mySql) Persist(req *userEntity.CreateUserReq) error {
 }
 
 // Create function to update user in database
-func (m *mySql) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, error) {
-	tx, err := m.conn.BeginTx(context.Background(), nil)
-	if err != nil {
-		return nil, err
-	}
 
-	_, err = updateFieldIfSet(tx, userId, "first_name", req.FirstName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
+func (m *mySql) UpdateUser(req *userEntity.UpdateUserReq, userId string) error {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Second*60)
+	defer cancelFunc()
 
-	_, err = updateFieldIfSet(tx, userId, "last_name", req.LastName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
+	stmt := fmt.Sprintf(`UPDATE Users SET 
+                 first_name ='%s',
+                 last_name='%s',
+                 email ='%s',
+                 phone='%s',
+                 gender='%s',
+                 date_of_birth='%s' WHERE user_id ='%s'
+                 `, req.FirstName, req.LastName, req.Email, req.Phone, req.Gender, req.DateOfBirth, userId)
 
-	_, err = updateFieldIfSet(tx, userId, "email", req.Email)
+	_, err := m.conn.ExecContext(ctx, stmt)
 	if err != nil {
-		tx.Rollback()
-		return nil, err
+		return err
 	}
-
-	_, err = updateFieldIfSet(tx, userId, "phone", req.Phone)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	_, err = updateFieldIfSet(tx, userId, "gender", req.Gender)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	_, err = updateFieldIfSet(tx, userId, "date_of_birth", req.DateOfBirth)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	_, err = updateFieldIfSet(tx, userId, "account_status", req.AccountStatus)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	_, err = updateFieldIfSet(tx, userId, "payment_status", req.PaymentStatus)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	return m.GetById(userId)
+	return nil
 }
 
 // Auxillary function to update user
