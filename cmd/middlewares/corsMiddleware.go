@@ -1,6 +1,9 @@
 package middlewares
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"log"
+)
 
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -12,6 +15,7 @@ func CORS() gin.HandlerFunc {
 			c.AbortWithStatus(204)
 			return
 		}
+		log.Println("cors done")
 		c.Next()
 	}
 }

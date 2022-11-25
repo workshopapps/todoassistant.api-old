@@ -3,21 +3,27 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/cors"
+
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"test-va/cmd/handlers/callHandler"
+	"test-va/cmd/handlers/notificationHandler"
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
 	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
+	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
+	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/callService"
 	"test-va/internals/service/cryptoService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
+	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
@@ -57,6 +63,7 @@ func Setup() {
 	repo := mySqlRepo.NewSqlRepo(conn)
 	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
+	notificationRepo := mySqlNotifRepo.NewMySqlNotificationRepo(conn)
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
 
@@ -75,8 +82,6 @@ func Setup() {
 		reminderSrv.SetReminderEvery30Min()
 	})
 
-	s.StartAsync()
-
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
 	//logger service
@@ -84,6 +89,18 @@ func Setup() {
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	//Notification Service
+	//Note Handle Unable to Connect to Firebase
+	firebaseApp, err := firebaseinit.SetupFirebase()
+	if err != nil {
+		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
+	}
+	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
+	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn", "Notification", "notification", []string{"hello"})
+	if err != nil {
+		fmt.Println("Could Not Send Message", err)
+	}
+	s.StartAsync()
 	// create service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
@@ -95,6 +112,8 @@ func Setup() {
 	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
+	notificationHandler := notificationHandler.NewNotificationHandler(notificationSrv)
+
 	port := config.SeverAddress
 	log.Println(port)
 	if port == "" {
@@ -108,7 +127,13 @@ func Setup() {
 	//r.Use(middlewares.Logger())
 
 	r.Use(gin.Recovery())
-	r.Use(middlewares.CORS())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"PUT", "PATCH", "DELETE", "POST", "GET"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"*"},
+		AllowCredentials: true,
+	}))
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	v1 := r.Group("/api/v1")
@@ -183,7 +208,13 @@ func Setup() {
 		users.DELETE("/:user_id", userHandler.DeleteUser)
 	}
 
+
+	// Notifications
+	// Register to Recieve Notifications
+	v1.POST("/notification", notificationHandler.RegisterForNotifications)
+
 	v1.GET("/ping", func(c *gin.Context) {
+
 		c.String(http.StatusOK, "pong")
 	})
 
