@@ -8,8 +8,10 @@ require (
 	github.com/go-co-op/gocron v1.18.0
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/google/uuid v1.3.0
 	github.com/jeanphorn/log4go v0.0.0-20190526082429-7dbb8deb9468
+	github.com/pusher/pusher-http-go v4.0.1+incompatible
 	golang.org/x/crypto v0.3.0
 )
 
@@ -37,6 +39,7 @@ require (
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/storage v1.23.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible // indirect
+	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect

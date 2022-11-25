@@ -8,14 +8,37 @@ type TaskFile struct {
 type CreateTaskReq struct {
 	TaskId      string     `json:"task_id"`
 	UserId      string     `json:"user_id" validate:"required"`
-	Title       string     `json:"title" validate:"required"`
-	Description string     `json:"description"`
+	Title       string     `json:"title" validate:"required,min=3"`
+	Description string     `json:"description" validate:"required,min=3"`
+	Repeat      string     `json:"repeat"`
 	Files       []TaskFile `json:"files"`
 	StartTime   string     `json:"start_time" validate:"required"`
 	EndTime     string     `json:"end_time" validate:"required"`
+	VAOption    string     `json:"va_option"`
 	Status      string     `json:"status"`
 	CreatedAt   string     `json:"created_at"`
 	UpdatedAt   string     `json:"updated_at"`
+}
+
+type EditTaskReq struct {
+	Title       string `json:"title" validate:"required,min=3"`
+	Description string `json:"description" validate:"required,min=3"`
+	Repeat      string `json:"repeat"`
+	StartTime   string `json:"start_time" validate:"required"`
+	EndTime     string `json:"end_time" validate:"required"`
+	VAOption    string `json:"va_option"`
+	Status      string `json:"status"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
+type EditTaskRes struct {
+	Title       string `json:"title" validate:"required,min=3"`
+	Description string `json:"description" validate:"required,min=3"`
+	Repeat      string `json:"repeat"`
+	StartTime   string `json:"start_time" validate:"required"`
+	EndTime     string `json:"end_time" validate:"required"`
+	VAOption    string `json:"va_option"`
+	Status      string `json:"status"`
 }
 
 type CreateTaskRes struct {
@@ -24,6 +47,8 @@ type CreateTaskRes struct {
 	Description string `json:"description"`
 	StartTime   string `json:"start_time"`
 	EndTime     string `json:"end_time"`
+	VAOption    string `json:"va_option"`
+	Repeat      string `json:"repeat"`
 }
 
 type GetPendingTasksRes struct {
@@ -54,8 +79,8 @@ type GetTasksByIdRes struct {
 	StartTime   string     `json:"start_time"`
 	EndTime     string     `json:"end_time"`
 	Status      string     `json:"status"`
-	CreatedAt   string     `json:"created_at"`
-	UpdatedAt   string     `json:"updated_at"`
+	CreatedAt   string     `json:"created_at,omitempty"`
+	UpdatedAt   string     `json:"updated_at,omitempty"`
 }
 
 type SearchTitleReq struct {
@@ -80,4 +105,17 @@ type GetAllExpiredRes struct {
 	Title     string `json:"title"`
 	UserId    string `json:"user_id"`
 	CreatedAt string `json:"created_at"`
+}
+
+// GetAllTaskRes is the struct for task assocaited with a user
+type GetAllTaskRes struct {
+	TaskId      string `json:"task_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	VAOption    string `json:"va_option"`
+	Status      string `json:"status"`
+	Repeat      string `json:"repeat"`
+
 }
