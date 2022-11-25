@@ -200,6 +200,7 @@ func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 	if err != nil {
 		return err
 	}
+
 	s.Every(1).StartAt(dDate).Do(func() {
 		log.Println("setting status to expired")
 		r.repo.SetTaskToExpired(taskId)

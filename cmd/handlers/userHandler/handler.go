@@ -60,7 +60,9 @@ func (u *userHandler) Login(c *gin.Context) {
 
 func (u *userHandler) GetUsers(c *gin.Context) {
 	page := c.Query("page")
-
+	if page == "" {
+		page = "1"
+	}
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.NewInternalServiceError(err))
@@ -97,9 +99,6 @@ func (u *userHandler) GetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
-
-
-
 
 func (u *userHandler) UpdateUser(c *gin.Context) {
 	var req userEntity.UpdateUserReq
@@ -156,4 +155,3 @@ func (u *userHandler) DeleteUser(c *gin.Context) {
 func userFromRequest(c *gin.Context) string {
 	return c.Param("user_id")
 }
-
