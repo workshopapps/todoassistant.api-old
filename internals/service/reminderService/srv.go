@@ -161,7 +161,7 @@ func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
 	}
 	if dDate.Before(time.Now()) {
 		log.Println("this")
-		return errors.New("invalid Time")
+		return errors.New("invalid Time, try again")
 	}
 
 	s.Every(1).Day().StartAt(dDate).Do(func() error {
@@ -200,6 +200,7 @@ func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 	if err != nil {
 		return err
 	}
+
 	s.Every(1).StartAt(dDate).Do(func() {
 		log.Println("setting status to expired")
 		r.repo.SetTaskToExpired(taskId)

@@ -19,12 +19,12 @@ type TaskService interface {
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError)
 	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError)
-	DeleteTaskByID(taskId string, userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
+	DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError)
-	GetTaskByID(taskId string, userId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
+	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
 	DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	UpdateTaskStatusByID(taskId string, userId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
-	EditTaskByID(taskId string, userId string, req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError)
+	EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -140,8 +140,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 
 }
 
-
-//Create Task
+// Create Task
 func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -215,12 +214,12 @@ func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity
 	return tasks, nil
 }
 
-func (t *taskSrv) GetTaskByID(taskId string, userId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError) {
+func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
-	task, err := t.repo.GetTaskByID(ctx, taskId, userId)
+	task, err := t.repo.GetTaskByID(ctx, taskId)
 
 	if task == nil {
 		log.Println("no rows returned")
@@ -236,10 +235,12 @@ func (t *taskSrv) GetTaskByID(taskId string, userId string) (*taskEntity.GetTask
 func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
+
 	task, err := t.repo.GetListOfExpiredTasks(ctx)
 
 	if task == nil {
 		log.Println("no rows returned")
+		return nil, ResponseEntity.NewInternalServiceError("No Task")
 	}
 	if err != nil {
 		log.Println(err)
@@ -249,7 +250,7 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 
 }
 
-//Get all task service
+// Get all task service
 func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -267,13 +268,14 @@ func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *Respo
 
 }
 
-//Delete task by Id
-func (t *taskSrv) DeleteTaskByID(taskId string, userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+// Delete task by Id
+
+func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
-	err := t.repo.DeleteTaskByID(ctx, taskId, userId)
+	err := t.repo.DeleteTaskByID(ctx, taskId)
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
@@ -281,7 +283,8 @@ func (t *taskSrv) DeleteTaskByID(taskId string, userId string) (*ResponseEntity.
 	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
 }
 
-//Delete All task
+// Delete All task
+
 func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -296,7 +299,7 @@ func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage,
 
 }
 
-//Update task status
+// Update task status
 func (t *taskSrv) UpdateTaskStatusByID(taskId string, userId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -311,48 +314,24 @@ func (t *taskSrv) UpdateTaskStatusByID(taskId string, userId string, status stri
 
 }
 
-//Edit task by Id
-func (t *taskSrv) EditTaskByID(taskId string, userId string, req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
+// Edit task by Id
+
+func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError) {
+
 	// create context of 1 minute
+
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
+
 	//validating the struct
 	err := t.validationSrv.Validate(req)
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
 	}
-	//Get the task by the ID
-	task, err := t.repo.GetTaskByID(ctx, taskId, userId)
-
-	if req.TaskId == "" {
-		task.TaskId = taskId
-	} else {
-		task.TaskId = req.TaskId
-
-	}
-	if req.Title == "" {
-		task.Title = task.Title
-	} else {
-		task.Title = req.Title
-	}
-
-	if req.Description == "" {
-		task.Description = task.Description
-	} else {
-		task.Description = req.Description
-	}
-
-	if req.EndTime == "" {
-		task.EndTime = task.EndTime
-	} else {
-		task.EndTime = req.EndTime
-	}
-
-	task.UpdatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
 
 	//Update Task
-	err = t.repo.EditTaskById(ctx, taskId, userId, req)
+	err = t.repo.EditTaskById(ctx, taskId, req)
 
 	if err != nil {
 		log.Println(err, "error creating data")
@@ -360,16 +339,67 @@ func (t *taskSrv) EditTaskByID(taskId string, userId string, req *taskEntity.Cre
 	}
 
 	//Returning Data
-	data := taskEntity.CreateTaskRes{
-		TaskId:      req.TaskId,
+	data := taskEntity.EditTaskRes{
 		Title:       req.Title,
 		Description: req.Description,
+		Repeat:      req.Repeat,
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,
+		VAOption:    req.VAOption,
+		Status:      req.Status,
+	}
+	ndate := &taskEntity.CreateTaskReq{
+		TaskId:      taskId,
+		UserId:      data.Status,
+		Title:       data.Title,
+		Description: data.Description,
+		Repeat:      data.Repeat,
+		StartTime:   data.StartTime,
+		EndTime:     data.EndTime,
+		VAOption:    data.VAOption,
+		Status:      data.Status,
+	}
+
+	switch req.Repeat {
+	case "never":
+		err = t.remindSrv.SetReminder(req.EndTime, taskId)
+
+		if err != nil {
+			log.Println(err)
+			return nil, ResponseEntity.NewInternalServiceError(err)
+		}
+	case "daily":
+		err = t.remindSrv.SetDailyReminder(ndate)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Daily Input")
+		}
+	case "weekly":
+		err = t.remindSrv.SetWeeklyReminder(ndate)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Weekly Input")
+		}
+	case "bi-weekly":
+		err = t.remindSrv.SetBiWeeklyReminder(ndate)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Bi Weekly Input")
+		}
+	case "monthly":
+		err = t.remindSrv.SetMonthlyReminder(ndate)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Monthly Input")
+		}
+	case "yearly":
+		err = t.remindSrv.SetYearlyReminder(ndate)
+		if err != nil {
+			return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Yearly Input")
+		}
+	default:
+		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
 	// create a reminder
-	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+	//err = t.remindSrv.SetReminder(.EndTime, req.TaskId)
+	//set reminder service
 
 	if err != nil {
 		log.Println(err)

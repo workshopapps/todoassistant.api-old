@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -16,13 +17,17 @@ func ValidateJWT() gin.HandlerFunc {
 
 		// const BEARER_HEADER = "Bearer "
 		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, "Invalid Token")
+			return
+		}
 		auth := strings.Split(authHeader, " ")
 
 		token, err := tokenSrv.ValidateToken(auth[1])
 
 		if err != nil {
 			log.Println(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
 
 		}
 
@@ -32,23 +37,23 @@ func ValidateJWT() gin.HandlerFunc {
 	}
 }
 
-func CheckUserID() gin.HandlerFunc{
+func CheckUserID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 	}
 }
 
-func MapID() gin.HandlerFunc{
+func MapID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userSession := c.GetString("userId")
 		userURL := c.Param("user_id")
 
-		if userSession == ""{
+		if userSession == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid UserID", nil, nil))
 			return
 		}
 
-		if userURL == ""{
+		if userURL == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid url", nil, nil))
 			return
 		}

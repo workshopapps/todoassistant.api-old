@@ -3,6 +3,7 @@ package taskHandler
 import (
 	"log"
 	"net/http"
+
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/entity/userEntity"
@@ -77,6 +78,7 @@ func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
 }
 
 // handle search function
+
 func (t *taskHandler) SearchTask(c *gin.Context) {
 
 	name := c.Query("q")
@@ -110,24 +112,20 @@ func (t *taskHandler) SearchTask(c *gin.Context) {
 
 // handle get by ID
 func (t *taskHandler) GetTaskByID(c *gin.Context) {
-	userId, exists := c.Get("userId")
-	if exists == false {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
+	userId := c.GetString("userId")
 	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No User ID", nil, nil))
 		return
 	}
+
 	taskId := c.Params.ByName("taskId")
 	if taskId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
 		return
 	}
-	task, errRes := t.srv.GetTaskByID(taskId, userId.(userEntity.CreateUserReq).UserId)
+	task, errRes := t.srv.GetTaskByID(taskId)
 
 	if task == nil {
 		message := "no Task with id " + taskId + " exists"
@@ -143,10 +141,13 @@ func (t *taskHandler) GetTaskByID(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
-//Handle get all task from a specific user
+// Handle get all task from a specific user
+
 func (t *taskHandler) GetAllTask(c *gin.Context) {
-	userId, exists := c.Get("userId")
-	if exists == false {
+	log.Println("here")
+	userId := c.GetString("userId")
+	log.Println(userId)
+	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
 		return
@@ -156,10 +157,9 @@ func (t *taskHandler) GetAllTask(c *gin.Context) {
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
 		return
 	}
-	task, errRes := t.srv.GetAllTask(userId.(userEntity.CreateUserReq).UserId)
-
+	task, errRes := t.srv.GetAllTask(userId)
 	if task == nil {
-		message := "no Task with id " + userId.(userEntity.CreateUserReq).UserId + " exists"
+		message := "no Task with id " + userId + " exists"
 		c.AbortWithStatusJSON(http.StatusOK,
 			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, task, nil))
 		return
@@ -173,26 +173,22 @@ func (t *taskHandler) GetAllTask(c *gin.Context) {
 
 }
 
-//Handle Delete task by id
+// Handle Delete task by id
+
 func (t *taskHandler) DeleteTaskById(c *gin.Context) {
 	taskId := c.Params.ByName("taskId")
 	if taskId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "invalid taskId id", nil, nil))
 		return
 	}
-	userId, exists := c.Get("userId")
-	if exists == false {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
+	userId := c.GetString("userId")
 	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Authentication Error, Invalid UserId", nil, nil))
 		return
 	}
-	_, errRes := t.srv.DeleteTaskByID(taskId, userId.(userEntity.CreateUserReq).UserId)
+	_, errRes := t.srv.DeleteTaskByID(taskId)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Unable to delete task by id", errRes, nil))
@@ -202,7 +198,7 @@ func (t *taskHandler) DeleteTaskById(c *gin.Context) {
 	c.JSON(http.StatusOK, rd)
 }
 
-//Handle Delete All Task of a user
+// Handle Delete All Task of a user
 func (t *taskHandler) DeleteAllTask(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if exists == false {
@@ -225,88 +221,71 @@ func (t *taskHandler) DeleteAllTask(c *gin.Context) {
 	c.JSON(http.StatusOK, rd)
 }
 
-//Update user Status
-func (t *taskHandler) UpdateUserStatus(c *gin.Context) {
-	var status string
-	err := c.ShouldBind(&status)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
-		return
-	}
-	taskId := c.Params.ByName("taskId")
-	if taskId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
-		return
-	}
-	userId, exists := c.Get("userId")
-	if exists == false {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
-	updatedStatusTask, errRes := t.srv.UpdateTaskStatusByID(taskId, userId.(userEntity.CreateUserReq).UserId, status)
-	if updatedStatusTask == nil {
-		message := "no Task with id " + userId.(userEntity.CreateUserReq).UserId + " updated"
-		c.AbortWithStatusJSON(http.StatusOK,
-			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, updatedStatusTask, nil))
-		return
-	}
-	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find all task", errRes, nil))
-		return
-	}
-	rd := ResponseEntity.BuildSuccessResponse(200, "Task status updated successfully", nil)
-	c.JSON(http.StatusOK, rd)
-}
+// Update user Status
 
-//Update task by id
+//func (t *taskHandler) UpdateUserStatus(c *gin.Context) {
+//	param := c.Param("taskId")
+//	if param == "" {
+//		c.AbortWithStatusJSON(http.StatusBadRequest,
+//			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
+//		return
+//	}
+//
+//	userId, exists := c.Get("userId")
+//	if exists == false {
+//		c.AbortWithStatusJSON(http.StatusBadRequest,
+//			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
+//		return
+//	}
+//	if userId == "" {
+//		c.AbortWithStatusJSON(http.StatusBadRequest,
+//			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
+//		return
+//	}
+//	updatedStatusTask, errRes := t.srv.UpdateTaskStatusByID(taskId, userId.(userEntity.CreateUserReq).UserId, status)
+//	if updatedStatusTask == nil {
+//		message := "no Task with id " + userId.(userEntity.CreateUserReq).UserId + " updated"
+//		c.AbortWithStatusJSON(http.StatusOK,
+//			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, updatedStatusTask, nil))
+//		return
+//	}
+//	if errRes != nil {
+//		c.AbortWithStatusJSON(http.StatusInternalServerError,
+//			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find all task", errRes, nil))
+//		return
+//	}
+//	rd := ResponseEntity.BuildSuccessResponse(200, "Task status updated successfully", nil)
+//	c.JSON(http.StatusOK, rd)
+//}
+
+// Update task by id
+
 func (t *taskHandler) EditTaskById(c *gin.Context) {
-	var req *taskEntity.CreateTaskReq
+	var req taskEntity.EditTaskReq
+
 	taskId := c.Params.ByName("taskId")
 	if taskId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
 		return
 	}
-	userId, exists := c.Get("userId")
-	if exists == false {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
+
 	err := c.ShouldBind(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Input Request", err, nil))
 		return
 	}
 
-	EditedTask, errRes := t.srv.EditTaskByID(taskId, userId.(userEntity.CreateUserReq).UserId, req)
-	if EditedTask == nil {
-		message := "no Task with id " + userId.(userEntity.CreateUserReq).UserId + " updated"
-		c.AbortWithStatusJSON(http.StatusOK,
-			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, EditedTask, nil))
-		return
-	}
+	EditedTask, errRes := t.srv.EditTaskByID(taskId, &req)
+
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find all task", errRes, nil))
 		return
 	}
-	rd := ResponseEntity.BuildSuccessResponse(200, "Task status updated successfully", nil)
+
+	rd := ResponseEntity.BuildSuccessResponse(200, "Task status updated successfully", EditedTask)
 	c.JSON(http.StatusOK, rd)
 
 }
