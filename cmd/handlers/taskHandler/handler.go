@@ -266,22 +266,23 @@ func (t *taskHandler) EditTaskById(c *gin.Context) {
 	taskId := c.Params.ByName("taskId")
 	if taskId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id provided", nil, nil))
 		return
 	}
-
+	//log.Println(taskId)
 	err := c.ShouldBind(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Input Request", err, nil))
 		return
 	}
-
+	//log.Println(req)
 	EditedTask, errRes := t.srv.EditTaskByID(taskId, &req)
 
 	if errRes != nil {
+		message := "no task with ID: "+taskId+" found"
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find all task", errRes, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, message, errRes, nil))
 		return
 	}
 

@@ -79,8 +79,8 @@ type GetTasksByIdRes struct {
 	StartTime   string     `json:"start_time"`
 	EndTime     string     `json:"end_time"`
 	Status      string     `json:"status"`
-	CreatedAt   string     `json:"created_at"`
-	UpdatedAt   string     `json:"updated_at"`
+	CreatedAt   string     `json:"created_at,omitempty"`
+	UpdatedAt   string     `json:"updated_at,omitempty"`
 }
 
 type SearchTitleReq struct {
@@ -117,4 +117,5 @@ type GetAllTaskRes struct {
 	VAOption    string `json:"va_option"`
 	Status      string `json:"status"`
 	Repeat      string `json:"repeat"`
+
 }
