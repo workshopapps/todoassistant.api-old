@@ -16,8 +16,8 @@ type sqlRepo struct {
 func (s *sqlRepo) SetNewEvent(req *taskEntity.CreateTaskReq) error {
 	stmt := fmt.Sprintf(`INSERT INTO Tasks(
                   task_id,
-                  user_id, 
-                  title, 
+                  user_id,
+                  title,
                   description,
                   start_time,
                   end_time,
@@ -88,6 +88,7 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 }
 
 func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
+	log.Printf("#%v\n",req)
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -102,10 +103,10 @@ func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) er
 	}()
 
 	stmt := fmt.Sprintf(`INSERT
-		INTO Tasks( 
+		INTO Tasks(
 					task_id,
-                  user_id, 
-                  title, 
+                  user_id,
+                  title,
                   description,
                   start_time,
                   end_time,
@@ -205,7 +206,7 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.G
 	}()
 
 	stmt := fmt.Sprintf(`
-		SELECT T.task_id, T.user_id, T.title, T.description, T.status, T.start_time, T.end_time
+		SELECT T.task_id, T.user_id, T.title, T.description, T.status, T.start_time, T.end_time, T.created_at
 		FROM Tasks T
 		WHERE task_id = '%s'
 	`, taskId)
@@ -227,10 +228,11 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.G
 		&res.Status,
 		&res.StartTime,
 		&res.EndTime,
+		&res.CreatedAt,
 	); err != nil {
 		return nil, err
 	}
-
+	log.Println("Created AT",res)
 	rows, err := tx.QueryContext(ctx, stmt2)
 	if err != nil {
 		return nil, err
@@ -388,14 +390,14 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string, userI
 
 func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error {
 
-	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET  
+	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET
                  title = '%s',
-                 description = '%s', 
-                 end_time = '%s', 
+                 description = '%s',
+                 end_time = '%s',
                  updated_at = '%s',
                  va_option ='%s',
                  repeat_frequency= '%s'
-             WHERE task_id = '%s' 
+             WHERE task_id = '%s'
             `, req.Title, req.Description, req.EndTime, req.UpdatedAt, req.VAOption, req.Repeat, taskId))
 	if err != nil {
 		log.Fatal(err)
