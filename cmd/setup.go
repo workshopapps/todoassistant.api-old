@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -108,7 +109,13 @@ func Setup() {
 	//r.Use(middlewares.Logger())
 
 	r.Use(gin.Recovery())
-	r.Use(middlewares.CORS())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"PUT", "PATCH", "DELETE", "POST", "GET"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"*"},
+		AllowCredentials: true,
+	}))
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	v1 := r.Group("/api/v1")
