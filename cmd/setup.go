@@ -15,7 +15,7 @@ import (
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
 	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
-	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mySqlRepo"
+	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
@@ -207,7 +207,6 @@ func Setup() {
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
 	}
-
 
 	// Notifications
 	// Register to Recieve Notifications
