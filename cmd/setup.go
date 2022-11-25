@@ -87,16 +87,16 @@ func Setup() {
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
 	//Notification Service
+	//Note Handle Unable to Connect to Firebase
 	firebaseApp, err := firebaseinit.SetupFirebase()
 	if err != nil {
 		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
 	}
-	notificationSrv := notificationService.New(firebaseApp, s, conn, notificationRepo, repo, validationSrv)
-	if err == nil {
-		notificationSrv.ScheduleNotificationDaily()
-		notificationSrv.ScheduleNotificationEverySixHours()
+	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
+	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn", "Notification", "notification", []string{"hello"})
+	if err != nil {
+		fmt.Println("Could Not Send Message", err)
 	}
-
 	s.StartAsync()
 	// create service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
