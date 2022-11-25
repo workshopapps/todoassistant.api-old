@@ -208,7 +208,6 @@ func Setup() {
 		users.DELETE("/:user_id", userHandler.DeleteUser)
 	}
 
-
 	// Notifications
 	// Register to Recieve Notifications
 	v1.POST("/notification", notificationHandler.RegisterForNotifications)
