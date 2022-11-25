@@ -73,11 +73,12 @@ type UpdateUserReq struct {
 }
 
 type UpdateUserRes struct {
-	UserId    string `json:"user_id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
+	Phone       string `json:"phone"`
+	Gender      string `json:"gender"`
+	DateOfBirth string `json:"date_of_birth"`
 }
 
 type UsersRes struct {

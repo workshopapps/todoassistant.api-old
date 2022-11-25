@@ -187,7 +187,8 @@ func (s *sqlRepo) SearchTasks(title *taskEntity.SearchTitleParams, ctx context.C
 }
 
 // get task by ID
-func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string, userId string) (*taskEntity.GetTasksByIdRes, error) {
+
+func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.GetTasksByIdRes, error) {
 
 	var res taskEntity.GetTasksByIdRes
 	tx, err := s.conn.BeginTx(ctx, nil)
@@ -206,16 +207,16 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string, userId string)
 	stmt := fmt.Sprintf(`
 		SELECT T.task_id, T.user_id, T.title, T.description, T.status, T.start_time, T.end_time
 		FROM Tasks T
-		WHERE task_id = '%s' AND user_id = '%s'
-	`, taskId, userId)
+		WHERE task_id = '%s'
+	`, taskId)
 
 	stmt2 := fmt.Sprintf(`
 		SELECT F.file_link, F.file_type
 		FROM Tasks AS T
 		JOIN Taskfiles as F
 		ON T.task_id = F.task_id
-		WHERE F.task_id = '%s' AND user_id = '%s'
-	`, taskId, userId)
+		WHERE F.task_id = '%s'
+	`, taskId)
 
 	row := tx.QueryRow(stmt)
 	if err := row.Scan(
@@ -253,20 +254,10 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string, userId string)
 }
 
 func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error) {
-
-	//tx, err := s.conn.BeginTx(ctx, nil)
 	db, err := s.conn.Begin()
 	if err != nil {
 		return nil, err
 	}
-
-	// defer func() {
-	// 	if err != nil {
-	// 		tx.Rollback()
-	// 	} else {
-	// 		tx.Commit()
-	// 	}
-	// }()
 
 	stmt := fmt.Sprintf(`
 		SELECT task_id, user_id, title, start_time
@@ -279,7 +270,7 @@ func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetA
 	}
 	defer rows.Close()
 
-	Searchedtasks := []*taskEntity.GetAllExpiredRes{}
+	var Searchedtasks []*taskEntity.GetAllExpiredRes
 
 	for rows.Next() {
 		var singleTask taskEntity.GetAllExpiredRes
@@ -298,7 +289,7 @@ func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetA
 	return Searchedtasks, nil
 }
 
-//Get All task
+// Get All task
 func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity.GetAllTaskRes, error) {
 
 	//tx, err := s.conn.BeginTx(ctx, nil)
@@ -308,7 +299,7 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT task_id, user_id, title, start_time, end_time
+		SELECT task_id, title, description, repeat_frequency, va_option, status, start_time, end_time
 		FROM Tasks WHERE user_id = '%s'`, userId)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -324,9 +315,12 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 
 		err := rows.Scan(
 			&singleTask.TaskId,
-			&singleTask.UserId,
 			&singleTask.Title,
-			&singleTask.CreatedAt,
+			&singleTask.Description,
+			&singleTask.Repeat,
+			&singleTask.VAOption,
+			&singleTask.Status,
+			&singleTask.StartTime,
 			&singleTask.EndTime,
 		)
 		if err != nil {
@@ -337,31 +331,17 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 	return AllTasks, nil
 }
 
-//Delete task by id
-func (s *sqlRepo) DeleteTaskByID(ctx context.Context, taskId string, userId string) error {
+// Delete task by id
+func (s *sqlRepo) DeleteTaskByID(ctx context.Context, taskId string) error {
 
-	//var res taskEntity.GetTasksByIdRes
-	tx, err := s.conn.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Tasks where WHERE task_id = '%s' AND user_id = '%s'"`, taskId, userId))
+	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`Delete from Tasks  WHERE task_id = '%s'`, taskId))
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return nil
 }
 
-//Delete All
+// Delete All
 func (s *sqlRepo) DeleteAllTask(ctx context.Context, userId string) error {
 
 	//var res taskEntity.GetTasksByIdRes
@@ -406,21 +386,17 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string, userI
 	return nil
 }
 
-func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, userId string, req *taskEntity.CreateTaskReq) error {
-	//var res taskEntity.GetTasksByIdRes
-	tx, err := s.conn.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
+func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error {
 
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET task_id = %s, title = %s, description = %s, end_time = %s, updated_at = %s WHERE task_id = %s AND user_id = '%s'`, req.TaskId, req.Title, req.Description, req.EndTime, req.UpdatedAt, userId))
+	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET  
+                 title = '%s',
+                 description = '%s', 
+                 end_time = '%s', 
+                 updated_at = '%s',
+                 va_option ='%s',
+                 repeat_frequency= '%s'
+             WHERE task_id = '%s' 
+            `, req.Title, req.Description, req.EndTime, req.UpdatedAt, req.VAOption, req.Repeat, taskId))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,7 +19,7 @@ type UserSrv interface {
 	Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError)
 	GetUsers(page int) ([]*userEntity.UsersRes, error)
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
-	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, *ResponseEntity.ServiceError)
+	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError)
 	ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
 }
@@ -116,18 +116,26 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	return data, nil
 }
 
-func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.GetByIdRes, *ResponseEntity.ServiceError) {
+func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
 		return nil, ResponseEntity.NewValidatingError(err)
 	}
 
-	result, err := u.repo.UpdateUser(req, userId)
+	err = u.repo.UpdateUser(req, userId)
 	if err != nil {
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
+	data := &userEntity.UpdateUserRes{
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Email:       req.Email,
+		Phone:       req.Phone,
+		Gender:      req.Gender,
+		DateOfBirth: req.DateOfBirth,
+	}
 
-	return result, nil
+	return data, nil
 }
 
 func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError {
