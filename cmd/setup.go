@@ -3,22 +3,25 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"test-va/cmd/handlers/callHandler"
+	"test-va/cmd/handlers/notificationHandler"
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
 	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
+	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
+	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/callService"
 	"test-va/internals/service/cryptoService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
+	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
@@ -26,6 +29,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/go-co-op/gocron"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -55,6 +60,7 @@ func Setup() {
 	repo := mySqlRepo.NewSqlRepo(conn)
 	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
+	notificationRepo := mySqlNotifRepo.NewMySqlNotificationRepo(conn)
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
 
@@ -73,8 +79,6 @@ func Setup() {
 		reminderSrv.SetReminderEvery30Min()
 	})
 
-	s.StartAsync()
-
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
 	//logger service
@@ -82,6 +86,18 @@ func Setup() {
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	//Notification Service
+	firebaseApp, err := firebaseinit.SetupFirebase()
+	if err != nil {
+		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
+	}
+	notificationSrv := notificationService.New(firebaseApp, s, conn, notificationRepo, repo, validationSrv)
+	if err == nil {
+		notificationSrv.ScheduleNotificationDaily()
+		notificationSrv.ScheduleNotificationEverySixHours()
+	}
+
+	s.StartAsync()
 	// create service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
@@ -92,6 +108,8 @@ func Setup() {
 	userHandler := userHandler.NewUserHandler(userSrv)
 
 	callHandler := callHandler.NewCallHandler(callSrv)
+	notificationHandler := notificationHandler.NewNotificationHandler(notificationSrv)
+
 	port := config.SeverAddress
 	log.Println(port)
 	if port == "" {
@@ -131,6 +149,10 @@ func Setup() {
 	//create user
 	r.POST("/user", userHandler.CreateUser)
 	r.POST("/user/login", userHandler.Login)
+
+	// Notifications
+	// Register to Recieve Notifications
+	r.POST("/notification", notificationHandler.RegisterForNotifications)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
