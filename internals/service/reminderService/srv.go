@@ -314,8 +314,8 @@ func NewReminderSrv(s *gocron.Scheduler, conn *sql.DB, taskrepo taskRepo.TaskRep
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
-		SELECT task_id, user_id, title,description, end_time, device_id
-		FROM Tasks join Notifications N on Tasks.user_id = N.user_id
+		SELECT T.task_id, T.user_id, T.title,T.description, T.end_time, N.device_id
+		FROM Tasks T join Notifications N on T.user_id = N.user_id
 		WHERE status = 'PENDING';
 `)
 	var tasks []taskEntity.GetPendingTasks
