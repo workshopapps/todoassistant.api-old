@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -27,6 +26,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/go-co-op/gocron"
 
@@ -179,6 +180,9 @@ func Setup() {
 
 	//handle VA
 	routes.VARoutes(v1, vaSrv, srv)
+
+	//handle subscribe route
+	routes.SubscribeRoutes(v1)
 
 	//chat service connection
 	pusherClient := pusher.Client{
