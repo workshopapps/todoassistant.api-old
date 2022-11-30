@@ -2,7 +2,7 @@ package emailService
 
 import (
 	"net/smtp"
-	"os"
+	// "os"
 	"test-va/internals/entity/emailEntity"
 )
 
@@ -16,29 +16,27 @@ type emailSrv struct {
 	Port      string
 }
 
-func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
-	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
-	addr := e.Host + ":" + e.Port
-	body := []byte(req.EmailSubject + req.EmailBody)
-	err := smtp.SendMail(addr, auth, e.FromEmail, []string{req.EmailAddress}, body)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
+// 	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
+// 	addr := e.Host + ":" + e.Port
+// 	body := []byte(req.EmailSubject + req.EmailBody)
+// 	err := smtp.SendMail(addr, auth, e.FromEmail, []string{req.EmailAddress}, body)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
-func NewEmailSrv(fromEmail string, password string, host string, port string) EmailService {
-	return &emailSrv{FromEmail: fromEmail, Password: password, Host: host, Port: port}
-}
+
 
 func SendMail(req emailEntity.SendEmailReq) error {
-
-	from := os.Getenv("FromEmailAddr")
-	password := os.Getenv("SMTPpwd")
+	// add the email and password below, but remember to remove before pushing to giyhub
+	from := "aaaaaaaaaa"
+	password := "bbbbbbbb"
 	toEmail := req.EmailAddress
 	to := []string{toEmail}
 	host := "smtp.gmail.com"
-	port := "567"
+	port := "587"
 	address := host + ":" + port
 	subject := req.EmailSubject
 	body := req.EmailBody
@@ -50,3 +48,7 @@ func SendMail(req emailEntity.SendEmailReq) error {
 	}
 	return nil
 }
+
+// func NewEmailSrv(fromEmail string, password string, host string, port string) EmailService {
+// 	return &emailSrv{FromEmail: fromEmail, Password: password, Host: host, Port: port}
+// }

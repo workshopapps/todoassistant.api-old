@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -14,8 +13,10 @@ import (
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
+	// "test-va/internals/entity/emailEntity"
 	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/cryptoService"
+	// "test-va/internals/service/emailService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
@@ -28,6 +29,8 @@ import (
 	"test-va/utils"
 	"time"
 
+	"github.com/gin-contrib/cors"
+
 	"github.com/go-co-op/gocron"
 
 	"github.com/gin-contrib/gzip"
@@ -36,7 +39,6 @@ import (
 )
 
 func Setup() {
-
 	//Load configurations
 	config, err := utils.LoadConfig("./")
 	if err != nil {
