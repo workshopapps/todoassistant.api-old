@@ -25,6 +25,10 @@ func (t *subscribeSrv) PersistEmail(req *subscribeEntity.SubscribeReq) (*subscri
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
+	result, err1 := t.repo.CheckEmail(ctx, req)
+	if result != nil{
+		return nil, ResponseEntity.NewCustomServiceError("already subscribed", err1)
+	}
 	err := t.repo.PersistEmail(ctx, req)
 	if err != nil {
 		log.Println("From subcribe ",err)

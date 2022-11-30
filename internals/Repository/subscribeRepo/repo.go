@@ -7,4 +7,5 @@ import (
 
 type SubscribeRepository interface{
 	PersistEmail(ctx context.Context, req *subscribeEntity.SubscribeReq) error
+	CheckEmail(ctx context.Context, req *subscribeEntity.SubscribeReq) (*subscribeEntity.SubscribeRes, error)
 }
