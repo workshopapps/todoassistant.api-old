@@ -179,3 +179,22 @@ func (v *vaHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusCreated,
 		"Login user successful", user, tokenData))
 }
+
+func (v *vaHandler) FindById(c *gin.Context) {
+   param := c.Param("va_id")
+   if param == "" {
+      c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
+   }
+
+   user, errRes := v.vaSrv.FindById(param)
+   if errRes != nil {
+      c.AbortWithStatusJSON(http.StatusInternalServerError,
+         ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+            "Authorization Error", errRes, nil))
+      return
+   }
+
+   c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
+      "Found User By Id Successful", user, nil))
+
+}

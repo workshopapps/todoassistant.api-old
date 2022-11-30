@@ -31,6 +31,30 @@ func (m *mySql) Persist(ctx context.Context, req *vaEntity.CreateVAReq) error {
 	return nil
 }
 
+func (m *mySql) FindById(ctx context.Context, id string) (*vaEntity.FindByIdRes, error) {
+   stmt := fmt.Sprintf(` SELECT 
+                   va_id,
+                        first_name,
+                        last_name,
+                        email,
+                        phone,
+                        password,
+                        profile_picture,
+                        account_type,
+                        created_at
+FROM va_table where va_id = '%v'`, id)
+   var res vaEntity.FindByIdRes
+   row := m.conn.QueryRowContext(ctx, stmt)
+   err := row.Scan(&res.VaId, &res.FirstName, &res.LastName, &res.Email, &res.Phone,
+      &res.Password, &res.ProfilePicture, &res.AccountType, &res.CreatedAt)
+   if err != nil {
+      return nil, err
+   }
+
+   return &res, nil
+}
+
+
 func (m *mySql) FindByEmail(ctx context.Context, email string) (*vaEntity.FindByIdRes, error) {
 	stmt := fmt.Sprintf(` SELECT 
 						 va_id,
