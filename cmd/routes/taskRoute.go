@@ -19,7 +19,7 @@ func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService) {
 		task.GET("/", handler.GetAllTask)               //Get all task by a user
 		task.DELETE("/:taskId", handler.DeleteTaskById) //Delete Task By ID
 		//task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
-		//task.POST("/status/:taskId", handler.UpdateUserStatus) //Update User Status
+		task.POST("/status/:taskId", handler.UpdateUserStatus) //Update User Status
 		task.PUT("/:taskId", handler.EditTaskById) //EditTaskById
 		task.GET("/search", handler.SearchTask)
 
