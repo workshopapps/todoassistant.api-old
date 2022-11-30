@@ -1,17 +1,17 @@
 package routes
 
 import (
-	"net/http"
+	"test-va/cmd/handlers/subscribeHandler"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SubscribeRoutes(v1 *gin.RouterGroup){
 
+	handler:= subscribeHandler.NewSubscribeHandler()
 	// subscribe to newsletter route
 	subscribe := v1.Group("/subscribe")
 	{
-		subscribe.POST("",func(c *gin.Context) {
-		c.String(http.StatusOK, "subscribe to our newsletter")})
+		subscribe.POST("",handler.AddSubscriber)
 	}
 }
