@@ -18,6 +18,7 @@ import (
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
+	"test-va/internals/service/subscribeService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
 	tokenservice "test-va/internals/service/tokenService"
@@ -145,6 +146,9 @@ func Setup() {
 	// va service
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
+	// subscribe service
+	subscribeSrv := subscribeService.NewSubscribeSrv()
+
 	//router setup
 	r := gin.New()
 	v1 := r.Group("/api/v1")
@@ -182,7 +186,7 @@ func Setup() {
 	routes.VARoutes(v1, vaSrv, srv)
 
 	//handle subscribe route
-	routes.SubscribeRoutes(v1)
+	routes.SubscribeRoutes(v1, subscribeSrv)
 
 	//chat service connection
 	pusherClient := pusher.Client{
