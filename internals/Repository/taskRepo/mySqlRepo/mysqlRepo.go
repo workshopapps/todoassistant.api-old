@@ -383,3 +383,24 @@ func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEnti
 	}
 	return nil
 }
+
+
+func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error {
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+	   return err
+	}
+ 
+	defer func() {
+	   if err != nil {
+		  tx.Rollback()
+	   } else {
+		  tx.Commit()
+	   }
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = 'DONE' WHERE task_id = '%s'`, taskId))
+	if err != nil {
+	   log.Fatal(err)
+	}
+	return nil
+ }

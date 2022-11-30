@@ -224,6 +224,26 @@ func (t *taskHandler) DeleteAllTask(c *gin.Context) {
 
 // Update user Status
 
+func (t *taskHandler) UpdateUserStatus(c *gin.Context) {
+	param := c.Param("taskId")
+	if param == "" {
+	   c.AbortWithStatusJSON(http.StatusBadRequest,
+		  ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
+	   return
+	}
+ 
+	_, errRes := t.srv.UpdateTaskStatusByID(param)
+	if errRes != nil {
+	   c.AbortWithStatusJSON(http.StatusInternalServerError,
+		  ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+			 "Error Setting Task to Done", errRes, nil))
+	   return
+	}
+	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK,
+	   "Task status updated successfully", nil, nil)
+	c.JSON(http.StatusOK, rd)
+ }
+
 // Update task by id
 
 func (t *taskHandler) EditTaskById(c *gin.Context) {
