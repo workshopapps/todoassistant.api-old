@@ -18,7 +18,7 @@ import (
 type VAService interface {
 	SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *ResponseEntity.ServiceError)
 	Login(req *userEntity.LoginReq) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
-	//FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
+	FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
 	FindByEmail(email string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
 	UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError)
 	ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError
@@ -176,6 +176,18 @@ func (v *vaSrv) SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *Respo
 
 	return &data, nil
 }
+
+func (v *vaSrv) FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
+   ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+   defer cancelFunc()
+
+   user, err := v.repo.FindById(ctx, id)
+   if err != nil {
+      return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Error Finding User: %v", err))
+   }
+   return user, nil
+}
+
 
 func NewVaService(repo vaRepo.VARepo, validator validationService.ValidationSrv,
 	timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) VAService {
