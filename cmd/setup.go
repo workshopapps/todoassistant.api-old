@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
+	mySqlRepo4 "test-va/internals/Repository/subscribeRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
@@ -83,6 +84,9 @@ func Setup() {
 	//va repo service
 	vaRepo := mySqlRepo3.NewVASqlRepo(conn)
 
+	// subscribe repo
+	subRepo := mySqlRepo4.NewMySqlSubscribeRepo(conn)
+
 	//SERVICES
 
 	//time service
@@ -147,7 +151,7 @@ func Setup() {
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
 	// subscribe service
-	subscribeSrv := subscribeService.NewSubscribeSrv()
+	subscribeSrv := subscribeService.NewSubscribeSrv(subRepo)
 
 	//router setup
 	r := gin.New()
