@@ -12,6 +12,7 @@ import (
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
+	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/cryptoService"
@@ -20,7 +21,9 @@ import (
 	"test-va/internals/service/reminderService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
+	tokenservice "test-va/internals/service/tokenService"
 	"test-va/internals/service/userService"
+	"test-va/internals/service/vaService"
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
@@ -50,6 +53,11 @@ func Setup() {
 		port = "2022"
 	}
 
+	secret := config.TokenSecret
+	if secret == "" {
+		log.Fatal("secret key not found")
+	}
+
 	//Repo
 
 	//db service
@@ -69,6 +77,9 @@ func Setup() {
 
 	//notification repo service
 	notificationRepo := mySqlNotifRepo.NewMySqlNotificationRepo(conn)
+
+	//va repo service
+	vaRepo := mySqlRepo3.NewVASqlRepo(conn)
 
 	//SERVICES
 
@@ -99,6 +110,9 @@ func Setup() {
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
 
+	// token service
+	srv := tokenservice.NewTokenSrv(secret)
+
 	//logger service
 	logger := log_4_go.NewLogger()
 
@@ -126,6 +140,9 @@ func Setup() {
 
 	// user service
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
+
+	// va service
+	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
 	//router setup
 	r := gin.New()
@@ -160,6 +177,9 @@ func Setup() {
 	//handle Notifications
 	routes.NotificationRoutes(v1, notificationSrv)
 
+	//handle VA
+	routes.VARoutes(v1, vaSrv, srv)
+
 	//chat service connection
 	pusherClient := pusher.Client{
 		AppID:   "1512808",
@@ -182,7 +202,7 @@ func Setup() {
 	})
 
 	// Notifications
-	// Register to Recieve Notifications
+	// Register to Receive Notifications
 	//v1.POST("/notification", notificationHandler.RegisterForNotifications)
 
 	r.NoRoute(func(c *gin.Context) {

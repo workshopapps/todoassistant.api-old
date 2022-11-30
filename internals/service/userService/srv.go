@@ -2,6 +2,7 @@ package userService
 
 import (
 	"fmt"
+	"log"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/userEntity"
@@ -48,7 +49,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	}
 
 	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, req.Email)
+	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -70,7 +71,8 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
-		return nil, ResponseEntity.NewValidatingError(err)
+		log.Println(err)
+		return nil, ResponseEntity.NewValidatingError("BAD INPUT!")
 	}
 	// check if user with that email exists already
 
@@ -82,6 +84,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	//hash password
 	password, err := u.cryptoSrv.HashPassword(req.Password)
 	if err != nil {
+		log.Println("here2")
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	//set time and etc
@@ -93,11 +96,11 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// save to DB
 	err = u.repo.Persist(req)
 	if err != nil {
-		return nil, ResponseEntity.NewInternalServiceError(err)
+		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Error Saving to DB: %v", err))
 	}
-
+	log.Println("here")
 	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, req.Email)
+	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}

@@ -3,6 +3,7 @@ package taskService
 import (
 	"context"
 	"log"
+	"net/http"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
@@ -24,7 +25,7 @@ type TaskService interface {
 	GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
 	DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
-	UpdateTaskStatusByID(taskId string, userId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
+	//UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError)
 }
 
@@ -229,7 +230,7 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	log.Println("From getByID",task)
+	log.Println("From getByID", task)
 	return task, nil
 
 }
@@ -282,7 +283,7 @@ func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Deleted successfully", nil, nil), nil
 }
 
 // Delete All task
@@ -297,24 +298,11 @@ func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage,
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "deleted user successfully", nil, nil), nil
 
 }
 
 // Update task status
-func (t *taskSrv) UpdateTaskStatusByID(taskId string, userId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
-	// create context of 1 minute
-	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
-	defer cancelFunc()
-
-	err := t.repo.UpdateTaskStatusByID(ctx, taskId, userId, status)
-	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewInternalServiceError(err)
-	}
-	return ResponseEntity.BuildSuccessResponse(200, "Updated successfully successfully", nil), nil
-
-}
 
 // Edit task by Id
 
@@ -334,7 +322,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 
 	// Get task by ID
 	task, err := t.repo.GetTaskByID(ctx, taskId)
-		if task == nil {
+	if task == nil {
 		log.Println("no rows returned")
 	}
 	if err != nil {
@@ -360,7 +348,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		VAOption:    req.VAOption,
 		Status:      req.Status,
 	}
-	updateAt :=t.timeSrv.CurrentTime().Format(time.RFC3339)
+	updateAt := t.timeSrv.CurrentTime().Format(time.RFC3339)
 	ndate := &taskEntity.CreateTaskReq{
 		TaskId:      taskId,
 		UserId:      task.UserId,
@@ -371,8 +359,8 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		EndTime:     data.EndTime,
 		VAOption:    data.VAOption,
 		Status:      data.Status,
-		UpdatedAt: 	 updateAt,
-		CreatedAt: 	 task.CreatedAt,
+		UpdatedAt:   updateAt,
+		CreatedAt:   task.CreatedAt,
 	}
 
 	// delete former task
@@ -383,12 +371,10 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	}
 	log.Println("Deleted task line 381")
 
-
 	// create new task
 
-
 	//check if timeDueDate and StartDate is valid
-	err = t.timeSrv.CheckFor339Format( ndate.EndTime)
+	err = t.timeSrv.CheckFor339Format(ndate.EndTime)
 	if err != nil {
 		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
 	}
@@ -397,7 +383,6 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	if err != nil {
 		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
 	}
-
 
 	// create a reminder
 	switch req.Repeat {

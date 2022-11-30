@@ -8,13 +8,14 @@ import (
 )
 
 type Token struct {
-	Email string
-	Id    string
+	Email  string
+	Id     string
+	Status string
 	jwt.StandardClaims
 }
 
 type TokenSrv interface {
-	CreateToken(id, email string) (string, string, error)
+	CreateToken(id, status, email string) (string, string, error)
 	ValidateToken(token string) (*Token, error)
 }
 
@@ -22,10 +23,11 @@ type tokenSrv struct {
 	SecretKey string
 }
 
-func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
+func (t *tokenSrv) CreateToken(id, status, email string) (string, string, error) {
 	tokenDetails := &Token{
-		Email: email,
-		Id:    id,
+		Email:  email,
+		Id:     id,
+		Status: status,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
@@ -59,12 +61,10 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 		},
 	)
 
-
 	claims, ok := token.Claims.(*Token)
 	if !ok {
 		return nil, err
 	}
-
 
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		return nil, err
