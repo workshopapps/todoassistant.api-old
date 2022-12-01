@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -17,9 +16,11 @@ import (
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/cryptoService"
+	"test-va/internals/service/emailService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
+	"test-va/internals/service/socialLoginService"
 	"test-va/internals/service/subscribeService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
@@ -27,15 +28,19 @@ import (
 	"test-va/internals/service/userService"
 	"test-va/internals/service/vaService"
 	"test-va/internals/service/validationService"
-	"test-va/internals/service/socialLoginService"
 	"test-va/utils"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/go-co-op/gocron"
+
+	_ "test-va/docs"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pusher/pusher-http-go"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Setup() {
@@ -63,6 +68,26 @@ func Setup() {
 	secret := config.TokenSecret
 	if secret == "" {
 		log.Fatal("secret key not found")
+	}
+
+	fromEmailAddr := config.FromEmailAddr
+	if fromEmailAddr == "" {
+		log.Fatal("smtp email sender address not found")
+	}
+
+	smtpPWD := config.SMTPpwd
+	if smtpPWD == "" {
+		log.Fatal("smtp password not found")
+	}
+
+	smtpHost := config.SMTPhost
+	if fromEmailAddr == "" {
+		log.Fatal("smtp email sender address not found")
+	}
+
+	smtpPort := config.SMTPport
+	if fromEmailAddr == "" {
+		log.Fatal("smtp email sender address not found")
 	}
 
 	//Repo
@@ -148,6 +173,9 @@ func Setup() {
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	//email service
+	emailSrv := emailService.NewEmailSrv(fromEmailAddr, smtpPWD, smtpHost, smtpPort)
+
 	//Notification Service
 	//Note Handle Unable to Connect to Firebase
 
@@ -155,7 +183,7 @@ func Setup() {
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 
 	// user service
-	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
+	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv)
 
 	// social login service
 
@@ -242,6 +270,8 @@ func Setup() {
 			"status":  http.StatusNotFound,
 		})
 	})
+
+	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srvDetails := http.Server{
 		Addr:        fmt.Sprintf(":%s", port),

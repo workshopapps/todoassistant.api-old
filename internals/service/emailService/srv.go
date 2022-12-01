@@ -1,6 +1,7 @@
 package emailService
 
 import (
+	"fmt"
 	"net/smtp"
 	"os"
 	"test-va/internals/entity/emailEntity"
@@ -17,6 +18,7 @@ type emailSrv struct {
 }
 
 func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
+	fmt.Println(e.FromEmail, e.Password, e.Host, e.Port)
 	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
 	addr := e.Host + ":" + e.Port
 	body := []byte(req.EmailSubject + req.EmailBody)
@@ -32,6 +34,7 @@ func NewEmailSrv(fromEmail string, password string, host string, port string) Em
 }
 
 func SendMail(req emailEntity.SendEmailReq) error {
+
 	from := os.Getenv("FromEmailAddr")
 	password := os.Getenv("SMTPpwd")
 	toEmail := req.EmailAddress
