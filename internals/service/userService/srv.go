@@ -238,7 +238,7 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 	token.TokenId = uuid.New().String()
 	token.Token = GenerateToken(4)
 	token.Expiry = time.Now().Add(time.Minute * 30).Format(time.RFC3339)
-	fmt.Println(token.Expiry)
+	// fmt.Println(token.Expiry)
 
 	err = u.repo.AddToken(&token)
 	if err != nil {
@@ -246,18 +246,19 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 	}
 
 	msg := CreateMessageBody(user.FirstName, user.LastName, user.UserId, token.Token)
-	fmt.Println(msg)
+	// fmt.Println(msg)
 
 	// Send message to users email, if it exists
 	message.EmailAddress = user.Email
 	message.EmailSubject = "Reset Password Token"
 	message.EmailBody = msg
 
-	err = u.emailSrv.SendMail(message)
-	if err != nil {
-		return nil, err
-	}
+	// err = u.emailSrv.SendMail(message)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
+	fmt.Println(msg)
 	return &token, nil
 }
 
