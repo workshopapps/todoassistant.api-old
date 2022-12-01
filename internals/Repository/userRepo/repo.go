@@ -15,4 +15,5 @@ type UserRepository interface {
 	AddToken(req *userEntity.ResetPasswordRes) error
 	GetTokenById(token, userId string) (*userEntity.ResetPasswordWithTokenRes, error)
 	DeleteToken(tokenId string) error
+	AssignVAToUser(user_id, token_id string) error
 }

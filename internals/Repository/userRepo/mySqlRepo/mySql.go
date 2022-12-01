@@ -17,6 +17,37 @@ func NewMySqlUserRepo(conn *sql.DB) userRepo.UserRepository {
 	return &mySql{conn: conn}
 }
 
+func (m *mySql) AssignVAToUser(user_id, va_id string) error {
+	query := fmt.Sprintf(`
+		SELECT user_id, virtual_assistant_id
+		FROM Users
+		WHERE user_id = '%s'
+	`, user_id)
+	var userId string
+	var vaId string
+	err := m.conn.QueryRowContext(context.Background(), query).Scan(&userId, &vaId)
+	if err != nil {
+		switch {
+		case err.Error() == "sql: Scan error on column index 1, name \"virtual_assistant_id\": converting NULL to string is unsupported":
+			vaId = ""
+		default:
+			return err
+		}
+	}
+	if vaId != "" {
+		return fmt.Errorf("user already has a VA")
+	}
+	query = fmt.Sprintf(`
+		UPDATE Users SET virtual_assistant_id = '%s' WHERE user_id = '%s'
+	`, va_id, user_id)
+	_, err = m.conn.ExecContext(context.Background(), query)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
 func (m *mySql) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 	var allUsers []*userEntity.UsersRes
 	limit := 20

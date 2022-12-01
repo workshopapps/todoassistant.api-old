@@ -188,6 +188,23 @@ func (u *userHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "User deleted successfully!", nil, nil))
 }
 
+//The Id of the Virtual Assistant is Sent Along With this Request
+func (u *userHandler) AssignVAToUser(c *gin.Context) {
+	user_id := c.GetString("userId")
+	va_id := c.Params.ByName("va_id")
+
+	if user_id == "" || va_id == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user_id or va_id provided", nil, nil))
+		return
+	}
+	err := u.srv.AssignVAToUser(user_id, va_id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.NewInternalServiceError(err))
+		return
+	}
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "VA Assigned", nil, nil))
+}
+
 func userFromRequest(c *gin.Context) string {
 	return c.Param("user_id")
 }

@@ -32,6 +32,10 @@ type TaskService interface {
 	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
 	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
 	GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError)
+
+	//comments
+	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
+	GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -196,7 +200,6 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 
 }
 
-// Create Task
 func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -251,7 +254,6 @@ func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 
 }
 
-// search task by name func
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -270,6 +272,19 @@ func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity
 	return tasks, nil
 }
 
+// Get Task godoc
+// @Summary	Get a single task
+// @Description	Get a particular task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	taskId	path	string	true	"Task Id"
+// @Success	200  {object}  taskEntity.GetTasksByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/{taskId} [get]
 func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -289,6 +304,18 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 
 }
 
+// Get Expired Tasks godoc
+// @Summary	Get all expired tasks
+// @Description	Get all expired task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}  []taskEntity.GetAllExpiredRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/expired [get]
 func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -307,7 +334,6 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 
 }
 
-// Get all task service
 func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -324,8 +350,6 @@ func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *Respo
 	return task, nil
 
 }
-
-// Delete task by Id
 
 func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
@@ -356,8 +380,6 @@ func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage,
 
 }
 
-// Update task status
-
 func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -371,8 +393,6 @@ func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseM
 	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Updated status successfully", nil, nil), nil
 
 }
-
-// Edit task by Id
 
 func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError) {
 
@@ -499,4 +519,53 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	log.Println("update complete")
 
 	return &data, nil
+}
+
+func (t *taskSrv) PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	// implement validation for struct
+
+	err := t.validationSrv.Validate(req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
+	}
+
+	//set time
+	req.CreatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
+
+	// insert into db
+	err = t.repo.PersistComment(ctx, req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	data := taskEntity.CreateCommentRes{
+		TaskId:      req.TaskId,
+		Comment: 	 req.Comment,
+	}
+
+	return &data, nil
+
+}
+
+// get all comments
+func (t *taskSrv) GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	comments, err := t.repo.GetAllComments(ctx, taskId)
+
+	if comments == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return comments, nil
+
 }

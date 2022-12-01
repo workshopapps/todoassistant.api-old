@@ -1,25 +1,26 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
-	"test-va/cmd/middlewares/vaMiddleware"
+
 	"test-va/internals/service/taskService"
 	tokenservice "test-va/internals/service/tokenService"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokenservice.TokenSrv) {
-	mWare := vaMiddleware.NewVaMiddleWare(srv)
+	//mWare := vaMiddleware.NewVaMiddleWare(srv)
 
 	handler := taskHandler.NewTaskHandler(service)
 	task := v1.Group("/task")
-	task.Use(mWare.MapVAToReq)
-	{
-		//list of all task assigned to VA
-		task.GET("/all/va", handler.GetTasksAssignedToVa)
+	//task.Use(mWare.MapVAToReq)
+	// {
+	// 	//list of all task assigned to VA
+	// 	task.GET("/all/va", handler.GetTasksAssignedToVa)
 
-	}
+	// }
 	task.Use(middlewares.ValidateJWT())
 	{
 		task.POST("", handler.CreateTask)
@@ -30,6 +31,8 @@ func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokens
 		task.DELETE("/:taskId", handler.DeleteTaskById) //Delete Task By ID
 		//task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
 		task.POST("/status/:taskId", handler.UpdateUserStatus) //Update User Status
+		task.GET("/comment/:taskId", handler.GetComments) //get all comment on task
+		task.POST("/comment", handler.CreateComment) //comment on task
 		task.PUT("/:taskId", handler.EditTaskById)             //EditTaskById
 		task.GET("/search", handler.SearchTask)
 

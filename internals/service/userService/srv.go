@@ -27,6 +27,7 @@ type UserSrv interface {
 	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, error)
 	ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
+	AssignVAToUser(user_id, va_id string) *ResponseEntity.ServiceError
 }
 
 type userSrv struct {
@@ -34,6 +35,7 @@ type userSrv struct {
 	validator validationService.ValidationSrv
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
+	emailSrv  emailService.EmailService
 }
 
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
@@ -143,6 +145,19 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 	return data, nil
 }
 
+// Change Password godoc
+// @Summary	Change a user password
+// @Description	Change password route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	userId	path	string	true	"User Id"
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/user/{userId}/change-password [put]
 func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError {
 	// validate request
 	err := u.validator.Validate(req)
@@ -178,6 +193,19 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId strin
 	return nil
 }
 
+// Get All Users godoc
+// @Summary	Get all users in the database
+// @Description	Get all users route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	page	query	string	false	"page"
+// @Success	200  {object}  []userEntity.UsersRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/user [get]
 func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 	users, err := u.repo.GetUsers(page)
 	if err != nil {
@@ -187,6 +215,19 @@ func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 	return users, nil
 }
 
+// Get User godoc
+// @Summary	Get a specific user
+// @Description	Get user route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	userId	path	string	true	"User Id"
+// @Success	200  {object}  userEntity.GetByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/user/{userId} [get]
 func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 	user, err := u.repo.GetById(user_id)
 	if err != nil {
@@ -196,6 +237,19 @@ func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 	return user, nil
 }
 
+// Delete User godoc
+// @Summary	Delete a user from the database
+// @Description	Delete route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	userId	path	string	true	"User Id"
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/user/{userId} [delete]
 func (u *userSrv) DeleteUser(user_id string) error {
 	_, idErr := u.repo.GetById(user_id)
 	if idErr != nil {
@@ -236,22 +290,18 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 	token.TokenId = uuid.New().String()
 	token.Token = GenerateToken(4)
 	token.Expiry = time.Now().Add(time.Minute * 30).Format(time.RFC3339)
-	fmt.Println(token.Expiry)
 
 	err = u.repo.AddToken(&token)
 	if err != nil {
 		return nil, err
 	}
 
-	msg := CreateMessageBody(user.FirstName, user.LastName, user.UserId, token.Token)
-	fmt.Println(msg)
-
 	// Send message to users email, if it exists
 	message.EmailAddress = user.Email
 	message.EmailSubject = "Reset Password Token"
-	message.EmailBody = msg
+	message.EmailBody = CreateMessageBody(user.FirstName, user.LastName, user.UserId, token.Token)
 
-	err = emailService.SendMail(message)
+	err = u.emailSrv.SendMail(message)
 	if err != nil {
 		return nil, err
 	}
@@ -296,6 +346,20 @@ func (u *userSrv) ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenR
 	return nil
 }
 
+func (u *userSrv) AssignVAToUser(user_id, va_id string) *ResponseEntity.ServiceError {
+	err := u.repo.AssignVAToUser(user_id, va_id)
+	if err != nil {
+		fmt.Println(err)
+		switch {
+		case err.Error() == "user already has a VA":
+			return ResponseEntity.NewCustomServiceError("user already has a VA", err)
+		default:
+			return ResponseEntity.NewInternalServiceError("Could Not Assign Va")
+		}
+	}
+	return nil
+}
+
 // Auxillary Function
 func GenerateToken(tokenLength int) string {
 	rand.Seed(time.Now().UnixNano())
@@ -317,6 +381,6 @@ func CreateMessageBody(firstName, lastName, email, token string) string {
 	return string(message)
 }
 
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv}
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv}
 }

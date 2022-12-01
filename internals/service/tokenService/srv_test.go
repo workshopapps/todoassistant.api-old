@@ -8,8 +8,12 @@ import (
 func Test_token(t *testing.T) {
 	tokensrv := NewTokenSrv("vbvkvjbkv")
 
-	token, rtoken, err := tokensrv.CreateToken("eb@gmail.com", "555")
-  
+<<<<<<< HEAD
+	token, rtoken, err := tokensrv.CreateToken("eb@gmail.com","user","555")
+=======
+	token, rtoken, err := tokensrv.CreateToken("eb@gmail.com", "user", "555")
+
+>>>>>>> 5719f58 (Refactor)
 	log.Println(token)
 	log.Println(rtoken)
 	log.Println(err)
