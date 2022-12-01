@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+
 	"github.com/gin-contrib/cors"
 
 	"log"
@@ -67,10 +68,27 @@ func Setup() {
 	// time service
 	timeSrv := timeSrv.NewTimeStruct()
 
+	//validation service
+	validationSrv := validationService.NewValidationStruct()
+
+	//Notification Service
+	//Note Handle Unable to Connect to Firebase
+	firebaseApp, err := firebaseinit.SetupFirebase()
+	if err != nil {
+		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
+	}
+	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
+	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn", "Notification", "notification", "hello")
+	if err != nil {
+		fmt.Println("Could Not Send Message", err)
+	}
+
 	// create cron tasks for checking if time is due
 
 	s := gocron.NewScheduler(time.UTC)
-	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
+	reminderSrv := reminderService.NewReminderSrv(s, conn, repo, notificationSrv)
+	reminderSrv.ScheduleNotificationEverySixHours()
+	reminderSrv.ScheduleNotificationDaily()
 
 	s.Every(5).Minutes().Do(func() {
 		log.Println("checking for 5 minutes reminders")
@@ -81,26 +99,13 @@ func Setup() {
 		log.Println("checking for 30 minutes reminders")
 		reminderSrv.SetReminderEvery30Min()
 	})
+	s.StartAsync()
 
-	//validation service
-	validationSrv := validationService.NewValidationStruct()
 	//logger service
 	logger := log_4_go.NewLogger()
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
-	//Notification Service
-	//Note Handle Unable to Connect to Firebase
-	firebaseApp, err := firebaseinit.SetupFirebase()
-	if err != nil {
-		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
-	}
-	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
-	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn", "Notification", "notification", []string{"hello"})
-	if err != nil {
-		fmt.Println("Could Not Send Message", err)
-	}
-	s.StartAsync()
 	// create service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
@@ -207,7 +212,6 @@ func Setup() {
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
 	}
-
 
 	// Notifications
 	// Register to Recieve Notifications
