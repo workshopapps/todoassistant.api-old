@@ -5,3 +5,9 @@ type SendEmailReq struct {
 	EmailSubject string
 	EmailBody    string
 }
+
+type SendBatchEmail struct{
+	EmailAddresses []string
+	EmailSubject string
+	EmailBody    string
+}
