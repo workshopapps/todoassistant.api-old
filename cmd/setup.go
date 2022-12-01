@@ -20,6 +20,7 @@ import (
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
+	"test-va/internals/service/socialLoginService"
 	"test-va/internals/service/subscribeService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
@@ -27,9 +28,10 @@ import (
 	"test-va/internals/service/userService"
 	"test-va/internals/service/vaService"
 	"test-va/internals/service/validationService"
-	"test-va/internals/service/socialLoginService"
 	"test-va/utils"
 	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-contrib/cors"
 
@@ -277,7 +279,7 @@ func Setup() {
 	srvDetails := http.Server{
 		Addr:        fmt.Sprintf(":%s", port),
 		Handler:     r,
-		IdleTimeout: 240 * time.Second,
+		IdleTimeout: 120 * time.Second,
 	}
 
 	go func() {

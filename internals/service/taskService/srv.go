@@ -268,6 +268,19 @@ func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity
 	return tasks, nil
 }
 
+// Get Task godoc
+// @Summary	Get a single task
+// @Description	Get a particular task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	taskId	path	string	true	"Task Id"
+// @Success	200  {object}  taskEntity.GetTasksByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/{taskId} [get]
 func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -287,6 +300,18 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 
 }
 
+// Get Expired Tasks godoc
+// @Summary	Get all expired tasks
+// @Description	Get all expired task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}  []taskEntity.GetAllExpiredRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/expired [get]
 func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
