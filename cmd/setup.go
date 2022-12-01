@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
+	mySqlRepo4 "test-va/internals/Repository/subscribeRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
@@ -18,6 +19,7 @@ import (
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
+	"test-va/internals/service/subscribeService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
 	tokenservice "test-va/internals/service/tokenService"
@@ -82,6 +84,9 @@ func Setup() {
 	//va repo service
 	vaRepo := mySqlRepo3.NewVASqlRepo(conn)
 
+	// subscribe repo
+	subRepo := mySqlRepo4.NewMySqlSubscribeRepo(conn)
+
 	//SERVICES
 
 	//time service
@@ -145,6 +150,9 @@ func Setup() {
 	// va service
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
+	// subscribe service
+	subscribeSrv := subscribeService.NewSubscribeSrv(subRepo)
+
 	//router setup
 	r := gin.New()
 	v1 := r.Group("/api/v1")
@@ -180,6 +188,9 @@ func Setup() {
 
 	//handle VA
 	routes.VARoutes(v1, vaSrv, srv)
+
+	//handle subscribe route
+	routes.SubscribeRoutes(v1, subscribeSrv)
 
 	//chat service connection
 	pusherClient := pusher.Client{
