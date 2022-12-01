@@ -28,7 +28,6 @@ type ReminderSrv interface {
 }
 
 type reminderSrv struct {
-
 	cron *gocron.Scheduler
 	conn *sql.DB
 	repo taskRepo.TaskRepository
@@ -241,10 +240,10 @@ func (r *reminderSrv) SetReminderEvery5Min() {
 
 		if yes {
 			fmt.Println("notification sent out")
-			r.noSrv.SendNotification(task.DeviceId,
+			r.nSrv.SendNotification(task.DeviceId,
 				"Your Notification is about to expire",
 				"your Task is due in 5 minutes",
-				[]string{task.TaskId},
+				task.TaskId,
 			)
 			continue
 		}
@@ -264,10 +263,10 @@ func (r *reminderSrv) SetReminderEvery30Min() {
 
 		if yes {
 			fmt.Println("notification sent out")
-			r.noSrv.SendNotification(task.DeviceId,
+			r.nSrv.SendNotification(task.DeviceId,
 				"Your Notification is about to expire",
 				"your Task is due in 30 miutes",
-				[]string{task.TaskId},
+				task.TaskId,
 			)
 			continue
 		}
@@ -313,7 +312,7 @@ func checkIfTimeElapsed5Minutes(due string) bool {
 	}
 }
 
-//Everyday By 12:00am you get Notifications For All Tasks That are Due That Day
+// Everyday By 12:00am you get Notifications For All Tasks That are Due That Day
 func (r *reminderSrv) ScheduleNotificationDaily() {
 	fmt.Println("Daily Notifications Setup")
 	r.cron.Every(1).Days().At("00:00").Do(func() {
@@ -337,7 +336,7 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 	})
 }
 
-//Your Pending Tasks are Checked On Six Hour Intervals to Get Tasks That Are Just About To Expire
+// Your Pending Tasks are Checked On Six Hour Intervals to Get Tasks That Are Just About To Expire
 func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 	fmt.Println("Six Hour Notifications Setup")
 	r.cron.Every(6).Hours().Do(func() {

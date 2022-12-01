@@ -16,8 +16,7 @@ import (
 type NotificationSrv interface {
 	RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError
 	SendNotification(token, title, body string, taskId string) error
-
-	GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
+	//GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 }
 
 type notificationSrv struct {
@@ -26,17 +25,13 @@ type notificationSrv struct {
 	validator validationService.ValidationSrv
 }
 
-
-func New(app *firebase.App, repo notificationRepo.NotificationRepository, validator validationService.ValidationSrv) NotificationSrv {
-	return &notificationSrv{
-
-func (n notificationSrv) GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error) {
-	task, err := n.repo.GetTaskDetailsWhenDue(userId)
-	if err != nil {
-		return nil, err
-	}
-	return task, nil
-}
+//func (n notificationSrv) GetTaskFromUser(userId string)  (*notificationEntity.GetExpiredTasksWithDeviceId, error) {
+//	task, err := n.repo.GetTaskDetailsWhenDue(userId)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return task, nil
+//}
 
 func New(app *firebase.App, repo notificationRepo.NotificationRepository,
 	validator validationService.ValidationSrv) NotificationSrv {
