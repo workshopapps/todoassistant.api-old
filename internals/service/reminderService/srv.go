@@ -4,11 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"log"
 	"test-va/internals/Repository/taskRepo"
+	"test-va/internals/entity/notificationEntity"
 	"test-va/internals/entity/taskEntity"
+	"test-va/internals/service/notificationService"
 	"time"
+
+	"github.com/go-co-op/gocron"
 )
 
 type ReminderSrv interface {
@@ -20,12 +23,15 @@ type ReminderSrv interface {
 	SetBiWeeklyReminder(data *taskEntity.CreateTaskReq) error
 	SetMonthlyReminder(data *taskEntity.CreateTaskReq) error
 	SetYearlyReminder(data *taskEntity.CreateTaskReq) error
+	ScheduleNotificationEverySixHours()
+	ScheduleNotificationDaily()
 }
 
 type reminderSrv struct {
 	cron *gocron.Scheduler
 	conn *sql.DB
 	repo taskRepo.TaskRepository
+	nSrv notificationService.NotificationSrv
 }
 
 func (r *reminderSrv) SetBiWeeklyReminder(data *taskEntity.CreateTaskReq) error {
@@ -154,13 +160,13 @@ func (r *reminderSrv) SetWeeklyReminder(data *taskEntity.CreateTaskReq) error {
 
 func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
 	s := gocron.NewScheduler(time.UTC)
+
 	// get string of date and convert it to Time.Time
 	dDate, err := time.Parse(time.RFC3339, data.EndTime)
 	if err != nil {
 		return err
 	}
 	if dDate.Before(time.Now()) {
-		log.Println("this")
 		return errors.New("invalid Time, try again")
 	}
 
@@ -176,10 +182,6 @@ func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
 		data.StartTime = data.EndTime
 		data.EndTime = endDate.AddDate(0, 0, 1).Format(time.RFC3339)
 		data.Status = "PENDING"
-		log.Println(data.StartTime)
-		log.Println("------------------------------")
-		log.Println("------------------------------")
-		log.Println(data.EndTime)
 
 		err = r.repo.SetNewEvent(data)
 		if err != nil {
@@ -187,6 +189,20 @@ func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
 			return err
 		}
 		log.Println("created new event.")
+
+		//// send notification
+		//task, err := r.noSrv.GetTaskFromUser(data.UserId)
+		//if err != nil {
+		//	return err
+		//}
+		//
+		//fmt.Println("notification sent out")
+		//r.noSrv.SendNotification(task.DeviceId,
+		//	"Your Notification is about to expire",
+		//	"your Task is due in 5 miutes",
+		//	[]string{task.TaskId},
+		//)
+
 		return nil
 	})
 	s.StartAsync()
@@ -224,7 +240,11 @@ func (r *reminderSrv) SetReminderEvery5Min() {
 
 		if yes {
 			fmt.Println("notification sent out")
-			// send a notification
+			r.nSrv.SendNotification(task.DeviceId,
+				"Your Notification is about to expire",
+				"your Task is due in 5 minutes",
+				task.TaskId,
+			)
 			continue
 		}
 	}
@@ -242,8 +262,12 @@ func (r *reminderSrv) SetReminderEvery30Min() {
 		yes := checkIfTimeElapsed30Minutes(task.EndTime)
 
 		if yes {
-			fmt.Println("notification sent")
-			// send a notification
+			fmt.Println("notification sent out")
+			r.nSrv.SendNotification(task.DeviceId,
+				"Your Notification is about to expire",
+				"your Task is due in 30 miutes",
+				task.TaskId,
+			)
 			continue
 		}
 	}
@@ -288,16 +312,113 @@ func checkIfTimeElapsed5Minutes(due string) bool {
 	}
 }
 
-func NewReminderSrv(s *gocron.Scheduler, conn *sql.DB, taskrepo taskRepo.TaskRepository) ReminderSrv {
-	return &reminderSrv{cron: s, conn: conn, repo: taskrepo}
+// Everyday By 12:00am you get Notifications For All Tasks That are Due That Day
+func (r *reminderSrv) ScheduleNotificationDaily() {
+	fmt.Println("Daily Notifications Setup")
+	r.cron.Every(1).Days().At("00:00").Do(func() {
+		tasks, err := getTasksToExpireToday(r.conn)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(tasks, "Daily")
+		if len(tasks) < 1 {
+			fmt.Println("No Notifications to Send Just Yet", tasks)
+			return
+		}
+		for _, v := range tasks {
+			err := r.nSrv.SendNotification(v.DeviceId, "Rise and Shine, These Are Due Today", v.Description, v.TaskId)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+	})
+}
+
+// Your Pending Tasks are Checked On Six Hour Intervals to Get Tasks That Are Just About To Expire
+func (r *reminderSrv) ScheduleNotificationEverySixHours() {
+	fmt.Println("Six Hour Notifications Setup")
+	r.cron.Every(6).Hours().Do(func() {
+		tasks, err := getTasksToExpireInAFewHours(r.conn)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(tasks, "six Hourly")
+		if len(tasks) < 1 {
+			fmt.Println("No Notifications to Send Just Yet", tasks)
+			return
+		}
+
+		for _, v := range tasks {
+			err := r.nSrv.SendNotification(v.DeviceId, "Warning: Few Hours to Go", v.Description, v.TaskId)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+	})
+}
+
+func getTasksToExpireToday(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	stmt := fmt.Sprint(`
+		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
+		FROM Tasks
+		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
+		AND Tasks.status = 'PENDING';
+	`)
+
+	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
+
+	query, err := conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var task notificationEntity.GetExpiredTasksWithDeviceId
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
+}
+
+func getTasksToExpireInAFewHours(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	stmt := fmt.Sprint(`
+		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
+		FROM Tasks
+		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) AND Tasks.end_time < NOW() + INTERVAL 7 HOUR
+		AND Tasks.status = 'PENDING';
+	`)
+
+	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
+
+	query, err := conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var task notificationEntity.GetExpiredTasksWithDeviceId
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
 }
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
-		SELECT task_id, user_id, title,description, end_time
-		FROM Tasks
+		SELECT T.task_id, T.user_id, T.title,T.description, T.end_time, N.device_id
+		FROM Tasks T join Notifications N on T.user_id = N.user_id
 		WHERE status = 'PENDING';
-`)
+	`)
 	var tasks []taskEntity.GetPendingTasks
 	query, err := conn.Query(stmt)
 	if err != nil {
@@ -305,11 +426,40 @@ func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	}
 	for query.Next() {
 		var task taskEntity.GetPendingTasks
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime)
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
 		if err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, task)
 	}
 	return tasks, nil
+}
+
+func getExpiredTasks(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	stmt := fmt.Sprint(`
+		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id, va_id
+		FROM Tasks
+		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
+		WHERE Tasks.status = 'EXPIRED';
+	`)
+
+	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
+
+	query, err := conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var task notificationEntity.GetExpiredTasksWithDeviceId
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
+}
+
+func NewReminderSrv(s *gocron.Scheduler, conn *sql.DB, taskrepo taskRepo.TaskRepository, nSrv notificationService.NotificationSrv) ReminderSrv {
+	return &reminderSrv{cron: s, conn: conn, repo: taskrepo, nSrv: nSrv}
 }

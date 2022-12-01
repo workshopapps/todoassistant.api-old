@@ -96,3 +96,25 @@ type ChangePasswordReq struct {
 	OldPassword string `json:"old_password"`
 	NewPassword string `json:"new_password"`
 }
+
+type ResetPasswordReq struct {
+	Email string `json:"email" validate:"email,required"`
+}
+
+type ResetPasswordRes struct {
+	UserId  string `json:"user_id"`
+	TokenId string `json:"token_id"`
+	Token   string `json:"token"`
+	Expiry  string `json:"expiry"`
+}
+
+type ResetPasswordWithTokenReq struct {
+	Password string `json:"password" validate:"required"`
+}
+
+type ResetPasswordWithTokenRes struct {
+	UserId  string `json:"user_id"`
+	TokenId string `json:"token_id"`
+	Token   string `json:"token"`
+	Expiry  string `json:"expiry"`
+}

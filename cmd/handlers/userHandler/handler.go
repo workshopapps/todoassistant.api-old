@@ -78,7 +78,7 @@ func (u *userHandler) GetUsers(c *gin.Context) {
 	length := len(users)
 	if length == 0 {
 		message := "No users in the system"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil))
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil, nil))
 		return
 	}
 
@@ -89,7 +89,7 @@ func (u *userHandler) GetUser(c *gin.Context) {
 	user, err := u.srv.GetUser(userFromRequest(c))
 	if err != nil {
 		message := "No user with that ID in the system"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil))
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil, nil))
 		return
 	}
 	// else if err != sql.ErrNoRows {
@@ -139,7 +139,43 @@ func (u *userHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Password updated successfully", nil))
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Password updated successfully", nil, nil))
+}
+
+func (u *userHandler) ResetPassword(c *gin.Context) {
+	var req userEntity.ResetPasswordReq
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
+		return
+	}
+
+	token, err := u.srv.ResetPassword(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusOK, "Internal Server Error", err, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Email sent, check your inbox!", token, nil))
+}
+
+func (u *userHandler) ResetPasswordWithToken(c *gin.Context) {
+	var req userEntity.ResetPasswordWithTokenReq
+	token := string(c.Query("token"))
+	userId := string(c.Query("user_id"))
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
+		return
+	}
+
+	errRes := u.srv.ResetPasswordWithToken(&req, token, userId)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusForbidden, "Cannot Change Password", errRes, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Password changed successfully", nil, nil))
 }
 
 func (u *userHandler) DeleteUser(c *gin.Context) {

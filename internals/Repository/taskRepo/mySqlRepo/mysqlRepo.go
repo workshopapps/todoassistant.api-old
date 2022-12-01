@@ -13,6 +13,63 @@ type sqlRepo struct {
 	conn *sql.DB
 }
 
+func (s *sqlRepo) AssignTaskToVa(ctx context.Context, vaId, taskId string) error {
+	log.Println(vaId)
+	log.Println(taskId)
+	stmt := fmt.Sprintf(`UPDATE Tasks SET va_id ='%v' WHERE task_id ='%v'`, vaId, taskId)
+	_, err := s.conn.ExecContext(ctx, stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *sqlRepo) GetVADetails(ctx context.Context, userId string) (string, error) {
+	var vaId *string
+	stmt := fmt.Sprintf(`
+SELECT 
+	virtual_Assistant_id from Users
+WHERE user_id = '%v'
+`, userId)
+	row := s.conn.QueryRowContext(ctx, stmt)
+	err := row.Scan(&vaId)
+	if err != nil {
+		return "", err
+	}
+	return *vaId, nil
+}
+
+func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*taskEntity.GetTaskVa, error) {
+	stmt := fmt.Sprintf(`SELECT
+    T.task_id,
+    T.user_id,
+    T.title, 
+    T.end_time,
+    T.status,
+    concat(U.first_name, ' ', U.last_name) AS 'User name'
+		FROM va_table vt 
+		    join Users U on vt.va_id = U.virtual_assistant_id join Tasks T on U.user_id = T.user_id
+		WHERE vt.va_id = '%s'`, vaId)
+
+	queryRow, err := s.conn.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var Results []*taskEntity.GetTaskVa
+
+	for queryRow.Next() {
+		var res taskEntity.GetTaskVa
+		err := queryRow.Scan(&res.TaskId, &res.Username, &res.Title, &res.EndTime, &res.Status, &res.Username)
+		if err != nil {
+			return nil, err
+		}
+		Results = append(Results, &res)
+	}
+
+	return Results, nil
+}
+
 func (s *sqlRepo) SetNewEvent(req *taskEntity.CreateTaskReq) error {
 	stmt := fmt.Sprintf(`INSERT INTO Tasks(
                   task_id,
@@ -88,7 +145,7 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 }
 
 func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
-	log.Printf("#%v\n",req)
+	log.Printf("#%v\n", req)
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -232,7 +289,7 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.G
 	); err != nil {
 		return nil, err
 	}
-	log.Println("Created AT",res)
+	log.Println("Created AT", res)
 	rows, err := tx.QueryContext(ctx, stmt2)
 	if err != nil {
 		return nil, err
@@ -367,8 +424,24 @@ func (s *sqlRepo) DeleteAllTask(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string, userId string, status string) error {
-	//var res taskEntity.GetTasksByIdRes
+func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error {
+
+	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET
+                 title = '%s',
+                 description = '%s',
+                 end_time = '%s',
+                 updated_at = '%s',
+                 va_option ='%s',
+                 repeat_frequency= '%s'
+             WHERE task_id = '%s'
+            `, req.Title, req.Description, req.EndTime, req.UpdatedAt, req.VAOption, req.Repeat, taskId))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error {
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -381,24 +454,7 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string, userI
 			tx.Commit()
 		}
 	}()
-	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = %s WHERE task_id = %s and user_id = '%s'`, status, taskId, userId))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
-
-func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error {
-
-	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET
-                 title = '%s',
-                 description = '%s',
-                 end_time = '%s',
-                 updated_at = '%s',
-                 va_option ='%s',
-                 repeat_frequency= '%s'
-             WHERE task_id = '%s'
-            `, req.Title, req.Description, req.EndTime, req.UpdatedAt, req.VAOption, req.Repeat, taskId))
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = 'DONE' WHERE task_id = '%s'`, taskId))
 	if err != nil {
 		log.Fatal(err)
 	}

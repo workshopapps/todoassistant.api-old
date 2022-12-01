@@ -30,7 +30,6 @@ func ValidateJWT() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
 
 		}
-
 		c.Set("userId", token.Id)
 		log.Println("middleware passed")
 		c.Next()
