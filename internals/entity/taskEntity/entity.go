@@ -119,3 +119,20 @@ type GetAllTaskRes struct {
 	Status      string `json:"status"`
 	Repeat      string `json:"repeat"`
 }
+
+// Get List of Task Assigned to VA
+
+type GetTaskVa struct {
+	TaskId   string `json:"task_id"`
+	Userid   string `json:"userid"`
+	Username string `json:"username"`
+	Title    string `json:"title"`
+	EndTime  string `json:"end_time"`
+	VAOption string `json:"va_option"`
+	Status   string `json:"status"`
+}
+
+type AssignReq struct {
+	UserId string
+	TaskId string
+}

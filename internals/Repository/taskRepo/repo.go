@@ -19,4 +19,9 @@ type TaskRepository interface {
 	UpdateTaskStatusByID(ctx context.Context, taskId string) error
 	EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error
 	SetNewEvent(req *taskEntity.CreateTaskReq) error
+
+	//VA
+	GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*taskEntity.GetTaskVa, error)
+	GetVADetails(ctx context.Context, userId string) (string, error)
+	AssignTaskToVa(ctx context.Context, vaId, taskId string) error
 }

@@ -227,22 +227,22 @@ func (t *taskHandler) DeleteAllTask(c *gin.Context) {
 func (t *taskHandler) UpdateUserStatus(c *gin.Context) {
 	param := c.Param("taskId")
 	if param == "" {
-	   c.AbortWithStatusJSON(http.StatusBadRequest,
-		  ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
-	   return
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
+		return
 	}
- 
+
 	_, errRes := t.srv.UpdateTaskStatusByID(param)
 	if errRes != nil {
-	   c.AbortWithStatusJSON(http.StatusInternalServerError,
-		  ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
-			 "Error Setting Task to Done", errRes, nil))
-	   return
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Error Setting Task to Done", errRes, nil))
+		return
 	}
 	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK,
-	   "Task status updated successfully", nil, nil)
+		"Task status updated successfully", nil, nil)
 	c.JSON(http.StatusOK, rd)
- }
+}
 
 // Update task by id
 
@@ -275,4 +275,62 @@ func (t *taskHandler) EditTaskById(c *gin.Context) {
 	rd := ResponseEntity.BuildSuccessResponse(200, "Task status updated successfully", EditedTask, nil)
 	c.JSON(http.StatusOK, rd)
 
+}
+
+// assign TaskTo VA
+
+func (t *taskHandler) AssignTaskToVA(c *gin.Context) {
+
+	taskId := c.Param("taskId")
+	log.Println("taskId is", taskId)
+	if taskId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid Task ID in url", nil, nil))
+		return
+	}
+
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid User ID", nil, nil))
+		return
+	}
+	var req taskEntity.AssignReq
+
+	req.UserId = userId
+	req.TaskId = taskId
+	errRes := t.srv.AssignVAToTask(&req)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Error Assigning Task", errRes, nil))
+		return
+	}
+	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK, "Task Assigned successfully", nil, nil)
+	c.JSON(http.StatusOK, rd)
+
+}
+
+// get tasks assigned to Va
+
+func (t *taskHandler) GetTasksAssignedToVa(c *gin.Context) {
+	vaId := c.GetString("id")
+	if vaId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid VA ID", nil, nil))
+		return
+	}
+
+	tasks, errRes := t.srv.GetTaskAssignedToVA(vaId)
+	if errRes != nil {
+		if errRes != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError,
+				ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+					"Error Getting All Task", errRes, nil))
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK,
+		ResponseEntity.BuildSuccessResponse(http.StatusOK, "Fetched All task Successfully", tasks, nil))
 }

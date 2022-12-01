@@ -2,6 +2,7 @@ package taskService
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"test-va/internals/Repository/taskRepo"
@@ -27,6 +28,10 @@ type TaskService interface {
 	DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError)
+
+	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
+	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
+	GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -37,8 +42,57 @@ type taskSrv struct {
 	remindSrv     reminderService.ReminderSrv
 }
 
-func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv, reminderSrv reminderService.ReminderSrv) TaskService {
-	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv, remindSrv: reminderSrv}
+func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
+	srv validationService.ValidationSrv, logSrv loggerService.LogSrv,
+	reminderSrv reminderService.ReminderSrv) TaskService {
+	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv,
+		logger: logSrv, remindSrv: reminderSrv}
+}
+
+func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError) {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	va, err := t.repo.GetAllTaskAssignedToVA(ctx, vaId)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return va, nil
+}
+
+func (t *taskSrv) AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	vaID, serviceError := t.GetVADetails(req.UserId)
+	if serviceError != nil {
+		log.Println(" error here", serviceError)
+		return serviceError
+	}
+
+	err := t.repo.AssignTaskToVa(ctx, vaID, req.TaskId)
+	if err != nil {
+		log.Println(" error here 2", err)
+		return ResponseEntity.NewInternalServiceError(err)
+	}
+	return nil
+}
+
+func (t *taskSrv) GetVADetails(userId string) (string, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	vaId, err := t.repo.GetVADetails(ctx, userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", ResponseEntity.NewInternalServiceError("No VA assigned yet")
+		}
+		return "", ResponseEntity.NewInternalServiceError(err)
+	}
+
+	return vaId, nil
 }
 
 func (t *taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError) {
@@ -308,16 +362,15 @@ func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseM
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
- 
+
 	err := t.repo.UpdateTaskStatusByID(ctx, taskId)
 	if err != nil {
-	   log.Println(err)
-	   return nil, ResponseEntity.NewInternalServiceError(err)
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Updated status successfully", nil, nil), nil
- 
- }
 
+}
 
 // Edit task by Id
 
