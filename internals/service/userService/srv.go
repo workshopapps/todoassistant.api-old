@@ -2,11 +2,13 @@ package userService
 
 import (
 	"fmt"
-	"log"
+	"math/rand"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/ResponseEntity"
+	"test-va/internals/entity/emailEntity"
 	"test-va/internals/entity/userEntity"
 	"test-va/internals/service/cryptoService"
+	"test-va/internals/service/emailService"
 	"test-va/internals/service/timeSrv"
 	tokenservice "test-va/internals/service/tokenService"
 	"test-va/internals/service/validationService"
@@ -22,6 +24,8 @@ type UserSrv interface {
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError)
 	ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError
+	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, error)
+	ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
 }
 
@@ -71,8 +75,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewValidatingError("BAD INPUT!")
+		return nil, ResponseEntity.NewValidatingError(err)
 	}
 	// check if user with that email exists already
 
@@ -84,7 +87,6 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	//hash password
 	password, err := u.cryptoSrv.HashPassword(req.Password)
 	if err != nil {
-		log.Println("here2")
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	//set time and etc
@@ -96,9 +98,9 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// save to DB
 	err = u.repo.Persist(req)
 	if err != nil {
-		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Error Saving to DB: %v", err))
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	log.Println("here")
+
 	tokenSrv := tokenservice.NewTokenSrv("tokenString")
 	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, "user", req.Email)
 	if errToken != nil {
@@ -163,7 +165,7 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId strin
 	// Check if new password is the same as old password
 	err = u.cryptoSrv.ComparePassword(user.Password, req.NewPassword)
 	if err == nil {
-		return ResponseEntity.NewInternalServiceError("The password cannot be the same as your old password!")
+		return ResponseEntity.NewInternalServiceError("The new password cannot be the same as your old password!")
 	}
 
 	// Create a new password hash
@@ -206,6 +208,113 @@ func (u *userSrv) DeleteUser(user_id string) error {
 	}
 
 	return nil
+}
+
+func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, error) {
+	var token userEntity.ResetPasswordRes
+	var message emailEntity.SendEmailReq
+
+	err := u.validator.Validate(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the user exists, if he/she doesn't return error
+	user, err := u.repo.GetByEmail(req.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	// Delete old tokens from system
+	err = u.repo.DeleteToken(user.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create token, add to database and then send to user's email address
+	token.UserId = user.UserId
+	token.TokenId = uuid.New().String()
+	token.Token = GenerateToken(4)
+	token.Expiry = time.Now().Add(time.Minute * 30).Format(time.RFC3339)
+	fmt.Println(token.Expiry)
+
+	err = u.repo.AddToken(&token)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := CreateMessageBody(user.FirstName, user.LastName, user.UserId, token.Token)
+	fmt.Println(msg)
+
+	// Send message to users email, if it exists
+	message.EmailAddress = user.Email
+	message.EmailSubject = "Reset Password Token"
+	message.EmailBody = msg
+
+	err = emailService.SendMail(message)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
+}
+
+func (u *userSrv) ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError {
+	err := u.validator.Validate(req)
+	if err != nil {
+		return ResponseEntity.NewInternalServiceError(err)
+	}
+
+	tokenDB, err := u.repo.GetTokenById(token, userId)
+	fmt.Println(tokenDB)
+	if err != nil {
+		return ResponseEntity.NewInternalServiceError("Invalid access token!")
+	}
+
+	timeNow := time.Now().Format(time.RFC3339)
+	if tokenDB.Expiry < timeNow {
+		return ResponseEntity.NewInternalServiceError("Token has expired!")
+	}
+
+	user, err := u.repo.GetById(tokenDB.UserId)
+	if err != nil {
+		return ResponseEntity.NewInternalServiceError("Check the user!")
+	}
+
+	err = u.cryptoSrv.ComparePassword(user.Password, req.Password)
+	if err == nil {
+		return ResponseEntity.NewInternalServiceError("The new password cannot be the same as your old password!")
+	}
+
+	// Create a new password hash
+	newPassword, _ := u.cryptoSrv.HashPassword(req.Password)
+	err = u.repo.ChangePassword(tokenDB.UserId, newPassword)
+	if err != nil {
+		return ResponseEntity.NewInternalServiceError("Could not change password!")
+	}
+
+	return nil
+}
+
+// Auxillary Function
+func GenerateToken(tokenLength int) string {
+	rand.Seed(time.Now().UnixNano())
+	const charset = "0123456789"
+	b := make([]byte, tokenLength)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func CreateMessageBody(firstName, lastName, email, token string) string {
+	link := fmt.Sprintf("https://ticked.hng.tech/reset-password?token=%v&user_id=%v", token, email)
+
+	subject := fmt.Sprintf("Hi %v %v, \n\n", firstName, lastName)
+	mainBody := fmt.Sprintf("You have requested to reset your password, this is your otp code %v\n\nIf you have difficulty using the otp code, please copy this link and paste it in your browser:\n%v\n\nBut if you did not request for a change of password, you can forget about this email\n\nLink expires in 30 minutes!", token, link)
+
+	message := subject + mainBody
+	return string(message)
 }
 
 func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) UserSrv {
