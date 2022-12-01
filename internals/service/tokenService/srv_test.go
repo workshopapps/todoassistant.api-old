@@ -8,16 +8,7 @@ import (
 func Test_token(t *testing.T) {
 	tokensrv := NewTokenSrv("vbvkvjbkv")
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-	token, rtoken, err := tokensrv.CreateToken("eb@gmail.com", "555")
-  
-=======
-=======
->>>>>>> Stashed changes
 	token, rtoken, err := tokensrv.CreateToken("eb@gmail.com","user","555")
-
->>>>>>> Stashed changes
 	log.Println(token)
 	log.Println(rtoken)
 	log.Println(err)

@@ -97,8 +97,6 @@ type ChangePasswordReq struct {
 	NewPassword string `json:"new_password"`
 }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 type ResetPasswordReq struct {
 	Email string `json:"email" validate:"email,required"`
 }
@@ -120,10 +118,6 @@ type ResetPasswordWithTokenRes struct {
 	Token   string `json:"token"`
 	Expiry  string `json:"expiry"`
 }
-=======
-=======
->>>>>>> Stashed changes
-
 
 type GoogleLoginRes struct {
 	Id            string `json:"id"`
@@ -133,9 +127,4 @@ type GoogleLoginRes struct {
 	Locale        string `json:"en"`
 	Profile       string `json:"picture"`
 	VerifiedEmail bool   `json:"verified_email"`
-<<<<<<< Updated upstream
 }
->>>>>>> Stashed changes
-=======
-}
->>>>>>> Stashed changes

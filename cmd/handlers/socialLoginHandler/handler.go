@@ -32,5 +32,5 @@ func (t *socialLoginHandler) GoogleCallBack(c *gin.Context) {
     user := t.srv.LoginResponse(code)
 	c.Set("userId", user.UserId)
     // c.Redirect(http.StatusFound, "https://ticked.hng.tech/lo?accessToken="+user.Token)
-	c.JSON(http.StatusAccepted, user)
+	c.JSON(http.StatusOK, user)
 }
