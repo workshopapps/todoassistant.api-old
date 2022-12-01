@@ -1,0 +1,1285 @@
+basePath: /api/v1
+definitions:
+  ResponseEntity.ResponseMessage:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error:
+        description: for errors that occur even if request is successful
+      extra: {}
+      message:
+        type: string
+      name:
+        description: name of the error
+        type: string
+      status:
+        type: string
+    type: object
+  ResponseEntity.ServiceError:
+    properties:
+      description:
+        type: string
+      error: {}
+      time:
+        type: string
+    type: object
+  notificationEntity.CreateNotification:
+    properties:
+      device_id:
+        type: string
+      notification_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.CreateTaskReq:
+    properties:
+      created_at:
+        type: string
+      description:
+        minLength: 3
+        type: string
+      end_time:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/taskEntity.TaskFile'
+        type: array
+      repeat:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        minLength: 3
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      va_option:
+        type: string
+    required:
+    - description
+    - end_time
+    - start_time
+    - title
+    - user_id
+    type: object
+  taskEntity.CreateTaskRes:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      repeat:
+        type: string
+      start_time:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      va_option:
+        type: string
+    type: object
+  taskEntity.GetAllExpiredRes:
+    properties:
+      created_at:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.GetAllTaskRes:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      repeat:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      va_option:
+        type: string
+    type: object
+  taskEntity.GetPendingTasksRes:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.GetTasksByIdRes:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      end_time:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/taskEntity.TaskFile'
+        type: array
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.SearchTaskRes:
+    properties:
+      created_at:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.TaskFile:
+    properties:
+      file_link:
+        type: string
+      file_type:
+        type: string
+    type: object
+  userEntity.CreateUserReq:
+    properties:
+      account_status:
+        type: string
+      date_created:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        enum:
+        - Male
+        - Female
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      payment_status:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: string
+    required:
+    - date_of_birth
+    - first_name
+    - gender
+    - last_name
+    - password
+    - phone
+    type: object
+  userEntity.CreateUserRes:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userEntity.GetByIdRes:
+    properties:
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userEntity.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  userEntity.LoginRes:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userEntity.ResetPasswordReq:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  userEntity.ResetPasswordRes:
+    properties:
+      expiry:
+        type: string
+      token:
+        type: string
+      token_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userEntity.UpdateUserReq:
+    properties:
+      account_status:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      payment_status:
+        type: string
+      phone:
+        type: string
+    type: object
+  userEntity.UpdateUserRes:
+    properties:
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+    type: object
+  userEntity.UsersRes:
+    properties:
+      date_created:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: string
+    type: object
+  vaEntity.CreateVAReq:
+    properties:
+      account_type:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      profile_picture:
+        type: string
+      va_id:
+        type: string
+    type: object
+  vaEntity.CreateVARes:
+    properties:
+      account_type:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      profile_picture:
+        type: string
+      va_id:
+        type: string
+    type: object
+  vaEntity.EditVARes:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      profile_picture:
+        type: string
+    type: object
+  vaEntity.EditVaReq:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      profile_picture:
+        type: string
+    type: object
+  vaEntity.FindByIdRes:
+    properties:
+      account_type:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      profile_picture:
+        type: string
+      va_id:
+        type: string
+    type: object
+host: localhost:2022
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A web application that helps you to keep your day planned
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Ticked
+  version: "1.0"
+paths:
+  /notifications:
+    post:
+      consumes:
+      - application/json
+      description: Notification registration route
+      parameters:
+      - description: Notifications Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notificationEntity.CreateNotification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Register to get notifications service
+      tags:
+      - Notifications
+  /task:
+    get:
+      consumes:
+      - application/json
+      description: Get all tasks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetAllTaskRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all tasks created by a user
+      tags:
+      - Tasks
+    post:
+      consumes:
+      - application/json
+      description: Create task
+      parameters:
+      - description: Tasks Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/taskEntity.CreateTaskReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taskEntity.CreateTaskRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a task
+      tags:
+      - Tasks
+  /task/{taskId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete task by taskId
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete task by Id
+      tags:
+      - Tasks
+    get:
+      consumes:
+      - application/json
+      description: Get a particular task
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taskEntity.GetTasksByIdRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get a single task
+      tags:
+      - Tasks
+    put:
+      consumes:
+      - application/json
+      description: Update task status route
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update the status of a task
+      tags:
+      - Tasks
+  /task/expired:
+    get:
+      consumes:
+      - application/json
+      description: Get all expired task
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetAllExpiredRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all expired tasks
+      tags:
+      - Tasks
+  /task/pending/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get all pending task
+      parameters:
+      - description: User Id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetPendingTasksRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get pending tasks of a particular user
+      tags:
+      - Tasks
+  /task/search:
+    get:
+      consumes:
+      - application/json
+      description: Search task route
+      parameters:
+      - description: name search by q
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.SearchTaskRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Search task by title
+      tags:
+      - Tasks
+  /task/status/{taskId}:
+    post:
+      consumes:
+      - application/json
+      description: Update task status route
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update the status of a task
+      tags:
+      - Tasks
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Get all users route
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/userEntity.UsersRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all users in the database
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Register route
+      parameters:
+      - description: Signup Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.CreateUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.CreateUserRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Register route
+      tags:
+      - Users
+  /user/{userId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete route
+      parameters:
+      - description: User Id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a user from the database
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get user route
+      parameters:
+      - description: User Id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.GetByIdRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get a specific user
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Register route
+      parameters:
+      - description: User Id
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Update User Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.UpdateUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.UpdateUserRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a user profile
+      tags:
+      - Users
+  /user/{userId}/change-password:
+    put:
+      consumes:
+      - application/json
+      description: Change password route
+      parameters:
+      - description: User Id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Change a user password
+      tags:
+      - Users
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to the server
+      parameters:
+      - description: Login Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.LoginRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Provide email and password to be logged in
+      tags:
+      - Users
+  /user/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Generate token
+      parameters:
+      - description: Input your email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.ResetPasswordReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.ResetPasswordRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Generate a token to reset users password
+      tags:
+      - Users
+  /user/reset-password/{tokenId}:
+    put:
+      consumes:
+      - application/json
+      description: Reset password
+      parameters:
+      - description: Token Id
+        in: path
+        name: tokenId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.ResetPasswordRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Check the provided token and reset the user's password
+      tags:
+      - Users
+  /va/{vaId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete va route
+      parameters:
+      - description: VA Id
+        in: path
+        name: vaId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a va from the database
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Update va route
+      parameters:
+      - description: Virtual Assistant Id
+        in: path
+        name: vaId
+        required: true
+        type: string
+      - description: Update VA Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vaEntity.EditVaReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vaEntity.EditVARes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a virtual assistant profile
+      tags:
+      - Users
+  /va/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change va password route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Change a va password
+      tags:
+      - Users
+  /va/login:
+    post:
+      consumes:
+      - application/json
+      description: Login as a va
+      parameters:
+      - description: Login Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vaEntity.FindByIdRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Provide email and password to be logged in
+      tags:
+      - Virtual_Assistant
+  /va/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register va route
+      parameters:
+      - description: VA Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vaEntity.CreateVAReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vaEntity.CreateVARes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Register a virtual assistant
+      tags:
+      - Users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
