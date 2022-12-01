@@ -196,7 +196,19 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 
 }
 
-// Create Task
+// Create Task godoc
+// @Summary	Create a task
+// @Description	Create task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	request	body	taskEntity.CreateTaskReq	true "Tasks Details"
+// @Success	200  {object}  taskEntity.CreateTaskRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task [post]
 func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -251,7 +263,20 @@ func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 
 }
 
-// search task by name func
+// Search task by name
+// Search task godoc
+// @Summary	Search task by title
+// @Description	Search task route
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	q    query     string  false  "name search by q"
+// @Success	200  {object}	[]taskEntity.SearchTaskRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/search [get]
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -270,6 +295,19 @@ func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity
 	return tasks, nil
 }
 
+// Get Task godoc
+// @Summary	Get a single task
+// @Description	Get a particular task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	taskId	path	string	true	"Task Id"
+// @Success	200  {object}  taskEntity.GetTasksByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/{taskId} [get]
 func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -289,6 +327,18 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 
 }
 
+// Get Expired Tasks godoc
+// @Summary	Get all expired tasks
+// @Description	Get all expired task
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}  []taskEntity.GetAllExpiredRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/expired [get]
 func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -308,6 +358,18 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 }
 
 // Get all task service
+// Get All Tasks godoc
+// @Summary	Get all tasks created by a user
+// @Description	Get all tasks
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}  []taskEntity.GetAllTaskRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task [get]
 func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -326,7 +388,19 @@ func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *Respo
 }
 
 // Delete task by Id
-
+// Delete task godoc
+// @Summary	Delete task by Id
+// @Description	Delete task by taskId
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	taskId	path	string	true	"Task Id"
+// @Success	200  {object}  ResponseEntity.ResponseMessage
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/{taskId} [delete]
 func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -357,7 +431,19 @@ func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage,
 }
 
 // Update task status
-
+// Update task status godoc
+// @Summary	Update the status of a task
+// @Description	Update task status route
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	taskId	path	string	true	"Task Id"
+// @Success	200  {object}  ResponseEntity.ResponseMessage
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/status/{taskId} [post]
 func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -372,8 +458,20 @@ func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseM
 
 }
 
-// Edit task by Id
-
+// Update task by Id
+// Update task status godoc
+// @Summary	Update the status of a task
+// @Description	Update task status route
+// @Tags	Tasks
+// @Accept	json
+// @Produce	json
+// @Param	taskId	path	string	true	"Task Id"
+// @Success	200  {object}  ResponseEntity.ResponseMessage
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/task/{taskId} [put]
 func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError) {
 
 	// create context of 1 minute

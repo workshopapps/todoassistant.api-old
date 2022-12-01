@@ -89,6 +89,18 @@ func (v *vaSrv) UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVA
 	return &data, nil
 }
 
+// Change VA Password godoc
+// @Summary	Change a va password
+// @Description	Change va password route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/va/change-password [post]
 func (v *vaSrv) ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError {
 	// validate request first
 	err := v.validator.Validate(req)
@@ -116,6 +128,19 @@ func (v *vaSrv) ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.S
 	return nil
 }
 
+// Delete VA godoc
+// @Summary	Delete a va from the database
+// @Description	Delete va route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"VA Id"
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/va/{vaId} [delete]
 func (v *vaSrv) DeleteUser(id string) *ResponseEntity.ServiceError {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -127,6 +152,19 @@ func (v *vaSrv) DeleteUser(id string) *ResponseEntity.ServiceError {
 	return nil
 }
 
+// Register VA godoc
+// @Summary	Register a virtual assistant
+// @Description	Register va route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	request	body	vaEntity.CreateVAReq	true "VA Details"
+// @Success	200  {object}  vaEntity.CreateVARes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/va/signup [post]
 func (v *vaSrv) SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *ResponseEntity.ServiceError) {
 
 	// validate request first
