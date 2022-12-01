@@ -88,7 +88,7 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 }
 
 func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
-	log.Printf("#%v\n",req)
+	log.Printf("#%v\n", req)
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -232,7 +232,7 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.G
 	); err != nil {
 		return nil, err
 	}
-	log.Println("Created AT",res)
+	log.Println("Created AT", res)
 	rows, err := tx.QueryContext(ctx, stmt2)
 	if err != nil {
 		return nil, err
@@ -331,6 +331,43 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 		AllTasks = append(AllTasks, &singleTask)
 	}
 	return AllTasks, nil
+}
+
+func (s *sqlRepo) GetListOfPendingTasks(ctx context.Context) ([]*taskEntity.GetAllPendingRes, error) {
+	db, err := s.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := fmt.Sprintf(`
+		SELECT task_id, user_id, title, va_option, end_time,
+		FROM Tasks
+		WHERE status = 'PENDING'`)
+
+	rows, err := db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var Searchedtasks []*taskEntity.GetAllPendingRes
+
+	for rows.Next() {
+		var singleTask taskEntity.GetAllPendingRes
+
+		err := rows.Scan(
+			&singleTask.TaskId,
+			&singleTask.UserId,
+			&singleTask.Title,
+			&singleTask.VAOption,
+			&singleTask.EndTime,
+		)
+		if err != nil {
+			return nil, err
+		}
+		Searchedtasks = append(Searchedtasks, &singleTask)
+	}
+	return Searchedtasks, nil
 }
 
 // Delete task by id
