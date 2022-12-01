@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
 	"test-va/internals/service/userService"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
@@ -14,6 +15,10 @@ func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
 	v1.POST("/user", userHandler.CreateUser)
 	// Login into the user account
 	v1.POST("/user/login", userHandler.Login)
+	// Get a reset password token
+	v1.POST("/user/reset-password", userHandler.ResetPassword)
+	// Reset password with token id
+	v1.PUT("/user/reset-password", userHandler.ResetPasswordWithToken)
 	users := v1.Group("/user")
 
 	users.Use(middlewares.ValidateJWT())

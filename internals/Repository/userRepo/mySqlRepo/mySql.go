@@ -193,3 +193,54 @@ func (m *mySql) DeleteUser(user_id string) error {
 
 	return nil
 }
+
+func (m *mySql) AddToken(req *userEntity.ResetPasswordRes) error {
+	stmt := fmt.Sprintf(` INSERT INTO Reset_Token(
+                   token_id,
+                   user_id,
+                   token,
+                   expiry
+                   ) VALUES ('%v', '%v', '%v', '%v')`,
+		req.TokenId, req.UserId, req.Token, req.Expiry)
+
+	_, err := m.conn.Exec(stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mySql) GetTokenById(token, userId string) (*userEntity.ResetPasswordWithTokenRes, error) {
+	query := fmt.Sprintf(`
+		SELECT token_id, user_id, token, expiry
+		FROM Reset_Token
+		WHERE token = '%s'
+		AND user_id = '%s'
+	`, token, userId)
+
+	var tokenRes userEntity.ResetPasswordWithTokenRes
+	ctx := context.Background()
+	err := m.conn.QueryRowContext(ctx, query).Scan(
+		&tokenRes.TokenId,
+		&tokenRes.UserId,
+		&tokenRes.Token,
+		&tokenRes.Expiry,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return &tokenRes, nil
+}
+
+func (m *mySql) DeleteToken(userId string) error {
+	query := fmt.Sprintf(`DELETE FROM Reset_Token WHERE user_id = "%s"`, userId)
+	_, err := m.conn.Exec(query)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
