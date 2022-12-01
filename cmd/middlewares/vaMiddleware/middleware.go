@@ -2,12 +2,11 @@ package vaMiddleware
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strings"
 	tokenservice "test-va/internals/service/tokenService"
-
-	"github.com/gin-gonic/gin"
 )
 
 type vaMiddleWare struct {
@@ -18,8 +17,7 @@ func NewVaMiddleWare(tokenSrv tokenservice.TokenSrv) *vaMiddleWare {
 	return &vaMiddleWare{tokenSrv: tokenSrv}
 }
 
-func (v *vaMiddleWare) MapMasterToReq(c *gin.Context) {
-	log.Println("id", c.Request.Context().Value("id"))
+func (v *vaMiddleWare) MapVAToReq(c *gin.Context) {
 	// const BEARER_HEADER = "Bearer "
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
@@ -35,7 +33,7 @@ func (v *vaMiddleWare) MapMasterToReq(c *gin.Context) {
 
 	}
 
-	if token.Status != "MASTER" {
+	if token.Status != "VA" && token.Status != "MASTER" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, "You are not Authorized to access this resource")
 		return
 	}
@@ -44,4 +42,3 @@ func (v *vaMiddleWare) MapMasterToReq(c *gin.Context) {
 	c.Set("email", token.Email)
 	c.Next()
 }
-

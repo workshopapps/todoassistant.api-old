@@ -2,7 +2,9 @@ package taskService
 
 import (
 	"context"
+	"database/sql"
 	"log"
+	"net/http"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
@@ -24,8 +26,12 @@ type TaskService interface {
 	GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
 	DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
-	UpdateTaskStatusByID(taskId string, userId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
+	UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError)
+
+	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
+	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
+	GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -36,8 +42,57 @@ type taskSrv struct {
 	remindSrv     reminderService.ReminderSrv
 }
 
-func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService, srv validationService.ValidationSrv, logSrv loggerService.LogSrv, reminderSrv reminderService.ReminderSrv) TaskService {
-	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv, logger: logSrv, remindSrv: reminderSrv}
+func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
+	srv validationService.ValidationSrv, logSrv loggerService.LogSrv,
+	reminderSrv reminderService.ReminderSrv) TaskService {
+	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv,
+		logger: logSrv, remindSrv: reminderSrv}
+}
+
+func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError) {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	va, err := t.repo.GetAllTaskAssignedToVA(ctx, vaId)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return va, nil
+}
+
+func (t *taskSrv) AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	vaID, serviceError := t.GetVADetails(req.UserId)
+	if serviceError != nil {
+		log.Println(" error here", serviceError)
+		return serviceError
+	}
+
+	err := t.repo.AssignTaskToVa(ctx, vaID, req.TaskId)
+	if err != nil {
+		log.Println(" error here 2", err)
+		return ResponseEntity.NewInternalServiceError(err)
+	}
+	return nil
+}
+
+func (t *taskSrv) GetVADetails(userId string) (string, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	vaId, err := t.repo.GetVADetails(ctx, userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", ResponseEntity.NewInternalServiceError("No VA assigned yet")
+		}
+		return "", ResponseEntity.NewInternalServiceError(err)
+	}
+
+	return vaId, nil
 }
 
 func (t *taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError) {
@@ -229,7 +284,7 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	log.Println("From getByID",task)
+	log.Println("From getByID", task)
 	return task, nil
 
 }
@@ -282,7 +337,7 @@ func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Deleted successfully", nil, nil), nil
 }
 
 // Delete All task
@@ -297,22 +352,23 @@ func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage,
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return ResponseEntity.BuildSuccessResponse(200, "Deleted successfully", nil), nil
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "deleted user successfully", nil, nil), nil
 
 }
 
 // Update task status
-func (t *taskSrv) UpdateTaskStatusByID(taskId string, userId string, status string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+
+func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
-	err := t.repo.UpdateTaskStatusByID(ctx, taskId, userId, status)
+	err := t.repo.UpdateTaskStatusByID(ctx, taskId)
 	if err != nil {
 		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return ResponseEntity.BuildSuccessResponse(200, "Updated successfully successfully", nil), nil
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Updated status successfully", nil, nil), nil
 
 }
 
@@ -334,7 +390,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 
 	// Get task by ID
 	task, err := t.repo.GetTaskByID(ctx, taskId)
-		if task == nil {
+	if task == nil {
 		log.Println("no rows returned")
 	}
 	if err != nil {
@@ -360,7 +416,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		VAOption:    req.VAOption,
 		Status:      req.Status,
 	}
-	updateAt :=t.timeSrv.CurrentTime().Format(time.RFC3339)
+	updateAt := t.timeSrv.CurrentTime().Format(time.RFC3339)
 	ndate := &taskEntity.CreateTaskReq{
 		TaskId:      taskId,
 		UserId:      task.UserId,
@@ -371,8 +427,8 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 		EndTime:     data.EndTime,
 		VAOption:    data.VAOption,
 		Status:      data.Status,
-		UpdatedAt: 	 updateAt,
-		CreatedAt: 	 task.CreatedAt,
+		UpdatedAt:   updateAt,
+		CreatedAt:   task.CreatedAt,
 	}
 
 	// delete former task
@@ -383,12 +439,10 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	}
 	log.Println("Deleted task line 381")
 
-
 	// create new task
 
-
 	//check if timeDueDate and StartDate is valid
-	err = t.timeSrv.CheckFor339Format( ndate.EndTime)
+	err = t.timeSrv.CheckFor339Format(ndate.EndTime)
 	if err != nil {
 		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
 	}
@@ -397,7 +451,6 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	if err != nil {
 		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
 	}
-
 
 	// create a reminder
 	switch req.Repeat {
