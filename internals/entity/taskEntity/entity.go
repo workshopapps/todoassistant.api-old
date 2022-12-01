@@ -67,6 +67,7 @@ type GetPendingTasks struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	EndTime     string `json:"end_time"`
+	DeviceId    string `json:"device_id"`
 	// request for searched task
 }
 
@@ -117,5 +118,4 @@ type GetAllTaskRes struct {
 	VAOption    string `json:"va_option"`
 	Status      string `json:"status"`
 	Repeat      string `json:"repeat"`
-
 }

@@ -16,7 +16,7 @@ type TaskRepository interface {
 	GetAllTasks(ctx context.Context, userId string) ([]*taskEntity.GetAllTaskRes, error)
 	DeleteTaskByID(ctx context.Context, taskId string) error
 	DeleteAllTask(ctx context.Context, userId string) error
-	UpdateTaskStatusByID(ctx context.Context, taskId string, userId string, status string) error
+	UpdateTaskStatusByID(ctx context.Context, taskId string) error
 	EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error
 	SetNewEvent(req *taskEntity.CreateTaskReq) error
 }

@@ -24,16 +24,20 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Input Data", err, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest,
+				"Bad Input Data", err, nil))
 		return
 	}
 	user, errorRes := u.srv.SaveUser(&req)
 	if errorRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failed To Save User", errorRes, nil))
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Failed To Save User", errorRes, nil))
 		return
 	}
-	//c.Set("userId", user.UserId)
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "Created user successfully", user, nil))
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "Created user successfully",
+		user, nil))
 }
 
 func (u *userHandler) Login(c *gin.Context) {
@@ -78,7 +82,7 @@ func (u *userHandler) GetUsers(c *gin.Context) {
 	length := len(users)
 	if length == 0 {
 		message := "No users in the system"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil))
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil, nil))
 		return
 	}
 
@@ -89,7 +93,7 @@ func (u *userHandler) GetUser(c *gin.Context) {
 	user, err := u.srv.GetUser(userFromRequest(c))
 	if err != nil {
 		message := "No user with that ID in the system"
-		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil))
+		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil, nil))
 		return
 	}
 	// else if err != sql.ErrNoRows {
@@ -139,7 +143,7 @@ func (u *userHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Password updated successfully", nil))
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Password updated successfully", nil, nil))
 }
 
 func (u *userHandler) DeleteUser(c *gin.Context) {
