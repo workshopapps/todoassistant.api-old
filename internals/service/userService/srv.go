@@ -35,6 +35,7 @@ type userSrv struct {
 	validator validationService.ValidationSrv
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
+	emailSrv  emailService.EmailService
 }
 
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
@@ -252,7 +253,7 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 	message.EmailSubject = "Reset Password Token"
 	message.EmailBody = msg
 
-	err = emailService.SendMail(message)
+	err = u.emailSrv.SendMail(message)
 	if err != nil {
 		return nil, err
 	}
@@ -332,6 +333,6 @@ func CreateMessageBody(firstName, lastName, email, token string) string {
 	return string(message)
 }
 
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv}
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv}
 }
