@@ -15,6 +15,14 @@ require (
 	github.com/jeanphorn/log4go v0.0.0-20190526082429-7dbb8deb9468
 	github.com/pusher/pusher-http-go v4.0.1+incompatible
 	golang.org/x/crypto v0.3.0
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
+>>>>>>> Stashed changes
+=======
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
+>>>>>>> Stashed changes
 	google.golang.org/api v0.102.0
 )
 
@@ -62,7 +70,6 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/net v0.2.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
