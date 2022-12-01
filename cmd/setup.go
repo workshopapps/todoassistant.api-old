@@ -78,7 +78,6 @@ func Setup() {
 		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
 	}
 	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
-	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn", "Notification", "notification", "hello")
 	if err != nil {
 		fmt.Println("Could Not Send Message", err)
 	}
@@ -87,8 +86,11 @@ func Setup() {
 
 	s := gocron.NewScheduler(time.UTC)
 	reminderSrv := reminderService.NewReminderSrv(s, conn, repo, notificationSrv)
-	reminderSrv.ScheduleNotificationEverySixHours()
-	reminderSrv.ScheduleNotificationDaily()
+
+	if firebaseApp != nil {
+		reminderSrv.ScheduleNotificationEverySixHours()
+		reminderSrv.ScheduleNotificationDaily()
+	}
 
 	s.Every(5).Minutes().Do(func() {
 		log.Println("checking for 5 minutes reminders")
