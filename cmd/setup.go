@@ -173,7 +173,7 @@ func Setup() {
 	routes.UserRoutes(v1, userSrv)
 
 	//handle task routes
-	routes.TaskRoutes(v1, taskSrv)
+	routes.TaskRoutes(v1, taskSrv, srv)
 
 	//handle Notifications
 	routes.NotificationRoutes(v1, notificationSrv)
