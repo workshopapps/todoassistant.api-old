@@ -118,3 +118,13 @@ type ResetPasswordWithTokenRes struct {
 	Token   string `json:"token"`
 	Expiry  string `json:"expiry"`
 }
+
+type GoogleLoginRes struct {
+	Id            string `json:"id"`
+	FirstName     string `json:"given_name"`
+	LastName      string `json:"family_name"`
+	Email         string `json:"email"`
+	Locale        string `json:"en"`
+	Profile       string `json:"picture"`
+	VerifiedEmail bool   `json:"verified_email"`
+}

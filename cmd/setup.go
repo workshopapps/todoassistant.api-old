@@ -27,6 +27,7 @@ import (
 	"test-va/internals/service/userService"
 	"test-va/internals/service/vaService"
 	"test-va/internals/service/validationService"
+	"test-va/internals/service/socialLoginService"
 	"test-va/utils"
 	"time"
 
@@ -41,6 +42,10 @@ func Setup() {
 
 	//Load configurations
 	config, err := utils.LoadConfig("./")
+
+	//load google config file
+	utils.LoadGoogleConfig()
+
 	if err != nil {
 		log.Fatal("cannot load config", err)
 	}
@@ -152,6 +157,10 @@ func Setup() {
 	// user service
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
 
+	// social login service
+
+	loginSrv := socialLoginService.NewLoginSrv(userRepo)
+
 	// va service
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
@@ -184,6 +193,9 @@ func Setup() {
 
 	//handle user routes
 	routes.UserRoutes(v1, userSrv)
+
+	//handle social login route
+	routes.SocialLoginRoute(v1, loginSrv)
 
 	//handle task routes
 	routes.TaskRoutes(v1, taskSrv, srv)
