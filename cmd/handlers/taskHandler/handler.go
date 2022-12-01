@@ -363,3 +363,34 @@ func (t *taskHandler) CreateComment(c *gin.Context) {
 	c.JSON(http.StatusOK, comment)
 
 }
+
+// get comments on a task
+func (t *taskHandler) GetComments(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No User ID", nil, nil))
+		return
+	}
+
+	taskId := c.Params.ByName("taskId")
+	if taskId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
+		return
+	}
+	comments, errRes := t.srv.GetAllComments(taskId)
+
+	if comments == nil {
+		message := "no Task with id " + taskId + " exists"
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, comments, nil))
+		return
+	}
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find comments", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, comments)
+}

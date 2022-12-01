@@ -32,7 +32,10 @@ type TaskService interface {
 	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
 	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
 	GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError)
+
+	//comments
 	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
+	GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -546,5 +549,23 @@ func (t *taskSrv) PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.
 	}
 
 	return &data, nil
+
+}
+
+// get all comments
+func (t *taskSrv) GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	comments, err := t.repo.GetAllComments(ctx, taskId)
+
+	if comments == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return comments, nil
 
 }

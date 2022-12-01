@@ -482,3 +482,41 @@ func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateComm
 
 	return nil
 }
+
+func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEntity.GetCommentRes, error) {
+
+	//tx, err := s.conn.BeginTx(ctx, nil)
+	db, err := s.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := fmt.Sprintf(`
+		SELECT user_id, task_id, comment, created_at
+		FROM Comments WHERE task_id = '%s'`, taskId)
+
+	rows, err := db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var AllComment []*taskEntity.GetCommentRes
+
+	for rows.Next() {
+		var singleTask taskEntity.GetCommentRes
+
+		err := rows.Scan(
+			&singleTask.UserId,
+			&singleTask.TaskId,
+			&singleTask.Comment,
+			&singleTask.CreatedAt,
+
+		)
+		if err != nil {
+			return nil, err
+		}
+		AllComment = append(AllComment, &singleTask)
+	}
+	return AllComment, nil
+}
