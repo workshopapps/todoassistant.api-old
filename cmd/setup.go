@@ -265,7 +265,7 @@ func Setup() {
 	srvDetails := http.Server{
 		Addr:        fmt.Sprintf(":%s", port),
 		Handler:     r,
-		IdleTimeout: 120 * time.Second,
+		IdleTimeout: 240 * time.Second,
 	}
 
 	go func() {
