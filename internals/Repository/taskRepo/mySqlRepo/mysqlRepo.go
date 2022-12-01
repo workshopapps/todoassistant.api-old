@@ -88,7 +88,7 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 }
 
 func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
-	log.Printf("#%v\n",req)
+	log.Printf("#%v\n", req)
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -232,7 +232,7 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.G
 	); err != nil {
 		return nil, err
 	}
-	log.Println("Created AT",res)
+	log.Println("Created AT", res)
 	rows, err := tx.QueryContext(ctx, stmt2)
 	if err != nil {
 		return nil, err
@@ -367,27 +367,6 @@ func (s *sqlRepo) DeleteAllTask(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string, userId string, status string) error {
-	//var res taskEntity.GetTasksByIdRes
-	tx, err := s.conn.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = %s WHERE task_id = %s and user_id = '%s'`, status, taskId, userId))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
-
 func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEntity.EditTaskReq) error {
 
 	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET
@@ -404,3 +383,24 @@ func (s *sqlRepo) EditTaskById(ctx context.Context, taskId string, req *taskEnti
 	}
 	return nil
 }
+
+
+func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error {
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+	   return err
+	}
+ 
+	defer func() {
+	   if err != nil {
+		  tx.Rollback()
+	   } else {
+		  tx.Commit()
+	   }
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`UPDATE Tasks SET status = 'DONE' WHERE task_id = '%s'`, taskId))
+	if err != nil {
+	   log.Fatal(err)
+	}
+	return nil
+ }

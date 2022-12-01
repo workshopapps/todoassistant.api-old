@@ -9,6 +9,13 @@ import "github.com/spf13/viper"
 type Config struct {
 	DataSourceName string `mapstructure:"DATA_SOURCE_NAME"`
 	SeverAddress   string `mapstructure:"SEVER_ADDRESS"`
+	FromEmail      string `mapstructure:"FROM_EMAIL"`
+	Password       string `mapstructure:"Password"`
+	Host           string `mapstructure:"Host"`
+	Port           string `mapstructure:"Port"`
+	TokenSecret    string `mapstructure:"TOKEN_SECRET"`
+	FromEmailAddr  string `mapstructure:"FromEmailAddr"`
+	SMTPpwd		   string `mapstructure:"SMTPpwd"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

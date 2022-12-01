@@ -3,34 +3,31 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/cors"
-
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"test-va/cmd/handlers/callHandler"
-	"test-va/cmd/handlers/notificationHandler"
-	"test-va/cmd/handlers/taskHandler"
-	"test-va/cmd/handlers/userHandler"
-	"test-va/cmd/middlewares"
-	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
+	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
+	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
-	"test-va/internals/service/callService"
 	"test-va/internals/service/cryptoService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
 	"test-va/internals/service/taskService"
 	"test-va/internals/service/timeSrv"
+	tokenservice "test-va/internals/service/tokenService"
 	"test-va/internals/service/userService"
+	"test-va/internals/service/vaService"
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/go-co-op/gocron"
 
@@ -40,17 +37,30 @@ import (
 )
 
 func Setup() {
+	//Load configurations
 	config, err := utils.LoadConfig("./")
 	if err != nil {
 		log.Fatal("cannot load config", err)
 	}
 
 	dsn := config.DataSourceName
-	log.Println(dsn)
 	if dsn == "" {
 		dsn = "hawaiian_comrade:YfqvJUSF43DtmH#^ad(K+pMI&@(team-ruler-todo.c6qozbcvfqxv.ap-south-1.rds.amazonaws.com:3306)/todoDB"
 	}
 
+	port := config.SeverAddress
+	if port == "" {
+		port = "2022"
+	}
+
+	secret := config.TokenSecret
+	if secret == "" {
+		log.Fatal("secret key not found")
+	}
+
+	//Repo
+
+	//db service
 	connection, err := mysql.NewMySQLServer(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
@@ -59,17 +69,29 @@ func Setup() {
 	defer connection.Close()
 	conn := connection.GetConn()
 
-	// repo service
+	// task repo service
 	repo := mySqlRepo.NewSqlRepo(conn)
-	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
+
+	//user repo service
 	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
+
+	//notification repo service
 	notificationRepo := mySqlNotifRepo.NewMySqlNotificationRepo(conn)
-	// time service
+
+	//va repo service
+	vaRepo := mySqlRepo3.NewVASqlRepo(conn)
+
+	//SERVICES
+
+	//time service
 	timeSrv := timeSrv.NewTimeStruct()
 
-	// create cron tasks for checking if time is due
+	//callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 
+	// cron service
 	s := gocron.NewScheduler(time.UTC)
+
+	// reminder service and implementation
 	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
 
 	s.Every(5).Minutes().Do(func() {
@@ -82,10 +104,18 @@ func Setup() {
 		reminderSrv.SetReminderEvery30Min()
 	})
 
+	// run cron jobs
+	s.StartAsync()
+
 	//validation service
 	validationSrv := validationService.NewValidationStruct()
+
+	// token service
+	srv := tokenservice.NewTokenSrv(secret)
+
 	//logger service
 	logger := log_4_go.NewLogger()
+
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
@@ -96,74 +126,61 @@ func Setup() {
 		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
 	}
 	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
-	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn", "Notification", "notification", []string{"hello"})
+	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_"+
+		"-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt"+
+		"_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn",
+		"Notification", "notification",
+		[]string{"hello"})
 	if err != nil {
 		fmt.Println("Could Not Send Message", err)
 	}
-	s.StartAsync()
-	// create service
+
+	// task service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
+
+	// user service
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
 
-	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
+	// va service
+	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
-	handler := taskHandler.NewTaskHandler(taskSrv)
-
-	userHandler := userHandler.NewUserHandler(userSrv)
-
-	callHandler := callHandler.NewCallHandler(callSrv)
-	notificationHandler := notificationHandler.NewNotificationHandler(notificationSrv)
-
-	port := config.SeverAddress
-	log.Println(port)
-	if port == "" {
-		port = "2022"
-	}
-
+	//router setup
 	r := gin.New()
+	v1 := r.Group("/api/v1")
 
 	// Middlewares
-	r.Use(gin.Logger())
-	//r.Use(middlewares.Logger())
-
-	r.Use(gin.Recovery())
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"PUT", "PATCH", "DELETE", "POST", "GET"},
-		AllowHeaders:     []string{"*"},
-		ExposeHeaders:    []string{"*"},
-		AllowCredentials: true,
+	v1.Use(gin.Logger())
+	v1.Use(gin.Recovery())
+	v1.Use(gzip.Gzip(gzip.DefaultCompression))
+	v1.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,
 	}))
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	v1 := r.Group("/api/v1")
-	task := v1.Group("/task")
-	task.Use(middlewares.ValidateJWT())
-	{
-		task.POST("", handler.CreateTask)
-		task.GET("/:taskId", handler.GetTaskByID)
-		task.GET("/pending/:userId", handler.GetPendingTasks)
-		task.GET("/expired", handler.GetListOfExpiredTasks)
-		task.GET("/", handler.GetAllTask)               //Get all task by a user
-		task.DELETE("/:taskId", handler.DeleteTaskById) //Delete Task By ID
-		//task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
-		//task.POST("/:taskId", handler.UpdateUserStatus) //Update User Status
-		task.PUT("/:taskId", handler.EditTaskById) //EditTaskById
+	// routes
 
-	}
+	//ping route
+	v1.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
 
-	//r.POST("/task", handler.CreateTask)
-	v1.GET("/calls", callHandler.GetCalls)
-	//r.GET("/task/pending/:userId", handler.GetPendingTasks)
-	//get list of pending tasks belonging to a user
-	//r.GET("/task/expired/", handler.GetListOfExpiredTasks)
-	// get task by id
-	//r.GET("/task/:taskId", handler.GetTaskByID)
-	// search route
-	v1.GET("/search", handler.SearchTask)
+	//welcome message route
+	v1.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Welcome to Ticked Backend Server - V1.0.0")
+	})
+
+	//handle user routes
+	routes.UserRoutes(v1, userSrv)
+
+	//handle task routes
+	routes.TaskRoutes(v1, taskSrv)
+
+	//handle Notifications
+	routes.NotificationRoutes(v1, notificationSrv)
+
+	//handle VA
+	routes.VARoutes(v1, vaSrv, srv)
 
 	//chat service connection
-
 	pusherClient := pusher.Client{
 		AppID:   "1512808",
 		Key:     "f79030d90753a91854e6",
@@ -184,43 +201,9 @@ func Setup() {
 		c.JSON(http.StatusOK, []string{})
 	})
 
-	// USER
-	//create user
-	// Register a user
-
-	v1.POST("/user", userHandler.CreateUser)
-	// Login into the user account
-	v1.POST("/user/login", userHandler.Login)
-	users := v1.Group("/user")
-
-	users.Use(middlewares.ValidateJWT())
-	{
-		// Get all users
-		users.GET("", userHandler.GetUsers)
-		// Get a specific user
-		users.GET("/:user_id", userHandler.GetUser)
-		// Update a specific user
-		users.PUT("/:user_id", userHandler.UpdateUser)
-		// Change user password
-
-		users.PUT("/:user_id/change-password", userHandler.ChangePassword)
-		// Delete a user
-		users.DELETE("/:user_id", userHandler.DeleteUser)
-	}
-
-
 	// Notifications
-	// Register to Recieve Notifications
-	v1.POST("/notification", notificationHandler.RegisterForNotifications)
-
-	v1.GET("/ping", func(c *gin.Context) {
-
-		c.String(http.StatusOK, "pong")
-	})
-
-	v1.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Welcome to Ticked Backend Server - V1.0.0")
-	})
+	// Register to Receive Notifications
+	//v1.POST("/notification", notificationHandler.RegisterForNotifications)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

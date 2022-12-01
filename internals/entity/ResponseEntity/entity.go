@@ -22,7 +22,7 @@ func NewDecodingError(err error) *ResponseMessage {
 	}
 }
 
-func BuildSuccessResponse(code int, message string, data any, extra ...any) *ResponseMessage {
+func BuildSuccessResponse(code int, message string, data any, extra any) *ResponseMessage {
 
 	return &ResponseMessage{
 		Status:       "success",
