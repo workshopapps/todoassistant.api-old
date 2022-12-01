@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -92,13 +93,39 @@ func Setup() {
 	//time service
 	timeSrv := timeSrv.NewTimeStruct()
 
+	//validation service
+	validationSrv := validationService.NewValidationStruct()
+
+	//Notification Service
+	//Note Handle Unable to Connect to Firebase
+	firebaseApp, err := firebaseinit.SetupFirebase()
+	if err != nil {
+		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
+	}
+	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
+	if err != nil {
+		fmt.Println("Could Not Send Message", err)
+	}
+
+	// create cron tasks for checking if time is due
+
 	//callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
+
 
 	// cron service
 	s := gocron.NewScheduler(time.UTC)
 
+	reminderSrv := reminderService.NewReminderSrv(s, conn, repo, notificationSrv)
+
+	if firebaseApp != nil {
+		reminderSrv.ScheduleNotificationEverySixHours()
+		reminderSrv.ScheduleNotificationDaily()
+	}
+
+
 	// reminder service and implementation
 	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
+
 
 	s.Every(5).Minutes().Do(func() {
 		log.Println("checking for 5 minutes reminders")
@@ -119,11 +146,13 @@ func Setup() {
 	// token service
 	srv := tokenservice.NewTokenSrv(secret)
 
+
 	//logger service
 	logger := log_4_go.NewLogger()
 
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
+
 
 	//Notification Service
 	//Note Handle Unable to Connect to Firebase
@@ -140,6 +169,7 @@ func Setup() {
 	if err != nil {
 		fmt.Println("Could Not Send Message", err)
 	}
+
 
 	// task service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
@@ -212,6 +242,7 @@ func Setup() {
 
 		c.JSON(http.StatusOK, []string{})
 	})
+
 
 	// Notifications
 	// Register to Receive Notifications

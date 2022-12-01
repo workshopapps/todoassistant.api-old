@@ -2,7 +2,6 @@ package notificationService
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"test-va/internals/Repository/notificationRepo"
 	"test-va/internals/entity/ResponseEntity"
@@ -16,7 +15,8 @@ import (
 
 type NotificationSrv interface {
 	RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError
-	SendNotification(token, title, body string, taskIds []string) error
+	SendNotification(token, title, body string, taskId string) error
+
 	GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 }
 
@@ -25,6 +25,10 @@ type notificationSrv struct {
 	repo      notificationRepo.NotificationRepository
 	validator validationService.ValidationSrv
 }
+
+
+func New(app *firebase.App, repo notificationRepo.NotificationRepository, validator validationService.ValidationSrv) NotificationSrv {
+	return &notificationSrv{
 
 func (n notificationSrv) GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error) {
 	task, err := n.repo.GetTaskDetailsWhenDue(userId)
@@ -37,13 +41,14 @@ func (n notificationSrv) GetTaskFromUser(userId string) (*notificationEntity.Get
 func New(app *firebase.App, repo notificationRepo.NotificationRepository,
 	validator validationService.ValidationSrv) NotificationSrv {
 	return notificationSrv{
+
 		app:       app,
 		repo:      repo,
 		validator: validator,
 	}
 }
 
-func (n notificationSrv) SendNotification(token, title, body string, taskIds []string) error {
+func (n notificationSrv) SendNotification(token, title, body string, taskId string) error {
 	ctx := context.Background()
 	fmcClient, err := n.app.Messaging(ctx)
 	if err != nil {
@@ -51,11 +56,11 @@ func (n notificationSrv) SendNotification(token, title, body string, taskIds []s
 		return err
 	}
 
-	taskIdsToString, err := json.Marshal(taskIds)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
+	// taskIdsToString, err := json.Marshal(taskIds)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return err
+	// }
 
 	response, err := fmcClient.Send(ctx, &messaging.Message{
 		Token: token,
@@ -64,7 +69,7 @@ func (n notificationSrv) SendNotification(token, title, body string, taskIds []s
 			Body:  body,
 		},
 		Data: map[string]string{
-			"tasks": string(taskIdsToString),
+			"tasks": taskId,
 		},
 		Webpush: &messaging.WebpushConfig{
 			Headers: map[string]string{

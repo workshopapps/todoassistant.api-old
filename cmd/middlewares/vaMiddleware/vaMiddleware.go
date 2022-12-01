@@ -44,3 +44,4 @@ func (v *vaMiddleWare) MapMasterToReq(c *gin.Context) {
 	c.Set("email", token.Email)
 	c.Next()
 }
+
