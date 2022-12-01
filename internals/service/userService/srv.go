@@ -27,6 +27,7 @@ type UserSrv interface {
 	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, error)
 	ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
+	AssignVAToUser(user_id, va_id string) *ResponseEntity.ServiceError
 }
 
 type userSrv struct {
@@ -293,6 +294,20 @@ func (u *userSrv) ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenR
 		return ResponseEntity.NewInternalServiceError("Could not change password!")
 	}
 
+	return nil
+}
+
+func (u *userSrv) AssignVAToUser(user_id, va_id string) *ResponseEntity.ServiceError {
+	err := u.repo.AssignVAToUser(user_id, va_id)
+	if err != nil {
+		fmt.Println(err)
+		switch {
+		case err.Error() == "user already has a VA":
+			return ResponseEntity.NewCustomServiceError("user already has a VA", err)
+		default:
+			return ResponseEntity.NewInternalServiceError("Could Not Assign Va")
+		}
+	}
 	return nil
 }
 
