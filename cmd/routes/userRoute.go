@@ -34,5 +34,7 @@ func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
 		users.PUT("/:user_id/change-password", userHandler.ChangePassword)
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
+		// Assign VA to User
+		users.POST("/assign-va/:va_id", userHandler.AssignVAToUser)
 	}
 }
