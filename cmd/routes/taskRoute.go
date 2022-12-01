@@ -3,7 +3,6 @@ package routes
 import (
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
-	"test-va/cmd/middlewares/vaMiddleware"
 
 	"test-va/internals/service/taskService"
 	tokenservice "test-va/internals/service/tokenService"
@@ -12,16 +11,16 @@ import (
 )
 
 func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokenservice.TokenSrv) {
-	mWare := vaMiddleware.NewVaMiddleWare(srv)
+	//mWare := vaMiddleware.NewVaMiddleWare(srv)
 
 	handler := taskHandler.NewTaskHandler(service)
 	task := v1.Group("/task")
-	task.Use(mWare.MapVAToReq)
-	{
-		//list of all task assigned to VA
-		task.GET("/all/va", handler.GetTasksAssignedToVa)
+	//task.Use(mWare.MapVAToReq)
+	// {
+	// 	//list of all task assigned to VA
+	// 	task.GET("/all/va", handler.GetTasksAssignedToVa)
 
-	}
+	// }
 	task.Use(middlewares.ValidateJWT())
 	{
 		task.POST("", handler.CreateTask)
