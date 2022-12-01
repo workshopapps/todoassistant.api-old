@@ -30,8 +30,6 @@ import (
 	"test-va/utils"
 	"time"
 
-	"github.com/gin-contrib/cors"
-
 	"github.com/go-co-op/gocron"
 
 	"github.com/gin-contrib/gzip"
@@ -111,7 +109,6 @@ func Setup() {
 
 	//callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 
-
 	// cron service
 	s := gocron.NewScheduler(time.UTC)
 
@@ -122,10 +119,7 @@ func Setup() {
 		reminderSrv.ScheduleNotificationDaily()
 	}
 
-
 	// reminder service and implementation
-	reminderSrv := reminderService.NewReminderSrv(s, conn, repo)
-
 
 	s.Every(5).Minutes().Do(func() {
 		log.Println("checking for 5 minutes reminders")
@@ -140,12 +134,8 @@ func Setup() {
 	// run cron jobs
 	s.StartAsync()
 
-	//validation service
-	validationSrv := validationService.NewValidationStruct()
-
 	// token service
 	srv := tokenservice.NewTokenSrv(secret)
-
 
 	//logger service
 	logger := log_4_go.NewLogger()
@@ -153,23 +143,8 @@ func Setup() {
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
-
 	//Notification Service
 	//Note Handle Unable to Connect to Firebase
-	firebaseApp, err := firebaseinit.SetupFirebase()
-	if err != nil {
-		fmt.Println("UNABLE TO CONNECT TO FIREBASE", err)
-	}
-	notificationSrv := notificationService.New(firebaseApp, notificationRepo, validationSrv)
-	err = notificationSrv.SendNotification("ckh2hTktbwD5VWfHUqIiH6:APA91bGtAyfluuCsR_"+
-		"-eCkDdwYBRZlRv9a6BBQGwumzttGV64H4OhMy6KILyRWy1bN1EvKQ6K131yS8oy4sR11ofTgSFPSpeviXQPYdt"+
-		"_PMhXI8a1RJm8I8lemh-iU8uFym3TPOSPspn",
-		"Notification", "notification",
-		[]string{"hello"})
-	if err != nil {
-		fmt.Println("Could Not Send Message", err)
-	}
-
 
 	// task service
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
@@ -242,7 +217,6 @@ func Setup() {
 
 		c.JSON(http.StatusOK, []string{})
 	})
-
 
 	// Notifications
 	// Register to Receive Notifications

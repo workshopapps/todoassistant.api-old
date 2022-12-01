@@ -45,3 +45,28 @@ func (v *vaMiddleWare) MapMasterToReq(c *gin.Context) {
 	c.Next()
 }
 
+func (v *vaMiddleWare) MapVAToReq(c *gin.Context) {
+	// const BEARER_HEADER = "Bearer "
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, "Invalid Token")
+		return
+	}
+	auth := strings.Split(authHeader, " ")
+
+	token, err := v.tokenSrv.ValidateToken(auth[1])
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
+
+	}
+
+	if token.Status != "VA" && token.Status != "MASTER" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, "You are not Authorized to access this resource")
+		return
+	}
+	c.Set("id", token.Id)
+	c.Set("status", token.Status)
+	c.Set("email", token.Email)
+	c.Next()
+}
