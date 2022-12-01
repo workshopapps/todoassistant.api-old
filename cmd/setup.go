@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/cryptoService"
+	"test-va/internals/service/emailService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
 	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
@@ -29,6 +29,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/go-co-op/gocron"
 
@@ -58,6 +60,26 @@ func Setup() {
 	secret := config.TokenSecret
 	if secret == "" {
 		log.Fatal("secret key not found")
+	}
+
+	fromEmailAddr := config.FromEmailAddr
+	if fromEmailAddr == "" {
+		log.Fatal("smtp email sender address not found")
+	}
+
+	smtpPWD := config.SMTPpwd
+	if smtpPWD == "" {
+		log.Fatal("smtp password not found")
+	}
+
+	smtpHost := config.SMTPhost
+	if fromEmailAddr == "" {
+		log.Fatal("smtp email sender address not found")
+	}
+
+	smtpPort := config.SMTPport
+	if fromEmailAddr == "" {
+		log.Fatal("smtp email sender address not found")
 	}
 
 	//Repo
@@ -143,6 +165,9 @@ func Setup() {
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	//email service
+	emailSrv := emailService.NewEmailSrv(fromEmailAddr, smtpPWD, smtpHost, smtpPort)
+
 	//Notification Service
 	//Note Handle Unable to Connect to Firebase
 
@@ -150,7 +175,7 @@ func Setup() {
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
 
 	// user service
-	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv)
+	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv)
 
 	// va service
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)

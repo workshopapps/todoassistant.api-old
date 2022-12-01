@@ -14,6 +14,10 @@ type Config struct {
 	Host           string `mapstructure:"Host"`
 	Port           string `mapstructure:"Port"`
 	TokenSecret    string `mapstructure:"TOKEN_SECRET"`
+	FromEmailAddr  string `mapstructure:"FromEmailAddr"`
+	SMTPpwd        string `mapstructure:"SMTPpwd"`
+	SMTPhost       string `mapstructure:"SMTPhost"`
+	SMTPport       string `mapstructure:"SMTPport"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
