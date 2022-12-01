@@ -35,9 +35,13 @@ import (
 
 	"github.com/go-co-op/gocron"
 
+	_ "test-va/docs"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pusher/pusher-http-go"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Setup() {
@@ -182,10 +186,6 @@ func Setup() {
 	// user service
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv)
 
-	// social login service
-
-	loginSrv := socialLoginService.NewLoginSrv(userRepo)
-
 	// va service
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
@@ -268,10 +268,12 @@ func Setup() {
 		})
 	})
 
+	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	srvDetails := http.Server{
 		Addr:        fmt.Sprintf(":%s", port),
 		Handler:     r,
-		IdleTimeout: 120 * time.Second,
+		IdleTimeout: 240 * time.Second,
 	}
 
 	go func() {

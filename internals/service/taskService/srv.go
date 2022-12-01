@@ -196,7 +196,6 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 
 }
 
-// Create Task
 func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -251,7 +250,6 @@ func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 
 }
 
-// search task by name func
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -307,7 +305,6 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 
 }
 
-// Get all task service
 func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -324,8 +321,6 @@ func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *Respo
 	return task, nil
 
 }
-
-// Delete task by Id
 
 func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
@@ -356,8 +351,6 @@ func (t *taskSrv) DeleteAllTask(userId string) (*ResponseEntity.ResponseMessage,
 
 }
 
-// Update task status
-
 func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -371,8 +364,6 @@ func (t *taskSrv) UpdateTaskStatusByID(taskId string) (*ResponseEntity.ResponseM
 	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Updated status successfully", nil, nil), nil
 
 }
-
-// Edit task by Id
 
 func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*taskEntity.EditTaskRes, *ResponseEntity.ServiceError) {
 

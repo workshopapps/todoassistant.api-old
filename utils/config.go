@@ -14,9 +14,6 @@ type Config struct {
 	Host           string `mapstructure:"Host"`
 	Port           string `mapstructure:"Port"`
 	TokenSecret    string `mapstructure:"TOKEN_SECRET"`
-	GoogleClient   string `mapstructure:"CLIENT_SECRET"`
-	GoogleSecret   string `mapstructure:"CLIENT_ID"`
-	GoogleCallBack string `mapstructure:"CALLBACK_URL"`
 	FromEmailAddr  string `mapstructure:"FromEmailAddr"`
 	SMTPpwd        string `mapstructure:"SMTPpwd"`
 	SMTPhost       string `mapstructure:"SMTPhost"`
