@@ -24,4 +24,8 @@ type TaskRepository interface {
 	GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*taskEntity.GetTaskVa, error)
 	GetVADetails(ctx context.Context, userId string) (string, error)
 	AssignTaskToVa(ctx context.Context, vaId, taskId string) error
+
+	//Comment
+	PersistComment(ctx context.Context, req *taskEntity.CreateCommentReq) error
+	GetAllComments(ctx context.Context, taskId string) ([]*taskEntity.GetCommentRes, error)
 }

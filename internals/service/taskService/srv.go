@@ -32,6 +32,10 @@ type TaskService interface {
 	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
 	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
 	GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError)
+
+	//comments
+	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
+	GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -515,4 +519,53 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	log.Println("update complete")
 
 	return &data, nil
+}
+
+func (t *taskSrv) PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	// implement validation for struct
+
+	err := t.validationSrv.Validate(req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
+	}
+
+	//set time
+	req.CreatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
+
+	// insert into db
+	err = t.repo.PersistComment(ctx, req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	data := taskEntity.CreateCommentRes{
+		TaskId:      req.TaskId,
+		Comment: 	 req.Comment,
+	}
+
+	return &data, nil
+
+}
+
+// get all comments
+func (t *taskSrv) GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	comments, err := t.repo.GetAllComments(ctx, taskId)
+
+	if comments == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return comments, nil
+
 }

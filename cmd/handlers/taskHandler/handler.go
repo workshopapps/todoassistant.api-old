@@ -334,3 +334,63 @@ func (t *taskHandler) GetTasksAssignedToVa(c *gin.Context) {
 	c.JSON(http.StatusOK,
 		ResponseEntity.BuildSuccessResponse(http.StatusOK, "Fetched All task Successfully", tasks, nil))
 }
+
+// task comments
+func (t *taskHandler) CreateComment(c *gin.Context) {
+	var req taskEntity.CreateCommentReq
+	value := c.GetString("userId")
+	log.Println("value is: ", value)
+	if value == "" {
+		log.Println("112")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "you are not allowed to access this resource", nil, nil))
+		return
+	}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
+		return
+	}
+
+	req.UserId = value
+	comment, errRes := t.srv.PersistComment(&req)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error saving comment", errRes, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, comment)
+
+}
+
+// get comments on a task
+func (t *taskHandler) GetComments(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No User ID", nil, nil))
+		return
+	}
+
+	taskId := c.Params.ByName("taskId")
+	if taskId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
+		return
+	}
+	comments, errRes := t.srv.GetAllComments(taskId)
+
+	if comments == nil {
+		message := "no Task with id " + taskId + " exists"
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, comments, nil))
+		return
+	}
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find comments", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, comments)
+}
