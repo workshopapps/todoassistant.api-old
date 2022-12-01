@@ -136,3 +136,15 @@ type AssignReq struct {
 	UserId string
 	TaskId string
 }
+
+type CreateCommentReq struct {
+	TaskId      string     `json:"task_id" validate:"required"`
+	UserId      string     `json:"user_id" validate:"required"`
+	Comment 	string     `json:"comment" validate:"required,min=3"`
+	CreatedAt   string     `json:"created_at"`
+}
+
+type CreateCommentRes struct {
+	TaskId      string     `json:"task_id"`
+	Comment 	string     `json:"comment" validate:"required,min=3"`
+}

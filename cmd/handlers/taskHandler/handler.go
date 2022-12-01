@@ -334,3 +334,32 @@ func (t *taskHandler) GetTasksAssignedToVa(c *gin.Context) {
 	c.JSON(http.StatusOK,
 		ResponseEntity.BuildSuccessResponse(http.StatusOK, "Fetched All task Successfully", tasks, nil))
 }
+
+// task comments
+func (t *taskHandler) CreateComment(c *gin.Context) {
+	var req taskEntity.CreateCommentReq
+	value := c.GetString("userId")
+	log.Println("value is: ", value)
+	if value == "" {
+		log.Println("112")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "you are not allowed to access this resource", nil, nil))
+		return
+	}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
+		return
+	}
+
+	req.UserId = value
+	comment, errRes := t.srv.PersistComment(&req)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error saving comment", errRes, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, comment)
+
+}

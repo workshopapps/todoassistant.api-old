@@ -27,7 +27,7 @@ func (s *sqlRepo) AssignTaskToVa(ctx context.Context, vaId, taskId string) error
 func (s *sqlRepo) GetVADetails(ctx context.Context, userId string) (string, error) {
 	var vaId *string
 	stmt := fmt.Sprintf(`
-SELECT 
+SELECT
 	virtual_Assistant_id from Users
 WHERE user_id = '%v'
 `, userId)
@@ -43,11 +43,11 @@ func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*t
 	stmt := fmt.Sprintf(`SELECT
     T.task_id,
     T.user_id,
-    T.title, 
+    T.title,
     T.end_time,
     T.status,
     concat(U.first_name, ' ', U.last_name) AS 'User name'
-		FROM va_table vt 
+		FROM va_table vt
 		    join Users U on vt.va_id = U.virtual_assistant_id join Tasks T on U.user_id = T.user_id
 		WHERE vt.va_id = '%s'`, vaId)
 
@@ -458,5 +458,27 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error
 	if err != nil {
 		log.Fatal(err)
 	}
+	return nil
+}
+
+// comment
+func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateCommentReq) error{
+
+	stmt := fmt.Sprintf(`INSERT INTO Comments(
+                  user_id,
+                  task_id,
+                  comment,
+				  created_at
+                  )
+	VALUES ('%v','%v','%v','%v')
+	`, req.UserId, req.TaskId, req.Comment,req.CreatedAt)
+
+	_, err := s.conn.Exec(stmt)
+	if err != nil {
+		log.Println(stmt)
+		log.Println(err)
+		return err
+	}
+
 	return nil
 }
