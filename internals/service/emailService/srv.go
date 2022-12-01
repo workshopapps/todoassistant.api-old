@@ -1,6 +1,7 @@
 package emailService
 
 import (
+	"fmt"
 	"net/smtp"
 	"os"
 	"test-va/internals/entity/emailEntity"
@@ -16,18 +17,23 @@ type emailSrv struct {
 	Port      string
 }
 
-// func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
-// 	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
-// 	addr := e.Host + ":" + e.Port
-// 	body := []byte(req.EmailSubject + req.EmailBody)
-// 	err := smtp.SendMail(addr, auth, e.FromEmail, []string{req.EmailAddress}, body)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
 func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
+	fmt.Println(e.FromEmail, e.Password, e.Host, e.Port)
+	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
+	addr := e.Host + ":" + e.Port
+	body := []byte(req.EmailSubject + req.EmailBody)
+	err := smtp.SendMail(addr, auth, e.FromEmail, []string{req.EmailAddress}, body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func NewEmailSrv(fromEmail string, password string, host string, port string) EmailService {
+	return &emailSrv{FromEmail: fromEmail, Password: password, Host: host, Port: port}
+}
+
+func SendMail(req emailEntity.SendEmailReq) error {
 
 	from := os.Getenv("FromEmailAddr")
 	password := os.Getenv("SMTPpwd")
@@ -45,8 +51,4 @@ func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
 		return err
 	}
 	return nil
-}
-
-func NewEmailSrv(fromEmail string, password string, host string, port string) EmailService {
-	return &emailSrv{FromEmail: fromEmail, Password: password, Host: host, Port: port}
 }
