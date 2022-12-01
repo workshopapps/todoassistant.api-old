@@ -109,7 +109,7 @@ type ResetPasswordRes struct {
 }
 
 type ResetPasswordWithTokenReq struct {
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 }
 
 type ResetPasswordWithTokenRes struct {

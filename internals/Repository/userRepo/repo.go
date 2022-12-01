@@ -13,6 +13,6 @@ type UserRepository interface {
 	DeleteUser(user_id string) error
 	ChangePassword(userId, newPassword string) error
 	AddToken(req *userEntity.ResetPasswordRes) error
-	GetTokenById(tokenId string) (*userEntity.ResetPasswordWithTokenRes, error)
+	GetTokenById(token, userId string) (*userEntity.ResetPasswordWithTokenRes, error)
 	DeleteToken(tokenId string) error
 }

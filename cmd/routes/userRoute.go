@@ -18,7 +18,7 @@ func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
 	// Get a reset password token
 	v1.POST("/user/reset-password", userHandler.ResetPassword)
 	// Reset password with token id
-	v1.POST("/user/reset-password/:resetTokenId", userHandler.ResetPasswordWithToken)
+	v1.PUT("/user/reset-password", userHandler.ResetPasswordWithToken)
 	users := v1.Group("/user")
 
 	users.Use(middlewares.ValidateJWT())

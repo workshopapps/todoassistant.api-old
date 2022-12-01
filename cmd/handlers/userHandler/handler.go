@@ -161,14 +161,15 @@ func (u *userHandler) ResetPassword(c *gin.Context) {
 
 func (u *userHandler) ResetPasswordWithToken(c *gin.Context) {
 	var req userEntity.ResetPasswordWithTokenReq
-	tokenId := c.Param("resetTokenId")
+	token := string(c.Query("token"))
+	userId := string(c.Query("user_id"))
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
 		return
 	}
 
-	errRes := u.srv.ResetPasswordWithToken(&req, tokenId)
+	errRes := u.srv.ResetPasswordWithToken(&req, token, userId)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusForbidden, "Cannot Change Password", errRes, nil))
 		return
