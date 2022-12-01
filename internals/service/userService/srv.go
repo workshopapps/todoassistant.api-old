@@ -144,19 +144,6 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 	return data, nil
 }
 
-// Change Password godoc
-// @Summary	Change a user password
-// @Description	Change password route
-// @Tags	Users
-// @Accept	json
-// @Produce	json
-// @Param	userId	path	string	true	"User Id"
-// @Success	200  {string}  string    "ok"
-// @Failure	400  {object}  ResponseEntity.ServiceError
-// @Failure	404  {object}  ResponseEntity.ServiceError
-// @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
-// @Router	/user/{userId}/change-password [put]
 func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError {
 	// validate request
 	err := u.validator.Validate(req)
@@ -192,19 +179,6 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId strin
 	return nil
 }
 
-// Get All Users godoc
-// @Summary	Get all users in the database
-// @Description	Get all users route
-// @Tags	Users
-// @Accept	json
-// @Produce	json
-// @Param	page	query	string	false	"page"
-// @Success	200  {object}  []userEntity.UsersRes
-// @Failure	400  {object}  ResponseEntity.ServiceError
-// @Failure	404  {object}  ResponseEntity.ServiceError
-// @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
-// @Router	/user [get]
 func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 	users, err := u.repo.GetUsers(page)
 	if err != nil {
@@ -214,19 +188,6 @@ func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 	return users, nil
 }
 
-// Get User godoc
-// @Summary	Get a specific user
-// @Description	Get user route
-// @Tags	Users
-// @Accept	json
-// @Produce	json
-// @Param	userId	path	string	true	"User Id"
-// @Success	200  {object}  userEntity.GetByIdRes
-// @Failure	400  {object}  ResponseEntity.ServiceError
-// @Failure	404  {object}  ResponseEntity.ServiceError
-// @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
-// @Router	/user/{userId} [get]
 func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 	user, err := u.repo.GetById(user_id)
 	if err != nil {
@@ -236,19 +197,6 @@ func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 	return user, nil
 }
 
-// Delete User godoc
-// @Summary	Delete a user from the database
-// @Description	Delete route
-// @Tags	Users
-// @Accept	json
-// @Produce	json
-// @Param	userId	path	string	true	"User Id"
-// @Success	200  {string}  string    "ok"
-// @Failure	400  {object}  ResponseEntity.ServiceError
-// @Failure	404  {object}  ResponseEntity.ServiceError
-// @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
-// @Router	/user/{userId} [delete]
 func (u *userSrv) DeleteUser(user_id string) error {
 	_, idErr := u.repo.GetById(user_id)
 	if idErr != nil {
