@@ -7,7 +7,7 @@ import (
 
 type VARepo interface {
 	Persist(ctx context.Context, req *vaEntity.CreateVAReq) error
-	FindByEmail(ctx context.Context, email string) (*vaEntity.FindByIdRes, error)
+	FindByEmail(ctx context.Context, email string) (*vaEntity.FindByEmailRes, error)
 	FindById(ctx context.Context, id string) (*vaEntity.FindByIdRes, error)
 	DeleteUser(ctx context.Context, id string) error
 	UpdateUser(ctx context.Context, req *vaEntity.EditVaReq, id string) error

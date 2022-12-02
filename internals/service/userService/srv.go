@@ -24,7 +24,7 @@ type UserSrv interface {
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError)
 	ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError
-	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, error)
+	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, *ResponseEntity.ServiceError)
 	ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
 	AssignVAToUser(user_id, va_id string) *ResponseEntity.ServiceError
@@ -264,25 +264,25 @@ func (u *userSrv) DeleteUser(user_id string) error {
 	return nil
 }
 
-func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, error) {
+func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, *ResponseEntity.ServiceError) {
 	var token userEntity.ResetPasswordRes
 	var message emailEntity.SendEmailReq
 
 	err := u.validator.Validate(req)
 	if err != nil {
-		return nil, err
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
 	// Check if the user exists, if he/she doesn't return error
 	user, err := u.repo.GetByEmail(req.Email)
 	if err != nil {
-		return nil, err
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
 	// Delete old tokens from system
 	err = u.repo.DeleteToken(user.UserId)
 	if err != nil {
-		return nil, err
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
 	// Create token, add to database and then send to user's email address
@@ -293,17 +293,17 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 
 	err = u.repo.AddToken(&token)
 	if err != nil {
-		return nil, err
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
 	// Send message to users email, if it exists
 	message.EmailAddress = user.Email
-	message.EmailSubject = "Reset Password Token"
+	message.EmailSubject = "Subject: Reset Password Token\n"
 	message.EmailBody = CreateMessageBody(user.FirstName, user.LastName, user.UserId, token.Token)
 
 	err = u.emailSrv.SendMail(message)
 	if err != nil {
-		return nil, err
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
 	return &token, nil

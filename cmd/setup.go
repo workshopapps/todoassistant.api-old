@@ -82,12 +82,12 @@ func Setup() {
 
 	smtpHost := config.SMTPhost
 	if fromEmailAddr == "" {
-		log.Fatal("smtp email sender address not found")
+		log.Fatal("smtp host address not found")
 	}
 
 	smtpPort := config.SMTPport
 	if fromEmailAddr == "" {
-		log.Fatal("smtp email sender address not found")
+		log.Fatal("smtp port not found")
 	}
 
 	//Repo
@@ -274,6 +274,7 @@ func Setup() {
 		})
 	})
 
+	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srvDetails := http.Server{
