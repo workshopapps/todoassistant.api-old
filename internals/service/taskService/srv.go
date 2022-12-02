@@ -22,6 +22,7 @@ type TaskService interface {
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError)
 	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError)
+	GetListOfPendingTasks() ([]*taskEntity.GetAllPendingRes, *ResponseEntity.ServiceError)
 	DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError)
 	GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *ResponseEntity.ServiceError)
@@ -321,6 +322,24 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 	defer cancelFunc()
 
 	task, err := t.repo.GetListOfExpiredTasks(ctx)
+
+	if task == nil {
+		log.Println("no rows returned")
+		return nil, ResponseEntity.NewInternalServiceError("No Task")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return task, nil
+
+}
+
+func (t *taskSrv) GetListOfPendingTasks() ([]*taskEntity.GetAllPendingRes, *ResponseEntity.ServiceError) {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	task, err := t.repo.GetListOfPendingTasks(ctx)
 
 	if task == nil {
 		log.Println("no rows returned")
