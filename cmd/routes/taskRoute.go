@@ -36,7 +36,8 @@ func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokens
 		task.POST("/assign/:taskId", handler.AssignTaskToVA)
 	}
 
-	v1.Use(mWare.MapVAToReq)
+	vaTask := v1.Group("/task")
+	vaTask.Use(mWare.MapVAToReq)
 	{
 		//list of all task assigned to VA
 		v1.GET("/task/all/va", handler.GetTasksAssignedToVa)
