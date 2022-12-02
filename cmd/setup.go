@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -36,14 +37,19 @@ import (
 
 	_ "test-va/docs"
 
+	"github.com/stripe/stripe-go/v74"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/pusher/pusher-http-go"
+
+	// "github.com/pusher/pusher-http-go"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Setup() {
+
+	stripe.Key = "sk_test_51M9xknFf5hgzULIC40q0q9nzGz6ByBYNrFYzgUB2zsVfDZwhhiss5fi3OmLVhzOwxLfnT4bMqjj9Uh4oaLQrCRhU00EUIT0yl3"
 
 	//Load configurations
 	config, err := utils.LoadConfig("./")
@@ -240,26 +246,30 @@ func Setup() {
 	//handle subscribe route
 	routes.SubscribeRoutes(v1, subscribeSrv)
 
+	// Payment route
+	v1.POST("/checkout", paymentHandler.CheckoutCreator)
+	v1.POST("/event", paymentHandler.HandleEvent)
+
 	//chat service connection
-	pusherClient := pusher.Client{
-		AppID:   "1512808",
-		Key:     "f79030d90753a91854e6",
-		Secret:  "06b8abef8713abd21cc9",
-		Cluster: "eu",
-		Secure:  true,
-	}
+	// pusherClient := pusher.Client{
+	// 	AppID:   "1512808",
+	// 	Key:     "f79030d90753a91854e6",
+	// 	Secret:  "06b8abef8713abd21cc9",
+	// 	Cluster: "eu",
+	// 	Secure:  true,
+	// }
 
-	v1.POST("dashboard/assistant", func(c *gin.Context) {
-		// var data map[string]string
-		var data map[string]string
+	// v1.POST("dashboard/assistant", func(c *gin.Context) {
+	// 	// var data map[string]string
+	// 	var data map[string]string
 
-		if err := c.BindJSON(&data); err != nil {
-			return
-		}
-		pusherClient.Trigger("vachat", "message", data)
+	// 	if err := c.BindJSON(&data); err != nil {
+	// 		return
+	// 	}
+	// 	pusherClient.Trigger("vachat", "message", data)
 
-		c.JSON(http.StatusOK, []string{})
-	})
+	// 	c.JSON(http.StatusOK, []string{})
+	// })
 
 	// Notifications
 	// Register to Receive Notifications
