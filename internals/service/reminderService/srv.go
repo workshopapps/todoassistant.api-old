@@ -321,7 +321,7 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(tasks, "Daily")
+		// fmt.Println(tasks, "Daily")
 		if len(tasks) < 1 {
 			fmt.Println("No Notifications to Send Just Yet", tasks)
 			return
@@ -345,7 +345,7 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(tasks, "six Hourly")
+		// fmt.Println(tasks, "six Hourly")
 		if len(tasks) < 1 {
 			fmt.Println("No Notifications to Send Just Yet", tasks)
 			return
@@ -362,15 +362,73 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 }
 
 func getTasksToExpireToday(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	// Select All The Users with Pending Tasks and Send Notifications to Them
+	stmt := fmt.Sprint(`
+		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
+		FROM Tasks
+		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE )
+		AND Tasks.status = 'PENDING';
+	`)
+
+	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
+	var userTasks []notificationEntity.GetExpiredTasksWithDeviceId
+	var vaTasks []notificationEntity.GetExpiredTasksWithDeviceId
+
+	query, err := conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var task notificationEntity.GetExpiredTasksWithDeviceId
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		if err != nil {
+			return nil, err
+		}
+		userTasks = append(userTasks, task)
+	}
+
+	// Select All The VA with Users that Have Pending Tasks and Send Notifications to Them
+	stmt = fmt.Sprint(`
+		SELECT task_id, Tasks.va_id, title ,description, end_time, device_id
+		FROM Tasks
+		INNER JOIN Notifications ON Tasks.va_id = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
+		AND Tasks.status = 'PENDING';
+	`)
+
+	query, err = conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var task notificationEntity.GetExpiredTasksWithDeviceId
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		if err != nil {
+			return nil, err
+		}
+		vaTasks = append(vaTasks, task)
+	}
+	tasks = append(tasks, userTasks...)
+	// tasks = append(tasks, vaTasks...)
+	return tasks, nil
+}
+
+func getTasksToExpireInAFewHours(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	// Select All The Users with Pending Tasks and Send Notifications to Them
 	stmt := fmt.Sprint(`
 		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
 		FROM Tasks
 		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
 		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
+		AND  
+		CAST(Tasks.end_time as TIME ) < CAST(NOW() + INTERVAL 7 HOUR as TIME )
 		AND Tasks.status = 'PENDING';
 	`)
 
 	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
+	var userTasks []notificationEntity.GetExpiredTasksWithDeviceId
+	var vaTasks []notificationEntity.GetExpiredTasksWithDeviceId
 
 	query, err := conn.Query(stmt)
 	if err != nil {
@@ -384,21 +442,34 @@ func getTasksToExpireToday(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWi
 		}
 		tasks = append(tasks, task)
 	}
-	return tasks, nil
-}
 
-func getTasksToExpireInAFewHours(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
-	stmt := fmt.Sprint(`
-		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
+	// stmt = `SELECT CAST(timestamp '2022-12-03T18:20:59+01:00' as DATE )`
+	// res, err := conn.Query(stmt)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	// for res.Next() {
+	// 	var val string
+	// 	err = res.Scan(&val)
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+	// 	println(val, "here")
+	// }
+
+	// Select All The VA with Users that Have Pending Tasks and Send Notifications to Them
+	stmt = fmt.Sprint(`
+		SELECT task_id, Tasks.va_id, title, description, end_time, device_id
 		FROM Tasks
-		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
-		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) AND Tasks.end_time < NOW() + INTERVAL 7 HOUR
+		INNER JOIN Notifications ON Tasks.va_id = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
+		AND  
+		CAST(Tasks.end_time as TIME ) < CAST(NOW() + INTERVAL 7 HOUR as TIME )
 		AND Tasks.status = 'PENDING';
 	`)
 
-	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
-
-	query, err := conn.Query(stmt)
+	query, err = conn.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -408,8 +479,11 @@ func getTasksToExpireInAFewHours(conn *sql.DB) ([]notificationEntity.GetExpiredT
 		if err != nil {
 			return nil, err
 		}
-		tasks = append(tasks, task)
+		task.DeviceId = "slack"
+		vaTasks = append(vaTasks, task)
 	}
+	tasks = append(tasks, userTasks...)
+	tasks = append(tasks, vaTasks...)
 	return tasks, nil
 }
 

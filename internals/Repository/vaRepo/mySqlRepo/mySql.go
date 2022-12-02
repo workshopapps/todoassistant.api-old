@@ -61,7 +61,6 @@ func (m *mySql) FindById(ctx context.Context, id string) (*vaEntity.FindByIdRes,
                         last_name,
                         email,
                         phone,
-                        password,
                         profile_picture,
                         account_type,
                         created_at
@@ -69,7 +68,7 @@ FROM va_table where va_id = '%v'`, id)
 	var res vaEntity.FindByIdRes
 	row := m.conn.QueryRowContext(ctx, stmt)
 	err := row.Scan(&res.VaId, &res.FirstName, &res.LastName, &res.Email, &res.Phone,
-		&res.Password, &res.ProfilePicture, &res.AccountType, &res.CreatedAt)
+		&res.ProfilePicture, &res.AccountType, &res.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +76,7 @@ FROM va_table where va_id = '%v'`, id)
 	return &res, nil
 }
 
-func (m *mySql) FindByEmail(ctx context.Context, email string) (*vaEntity.FindByIdRes, error) {
+func (m *mySql) FindByEmail(ctx context.Context, email string) (*vaEntity.FindByEmailRes, error) {
 	stmt := fmt.Sprintf(` SELECT 
 						 va_id,
 	                     first_name,
@@ -89,7 +88,7 @@ func (m *mySql) FindByEmail(ctx context.Context, email string) (*vaEntity.FindBy
 	                     account_type,
 	                     created_at
 FROM va_table where email = '%v'`, email)
-	var res vaEntity.FindByIdRes
+	var res vaEntity.FindByEmailRes
 	row := m.conn.QueryRowContext(ctx, stmt)
 	err := row.Scan(&res.VaId, &res.FirstName, &res.LastName, &res.Email, &res.Phone,
 		&res.Password, &res.ProfilePicture, &res.AccountType, &res.CreatedAt)

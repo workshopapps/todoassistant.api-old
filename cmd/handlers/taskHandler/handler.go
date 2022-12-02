@@ -77,6 +77,18 @@ func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
 
 }
 
+func (t *taskHandler) GetListOfPendingTasks(c *gin.Context) {
+
+	tasks, errRes := t.srv.GetListOfPendingTasks()
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error finding Pending Tasks", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, tasks)
+
+}
+
 // handle search function
 
 func (t *taskHandler) SearchTask(c *gin.Context) {

@@ -9,16 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-type subscribeHandler struct{
+type subscribeHandler struct {
 	srv subscribeService.SubscribeService
 }
 
-func NewSubscribeHandler(srv subscribeService.SubscribeService) *subscribeHandler{
+func NewSubscribeHandler(srv subscribeService.SubscribeService) *subscribeHandler {
 	return &subscribeHandler{srv: srv}
 }
 
-func (t *subscribeHandler) AddSubscriber(c *gin.Context, ){
+func (t *subscribeHandler) AddSubscriber(c *gin.Context) {
 	// create a request of subsctibeEntity type
 	var req subscribeEntity.SubscribeReq
 

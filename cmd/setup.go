@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"test-va/cmd/handlers/taskHandler"
+	"test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -36,6 +38,8 @@ import (
 
 	_ "test-va/docs"
 
+	"github.com/stripe/stripe-go/v74"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pusher/pusher-http-go"
@@ -44,6 +48,8 @@ import (
 )
 
 func Setup() {
+
+	stripe.Key = "sk_test_51M9xknFf5hgzULIC40q0q9nzGz6ByBYNrFYzgUB2zsVfDZwhhiss5fi3OmLVhzOwxLfnT4bMqjj9Uh4oaLQrCRhU00EUIT0yl3"
 
 	//Load configurations
 	config, err := utils.LoadConfig("./")
@@ -82,12 +88,12 @@ func Setup() {
 
 	smtpHost := config.SMTPhost
 	if fromEmailAddr == "" {
-		log.Fatal("smtp email sender address not found")
+		log.Fatal("smtp host address not found")
 	}
 
 	smtpPort := config.SMTPport
 	if fromEmailAddr == "" {
-		log.Fatal("smtp email sender address not found")
+		log.Fatal("smtp port not found")
 	}
 
 	//Repo
@@ -200,10 +206,16 @@ func Setup() {
 	r.Use(middlewares.CORS())
 	v1 := r.Group("/api/v1")
 
+	//Refactor/ remove this later
+	handler := taskHandler.NewTaskHandler(taskSrv)
+
 	// Middlewares
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	v1.Use(gzip.Gzip(gzip.DefaultCompression))
+
+	// Get all Pending Users
+	v1.GET("/pendingtasks", handler.GetListOfPendingTasks)
 
 	//handle cors
 	//v1.Use(cors.New(cors.Config{
@@ -240,6 +252,10 @@ func Setup() {
 	//handle subscribe route
 	routes.SubscribeRoutes(v1, subscribeSrv)
 
+	// Payment route
+	v1.POST("/checkout", paymentHandler.CheckoutCreator)
+	v1.POST("/event", paymentHandler.HandleEvent)
+
 	//chat service connection
 	pusherClient := pusher.Client{
 		AppID:   "1512808",
@@ -274,6 +290,7 @@ func Setup() {
 		})
 	})
 
+	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srvDetails := http.Server{

@@ -150,9 +150,9 @@ func (u *userHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	token, err := u.srv.ResetPassword(&req)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusOK, "Internal Server Error", err, nil))
+	token, errRes := u.srv.ResetPassword(&req)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, ResponseEntity.BuildErrorResponse(http.StatusNotFound, "User does not exist", errRes, nil))
 		return
 	}
 
@@ -188,7 +188,7 @@ func (u *userHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "User deleted successfully!", nil, nil))
 }
 
-//The Id of the Virtual Assistant is Sent Along With this Request
+// The Id of the Virtual Assistant is Sent Along With this Request
 
 func (u *userHandler) AssignVAToUser(c *gin.Context) {
 	user_id := c.GetString("userId")
