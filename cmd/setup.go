@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	mySqlRepo4 "test-va/internals/Repository/subscribeRepo/mySqlRepo"
@@ -31,7 +32,6 @@ import (
 	"test-va/utils"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/go-co-op/gocron"
 
 	_ "test-va/docs"
@@ -82,12 +82,12 @@ func Setup() {
 
 	smtpHost := config.SMTPhost
 	if fromEmailAddr == "" {
-		log.Fatal("smtp email sender address not found")
+		log.Fatal("smtp host address not found")
 	}
 
 	smtpPort := config.SMTPport
 	if fromEmailAddr == "" {
-		log.Fatal("smtp email sender address not found")
+		log.Fatal("smtp port not found")
 	}
 
 	//Repo
@@ -197,15 +197,18 @@ func Setup() {
 
 	//router setup
 	r := gin.New()
+	r.Use(middlewares.CORS())
 	v1 := r.Group("/api/v1")
 
 	// Middlewares
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	v1.Use(gzip.Gzip(gzip.DefaultCompression))
-	v1.Use(cors.New(cors.Config{
-		AllowAllOrigins: true,
-	}))
+
+	//handle cors
+	//v1.Use(cors.New(cors.Config{
+	//	AllowAllOrigins: true,
+	//}))
 
 	// routes
 
@@ -271,6 +274,7 @@ func Setup() {
 		})
 	})
 
+	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srvDetails := http.Server{

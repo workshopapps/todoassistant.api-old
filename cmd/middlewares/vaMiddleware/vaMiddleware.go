@@ -46,6 +46,7 @@ func (v *vaMiddleWare) MapMasterToReq(c *gin.Context) {
 }
 
 func (v *vaMiddleWare) MapVAToReq(c *gin.Context) {
+	log.Println("here")
 	// const BEARER_HEADER = "Bearer "
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
