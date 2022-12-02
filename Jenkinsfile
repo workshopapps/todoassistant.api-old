@@ -29,12 +29,12 @@ pipeline {
         stage("Deploy") {
 
             steps {
-                sh "sudo rm -rf /home/samuraiaj/ticked-back/*
-                sh "sudo cp -rf * /home/samuraiaj/ticked-back/
-                sh "sudo rm -rf /home/samuraiaj/ticked-back/app.env
-                sh "sudo rm -rf /home/samuraiaj/ticked-back/taskman-firebase-adminsdk.json
-                sh "sudo cp -rf /home/samuraiaj/environment/* /home/samuraiaj/ticked-back/ 
-                sh "sudo systemctl restart ticked.service
+                sh "sudo rm -rf /home/samuraiaj/ticked-back/*"
+                sh "sudo cp -rf * /home/samuraiaj/ticked-back/"
+                sh "sudo rm -rf /home/samuraiaj/ticked-back/app.env"
+                sh "sudo rm -rf /home/samuraiaj/ticked-back/taskman-firebase-adminsdk.json"
+                sh "sudo cp -rf /home/samuraiaj/environment/* /home/samuraiaj/ticked-back/ "
+                sh "sudo systemctl restart ticked.service"
                 
               
   
