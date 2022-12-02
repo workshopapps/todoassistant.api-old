@@ -32,7 +32,7 @@ func (t *subscribeHandler) AddSubscriber(c *gin.Context) {
 	response, errRes := t.srv.PersistEmail(&req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error adding to email list", errRes, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error adding email to list", errRes, nil))
 		return
 	}
 	c.JSON(http.StatusOK, response)
