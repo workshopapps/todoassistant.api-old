@@ -54,3 +54,12 @@ type ChangeVAPassword struct {
 	VaId        string `json:"va_id"`
 	NewPassword string `json:"new_password"`
 }
+
+type VAStruct struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	UserId    string `json:"user_id"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Status    string `json:"status"`
+}

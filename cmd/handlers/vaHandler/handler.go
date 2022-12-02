@@ -181,20 +181,45 @@ func (v *vaHandler) Login(c *gin.Context) {
 }
 
 func (v *vaHandler) FindById(c *gin.Context) {
-   param := c.Param("va_id")
-   if param == "" {
-      c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
-   }
+	param := c.Param("va_id")
+	if param == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
+	}
 
-   user, errRes := v.vaSrv.FindById(param)
-   if errRes != nil {
-      c.AbortWithStatusJSON(http.StatusInternalServerError,
-         ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
-            "Authorization Error", errRes, nil))
-      return
-   }
+	user, errRes := v.vaSrv.FindById(param)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Authorization Error", errRes, nil))
+		return
+	}
 
-   c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
-      "Found User By Id Successful", user, nil))
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
+		"Found User By Id Successful", user, nil))
+
+}
+
+func (v *vaHandler) GetUserAssignedToVA(c *gin.Context) {
+	param := c.Param("va_id")
+	if param == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
+		return
+	}
+
+	va, serviceError := v.vaSrv.GetAllUserToVa(param)
+	if serviceError != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Error getting Users", serviceError, nil))
+		return
+	}
+
+	if len(va) == 0 {
+		c.JSON(http.StatusOK, ResponseEntity.BuildErrorResponse(http.StatusOK,
+			"No User Found", "", nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, va)
 
 }

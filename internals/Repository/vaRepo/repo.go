@@ -12,4 +12,5 @@ type VARepo interface {
 	DeleteUser(ctx context.Context, id string) error
 	UpdateUser(ctx context.Context, req *vaEntity.EditVaReq, id string) error
 	ChangePassword(ctx context.Context, password *vaEntity.ChangeVAPassword) error
+	GetUserAssignedToVa(ctx context.Context, userId string) ([]*vaEntity.VAStruct, error)
 }

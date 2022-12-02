@@ -2,6 +2,7 @@ package vaService
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
 	"log"
@@ -23,6 +24,8 @@ type VAService interface {
 	UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError)
 	ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError
 	DeleteUser(id string) *ResponseEntity.ServiceError
+
+	GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEntity.ServiceError)
 }
 
 type vaSrv struct {
@@ -30,6 +33,20 @@ type vaSrv struct {
 	validator validationService.ValidationSrv
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
+}
+
+func (v *vaSrv) GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEntity.ServiceError) {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	va, err := v.repo.GetUserAssignedToVa(ctx, vaId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ResponseEntity.NewInternalServiceError("No User Found Pls")
+		}
+		return nil, ResponseEntity.NewInternalServiceError("Error Getting User")
+	}
+
+	return va, nil
 }
 
 func (v *vaSrv) Login(req *userEntity.LoginReq) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
@@ -216,16 +233,15 @@ func (v *vaSrv) SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *Respo
 }
 
 func (v *vaSrv) FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
-   ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
-   defer cancelFunc()
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
 
-   user, err := v.repo.FindById(ctx, id)
-   if err != nil {
-      return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Error Finding User: %v", err))
-   }
-   return user, nil
+	user, err := v.repo.FindById(ctx, id)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Error Finding User: %v", err))
+	}
+	return user, nil
 }
-
 
 func NewVaService(repo vaRepo.VARepo, validator validationService.ValidationSrv,
 	timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv) VAService {
