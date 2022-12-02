@@ -41,8 +41,7 @@ func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokens
 	{
 		//list of all task assigned to VA
 
-		task.GET("/all/va", handler.GetTasksAssignedToVa)
-
+		task2.GET("/all/va", handler.GetTasksAssignedToVa)
 	}
 
 }
