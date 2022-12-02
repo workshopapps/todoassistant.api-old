@@ -2,7 +2,6 @@ package vaHandler
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"test-va/internals/entity/ResponseEntity"
@@ -10,8 +9,10 @@ import (
 	"test-va/internals/entity/userEntity"
 	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/taskService"
-	"test-va/internals/service/tokenService"
+	tokenservice "test-va/internals/service/tokenService"
 	"test-va/internals/service/vaService"
+
+	"github.com/gin-gonic/gin"
 )
 
 type vaHandler struct {
@@ -24,7 +25,7 @@ func NewVaHandler(tokenSrv tokenservice.TokenSrv, vaSrv vaService.VAService, tas
 	return &vaHandler{tokenSrv: tokenSrv, vaSrv: vaSrv, taskSrv: taskSrv}
 }
 
-func (v *vaHandler) UpdateUser(c *gin.Context) {
+func (v *vaHandler) UpdateVA(c *gin.Context) {
 	param := c.Param("va_id")
 	if param == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No id in url"})
@@ -51,7 +52,7 @@ func (v *vaHandler) UpdateUser(c *gin.Context) {
 		"Changed user details Successfully", user, nil))
 }
 
-func (v *vaHandler) DeleteUser(c *gin.Context) {
+func (v *vaHandler) DeleteVA(c *gin.Context) {
 	param := c.Param("va_id")
 	if param == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No id in url"})
@@ -183,13 +184,13 @@ func (v *vaHandler) Login(c *gin.Context) {
 		"Login user successful", user, tokenData))
 }
 
-func (v *vaHandler) FindById(c *gin.Context) {
-	param := c.Param("va_id")
-	if param == "" {
+func (v *vaHandler) GetVAByID(c *gin.Context) {
+	vaId := c.Param("va_id")
+	if vaId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
 	}
 
-	user, errRes := v.vaSrv.FindById(param)
+	user, errRes := v.vaSrv.FindById(vaId)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
@@ -197,9 +198,7 @@ func (v *vaHandler) FindById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
-		"Found User By Id Successful", user, nil))
-
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Found User By Id Successful", user, nil))
 }
 
 func (v *vaHandler) GetUserAssignedToVA(c *gin.Context) {
