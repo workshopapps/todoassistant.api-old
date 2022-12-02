@@ -335,13 +335,16 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 }
 
 func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
+	log.Println("inside Fn")
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
+
 	task, err := t.repo.GetAllTasks(ctx, userId)
 
 	if task == nil {
 		log.Println("no rows returned")
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	if err != nil {
 		log.Println(err)
@@ -544,8 +547,8 @@ func (t *taskSrv) PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 	data := taskEntity.CreateCommentRes{
-		TaskId:      req.TaskId,
-		Comment: 	 req.Comment,
+		TaskId:  req.TaskId,
+		Comment: req.Comment,
 	}
 
 	return &data, nil
