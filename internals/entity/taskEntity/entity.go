@@ -108,11 +108,11 @@ type GetAllExpiredRes struct {
 }
 
 type GetAllPendingRes struct {
-	TaskId   string `json:"task_id"`
-	UserId   string `json:"user_id"`
-	Title    string `json:"title"`
-	VAOption string `json:"va_option"`
-	EndTime  string `json:"end_time"`
+	TaskId string `json:"task_id"`
+	UserId string `json:"user_id"`
+	Title  string `json:"title"`
+	// VAOption string `json:"va_option"`
+	EndTime string `json:"end_time"`
 }
 
 // GetAllTaskRes is the struct for task assocaited with a user

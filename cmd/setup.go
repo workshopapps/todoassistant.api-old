@@ -3,7 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
+
 	"github.com/gin-contrib/cors"
+	// "github.com/stripe/stripe-go/v74"
 
 	"log"
 	"net/http"
@@ -11,6 +13,8 @@ import (
 	"os/signal"
 	"test-va/cmd/handlers/callHandler"
 	"test-va/cmd/handlers/notificationHandler"
+
+	// paymentH "test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
@@ -59,6 +63,10 @@ func Setup() {
 	defer connection.Close()
 	conn := connection.GetConn()
 
+	// stripe.Key = config.StripeKey
+	// if stripe.Key == "" {
+	// 	stripe.Key = "pk_test_51M9xknFf5hgzULICOzuBooJzlg92erDT0DXJTIfK63UL9ckoj0Vvds2JAL8HxMwEnA1uHd0ddeDEvAyXgMqfRclU00tqR5WZZD"
+	// }
 	// repo service
 	repo := mySqlRepo.NewSqlRepo(conn)
 	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
@@ -144,6 +152,7 @@ func Setup() {
 		task.GET("/:taskId", handler.GetTaskByID)
 		task.GET("/pending/:userId", handler.GetPendingTasks)
 		task.GET("/expired", handler.GetListOfExpiredTasks)
+
 		task.GET("/", handler.GetAllTask)               //Get all task by a user
 		task.DELETE("/:taskId", handler.DeleteTaskById) //Delete Task By ID
 		//task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
@@ -161,6 +170,9 @@ func Setup() {
 	//r.GET("/task/:taskId", handler.GetTaskByID)
 	// search route
 	v1.GET("/search", handler.SearchTask)
+
+	// Subscription Service endpoint
+	// v1.POST("/checkout", paymentH.Paymentsrv())
 
 	//chat service connection
 
@@ -207,7 +219,6 @@ func Setup() {
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
 	}
-
 
 	// Notifications
 	// Register to Recieve Notifications
