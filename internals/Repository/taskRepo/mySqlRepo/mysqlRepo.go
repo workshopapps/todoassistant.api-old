@@ -7,6 +7,7 @@ import (
 	"log"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/taskEntity"
+	"test-va/internals/entity/vaEntity"
 )
 
 type sqlRepo struct {
@@ -39,14 +40,16 @@ WHERE user_id = '%v'
 	return *vaId, nil
 }
 
-func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*taskEntity.GetTaskVa, error) {
+func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*vaEntity.VATask, error) {
 	stmt := fmt.Sprintf(`SELECT
     T.task_id,
-    T.user_id,
     T.title,
     T.end_time,
     T.status,
-    concat(U.first_name, ' ', U.last_name) AS 'User name'
+    T.description,
+    concat(U.first_name, ' ', U.last_name) AS 'name',
+    T.user_id,
+    U.phone
 		FROM va_table vt
 		    join Users U on vt.va_id = U.virtual_assistant_id join Tasks T on U.user_id = T.user_id
 		WHERE vt.va_id = '%s'`, vaId)
@@ -56,11 +59,11 @@ func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*t
 		return nil, err
 	}
 
-	var Results []*taskEntity.GetTaskVa
+	var Results []*vaEntity.VATask
 
 	for queryRow.Next() {
-		var res taskEntity.GetTaskVa
-		err := queryRow.Scan(&res.TaskId, &res.Username, &res.Title, &res.EndTime, &res.Status, &res.Username)
+		var res vaEntity.VATask
+		err := queryRow.Scan(&res.TaskId, &res.Title, &res.EndTime, &res.Status, &res.Description, &res.User.Name, &res.User.UserId, &res.User.Phone)
 		if err != nil {
 			return nil, err
 		}
