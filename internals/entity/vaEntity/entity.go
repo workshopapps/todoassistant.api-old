@@ -22,7 +22,12 @@ type CreateVARes struct {
 	AccountType    string `json:"account_type"`
 }
 
-type FindByIdRes struct {
+type LoginReq struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type LoginRes struct {
 	VaId           string `json:"va_id"`
 	FirstName      string `json:"first_name"`
 	LastName       string `json:"last_name"`
@@ -30,6 +35,29 @@ type FindByIdRes struct {
 	Phone          string `json:"phone"`
 	ProfilePicture string `json:"profile_picture"`
 	Password       string `json:"password"`
+	CreatedAt      string `json:"created_at"`
+	AccountType    string `json:"account_type"`
+}
+
+type FindByIdRes struct {
+	VaId           string `json:"va_id"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	Email          string `json:"email"`
+	Phone          string `json:"phone"`
+	ProfilePicture string `json:"profile_picture"`
+	CreatedAt      string `json:"created_at"`
+	AccountType    string `json:"account_type"`
+}
+
+type FindByEmailRes struct {
+	VaId           string `json:"va_id"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	Email          string `json:"email"`
+	Phone          string `json:"phone"`
+	Password       string `json:"password"`
+	ProfilePicture string `json:"profile_picture"`
 	CreatedAt      string `json:"created_at"`
 	AccountType    string `json:"account_type"`
 }
