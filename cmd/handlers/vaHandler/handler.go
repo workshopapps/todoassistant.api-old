@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/tokenEntity"
-	"test-va/internals/entity/userEntity"
 	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/taskService"
 	tokenservice "test-va/internals/service/tokenService"
@@ -147,7 +146,7 @@ func (v *vaHandler) SignUp(c *gin.Context) {
 }
 
 func (v *vaHandler) Login(c *gin.Context) {
-	var req userEntity.LoginReq
+	var req vaEntity.LoginReq
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {

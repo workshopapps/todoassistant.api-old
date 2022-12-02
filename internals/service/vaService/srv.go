@@ -7,7 +7,6 @@ import (
 	"log"
 	"test-va/internals/Repository/vaRepo"
 	"test-va/internals/entity/ResponseEntity"
-	"test-va/internals/entity/userEntity"
 	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/timeSrv"
@@ -19,9 +18,9 @@ import (
 
 type VAService interface {
 	SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *ResponseEntity.ServiceError)
-	Login(req *userEntity.LoginReq) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
+	Login(req *vaEntity.LoginReq) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError)
 	FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
-	FindByEmail(email string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
+	FindByEmail(email string) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError)
 	UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError)
 	ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError
 	DeleteUser(id string) *ResponseEntity.ServiceError
@@ -50,7 +49,7 @@ func (v *vaSrv) GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEnti
 	return va, nil
 }
 
-func (v *vaSrv) Login(req *userEntity.LoginReq) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
+func (v *vaSrv) Login(req *vaEntity.LoginReq) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError) {
 	// validate request first
 	err := v.validator.Validate(req)
 	if err != nil {
@@ -72,7 +71,7 @@ func (v *vaSrv) Login(req *userEntity.LoginReq) (*vaEntity.FindByIdRes, *Respons
 	return user, nil
 }
 
-func (v *vaSrv) FindByEmail(email string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
+func (v *vaSrv) FindByEmail(email string) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
