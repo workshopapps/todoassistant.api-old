@@ -16,6 +16,7 @@ import (
 type NotificationSrv interface {
 	RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError
 	SendNotification(token, title, body string, taskId string) error
+	SendVaNotification(token, title, body string, taskId string) error
 	//GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 }
 
@@ -23,6 +24,11 @@ type notificationSrv struct {
 	app       *firebase.App
 	repo      notificationRepo.NotificationRepository
 	validator validationService.ValidationSrv
+}
+
+func (n notificationSrv) SendVaNotification(token, title, body string, taskId string) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 //func (n notificationSrv) GetTaskFromUser(userId string)  (*notificationEntity.GetExpiredTasksWithDeviceId, error) {

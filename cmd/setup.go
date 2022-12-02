@@ -232,7 +232,7 @@ func Setup() {
 	routes.NotificationRoutes(v1, notificationSrv)
 
 	//handle VA
-	routes.VARoutes(v1, vaSrv, srv)
+	routes.VARoutes(v1, vaSrv, srv, taskSrv)
 
 	//handle subscribe route
 	routes.SubscribeRoutes(v1, subscribeSrv)

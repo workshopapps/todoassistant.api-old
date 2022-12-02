@@ -3,19 +3,23 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"test-va/cmd/handlers/vaHandler"
+	"test-va/cmd/middlewares/vaMiddleware"
+	"test-va/internals/service/taskService"
 	"test-va/internals/service/tokenService"
 	"test-va/internals/service/vaService"
 )
 
-func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice.TokenSrv) {
-	handler := vaHandler.NewVaHandler(srv, service)
-	//mWare := vaMiddleware.NewVaMiddleWare(srv)
+func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice.TokenSrv, taskService taskService.TaskService) {
+	handler := vaHandler.NewVaHandler(srv, service, taskService)
+	mWare := vaMiddleware.NewVaMiddleWare(srv)
 
 	va := v1.Group("/va")
 	va.POST("/:va_id", handler.UpdateUser)
 	va.POST("/login", handler.Login)
+	va.GET("/user/:va_id", handler.GetUserAssignedToVA)
+	va.GET("/user/task/:user_id", handler.GetTaskByUser)
 
-	//va.Use(mWare.MapMasterToReq)
+	va.Use(mWare.MapMasterToReq)
 
 	{
 		//master middleware
