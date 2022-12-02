@@ -189,6 +189,7 @@ func (u *userHandler) DeleteUser(c *gin.Context) {
 }
 
 //The Id of the Virtual Assistant is Sent Along With this Request
+
 func (u *userHandler) AssignVAToUser(c *gin.Context) {
 	user_id := c.GetString("userId")
 	va_id := c.Params.ByName("va_id")

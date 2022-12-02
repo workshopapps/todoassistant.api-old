@@ -3,6 +3,7 @@ package taskRepo
 import (
 	"context"
 	"test-va/internals/entity/taskEntity"
+	"test-va/internals/entity/vaEntity"
 )
 
 type TaskRepository interface {
@@ -21,7 +22,7 @@ type TaskRepository interface {
 	SetNewEvent(req *taskEntity.CreateTaskReq) error
 
 	//VA
-	GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*taskEntity.GetTaskVa, error)
+	GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*vaEntity.VATask, error)
 	GetVADetails(ctx context.Context, userId string) (string, error)
 	AssignTaskToVa(ctx context.Context, vaId, taskId string) error
 

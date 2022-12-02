@@ -59,6 +59,7 @@ func (v *vaSrv) Login(req *userEntity.LoginReq) (*vaEntity.FindByIdRes, *Respons
 	//find the user with email
 	user, errRes := v.FindByEmail(req.Email)
 	if errRes != nil {
+		log.Println("err")
 		return nil, ResponseEntity.NewValidatingError("Email Not Found")
 	}
 

@@ -8,6 +8,7 @@ import (
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
+	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/loggerService"
 	"test-va/internals/service/reminderService"
 	"test-va/internals/service/timeSrv"
@@ -31,7 +32,7 @@ type TaskService interface {
 
 	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
 	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
-	GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError)
+	GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError)
 
 	//comments
 	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
@@ -53,7 +54,7 @@ func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 		logger: logSrv, remindSrv: reminderSrv}
 }
 
-func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*taskEntity.GetTaskVa, *ResponseEntity.ServiceError) {
+func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 

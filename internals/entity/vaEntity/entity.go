@@ -63,3 +63,18 @@ type VAStruct struct {
 	Phone     string `json:"phone"`
 	Status    string `json:"status"`
 }
+
+type VATask struct {
+	TaskId      string `json:"task_id"`
+	Title       string `json:"title"`
+	EndTime     string `json:"end_time"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	User        VAUser `json:"user"`
+}
+
+type VAUser struct {
+	UserId string `json:"user_id"`
+	Name   string `json:"name"`
+	Phone  string `json:"phone"`
+}
