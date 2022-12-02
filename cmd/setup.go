@@ -41,8 +41,7 @@ import (
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-
-	// "github.com/pusher/pusher-http-go"
+	"github.com/pusher/pusher-http-go"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -251,25 +250,25 @@ func Setup() {
 	v1.POST("/event", paymentHandler.HandleEvent)
 
 	//chat service connection
-	// pusherClient := pusher.Client{
-	// 	AppID:   "1512808",
-	// 	Key:     "f79030d90753a91854e6",
-	// 	Secret:  "06b8abef8713abd21cc9",
-	// 	Cluster: "eu",
-	// 	Secure:  true,
-	// }
+	pusherClient := pusher.Client{
+		AppID:   "1512808",
+		Key:     "f79030d90753a91854e6",
+		Secret:  "06b8abef8713abd21cc9",
+		Cluster: "eu",
+		Secure:  true,
+	}
 
-	// v1.POST("dashboard/assistant", func(c *gin.Context) {
-	// 	// var data map[string]string
-	// 	var data map[string]string
+	v1.POST("dashboard/assistant", func(c *gin.Context) {
+		// var data map[string]string
+		var data map[string]string
 
-	// 	if err := c.BindJSON(&data); err != nil {
-	// 		return
-	// 	}
-	// 	pusherClient.Trigger("vachat", "message", data)
+		if err := c.BindJSON(&data); err != nil {
+			return
+		}
+		pusherClient.Trigger("vachat", "message", data)
 
-	// 	c.JSON(http.StatusOK, []string{})
-	// })
+		c.JSON(http.StatusOK, []string{})
+	})
 
 	// Notifications
 	// Register to Receive Notifications
