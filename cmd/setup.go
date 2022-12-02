@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -36,6 +37,8 @@ import (
 
 	_ "test-va/docs"
 
+	"github.com/stripe/stripe-go/v74"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pusher/pusher-http-go"
@@ -44,6 +47,8 @@ import (
 )
 
 func Setup() {
+
+	stripe.Key = "sk_test_51M9xknFf5hgzULIC40q0q9nzGz6ByBYNrFYzgUB2zsVfDZwhhiss5fi3OmLVhzOwxLfnT4bMqjj9Uh4oaLQrCRhU00EUIT0yl3"
 
 	//Load configurations
 	config, err := utils.LoadConfig("./")
@@ -239,6 +244,10 @@ func Setup() {
 
 	//handle subscribe route
 	routes.SubscribeRoutes(v1, subscribeSrv)
+
+	// Payment route
+	v1.POST("/checkout", paymentHandler.CheckoutCreator)
+	v1.POST("/event", paymentHandler.HandleEvent)
 
 	//chat service connection
 	pusherClient := pusher.Client{
