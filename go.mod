@@ -13,6 +13,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jeanphorn/log4go v0.0.0-20190526082429-7dbb8deb9468
 	github.com/pusher/pusher-http-go v4.0.1+incompatible
+	github.com/stripe/stripe-go/v74 v74.1.0
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a
 	github.com/swaggo/gin-swagger v1.5.3
 	github.com/swaggo/swag v1.8.8
@@ -70,7 +71,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/stripe/stripe-go/v74 v74.1.0 // indirect
 	github.com/toolkits/file v0.0.0-20160325033739-a5b3c5147e07 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.opencensus.io v0.23.0 // indirect

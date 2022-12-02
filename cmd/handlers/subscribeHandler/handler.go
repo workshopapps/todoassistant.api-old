@@ -31,8 +31,8 @@ func (t *subscribeHandler) AddSubscriber(c *gin.Context) {
 	// call function from service that saves email to DB
 	response, errRes := t.srv.PersistEmail(&req)
 	if errRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error adding to email list", errRes, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error adding email to list", errRes, nil))
 		return
 	}
 	c.JSON(http.StatusOK, response)
