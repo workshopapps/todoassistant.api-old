@@ -1,96 +1,65 @@
 package socialLoginService
 
 import (
-	"context"
-	"encoding/json"
-	"io"
-	"log"
-	"net/http"
 	"test-va/internals/Repository/userRepo"
+	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/userEntity"
+	"test-va/internals/service/timeSrv"
 	tokenservice "test-va/internals/service/tokenService"
-	"test-va/utils"
-	// "golang.org/x/oauth2"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 
-
 type LoginSrv interface{
-	GetAuthUrl() string
-	LoginResponse(code string) *userEntity.LoginRes
+	LoginResponse(req *userEntity.GoogleLoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError)
 }
 
 type loginSrv struct {
 	repo      userRepo.UserRepository
+	timeSrv   timeSrv.TimeService
 }
 
 
-func (t *loginSrv)GetAuthUrl() string {
 
-	
-	u := utils.LoginConfig.GoogleLoginConfig.AuthCodeURL("state")
-	return u
-}
 
-func (t *loginSrv)LoginResponse(code string) *userEntity.LoginRes {
-	token, err := utils.LoginConfig.GoogleLoginConfig.Exchange(
-		context.Background(), code)
+func (t *loginSrv)LoginResponse(req *userEntity.GoogleLoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
 
-		if err != nil{
-			log.Panic(err)
+
+
+	user, _ := t.repo.GetByEmail(req.Email)
+
+	if user == nil{
+
+		resData := &userEntity.CreateUserReq{
+			UserId: uuid.New().String(),      
+    		FirstName: req.FirstName,     
+    		LastName: req.LastName,      
+    		Email: req.Email,               
+    		DateOfBirth: "2022-11-19T12:56:04+01:00",   
+    		AccountStatus: "ACTIVE", 
+    		DateCreated: t.timeSrv.CurrentTime().Format(time.RFC3339),   
 		}
-         
-		response, err := http.Get(utils.GoogleAPI + token.AccessToken)
+		
+		err := t.repo.Persist(resData)
 
 		if err != nil {
-			log.Panic(err)
+			return nil, ResponseEntity.NewInternalServiceError(err)
 		}
-
-		data , err:= io.ReadAll(response.Body)
-
-
-		if err != nil {
-			log.Panic(err)
-		}
-
-
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	
-
-	defer response.Body.Close() 
-
-
-	var result userEntity.GoogleLoginRes
-
-	
-
-	if err := json.Unmarshal(data, &result); err != nil { 
-		if err != nil {
-			log.Panic(err)
-		}
-	
-    }
-
-	user, err := t.repo.GetByEmail(result.Email)
-
-	if err != nil {
-		log.Panic(err)
 	}
 
 
-
-
+	user, _ = t.repo.GetByEmail(req.Email)
 	tokenSrv := tokenservice.NewTokenSrv("fvmvmvmvf")
 
 	accessToken, refreshToken, err:= tokenSrv.CreateToken(user.Email,"user",user.UserId)
 
 	if err != nil {
-		log.Panic(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
+
+
 
 
 	loginUser := &userEntity.LoginRes{
@@ -104,10 +73,10 @@ func (t *loginSrv)LoginResponse(code string) *userEntity.LoginRes {
 		RefreshToken: refreshToken,
 	}
 
-	return loginUser
+	return loginUser, nil
 }
 
 
-func NewLoginSrv(repo userRepo.UserRepository) LoginSrv {
-	return &loginSrv{repo}
+func NewLoginSrv(repo userRepo.UserRepository, timeSrv timeSrv.TimeService) LoginSrv {
+	return &loginSrv{repo, timeSrv}
 }
