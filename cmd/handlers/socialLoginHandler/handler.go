@@ -1,9 +1,11 @@
 package socialLoginHandler
 
 import (
+	"log"
 	"net/http"
+	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/service/socialLoginService"
-	// "test-va/internals/service/tokenservice"
+	"test-va/internals/entity/userEntity"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,20 +19,30 @@ func NewCallHandler(srv socialLoginService.LoginSrv) *socialLoginHandler {
 }
 
 
+
 func (t *socialLoginHandler) GoogleLogin(c *gin.Context) {
-	c.Redirect(http.StatusFound, t.srv.GetAuthUrl())
-
+	var req userEntity.GoogleLoginReq
 	
-}
+	err := c.ShouldBindJSON(&req)
 
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
+		return
+	}
 
-func (t *socialLoginHandler) GoogleCallBack(c *gin.Context) {
+	user, errorRes := t.srv.LoginResponse(&req)
 
-	code := c.Query("code")
+	if errorRes != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "Authorization Error", errorRes, nil))
+		return
+	}
 
-
-    user := t.srv.LoginResponse(code)
+	log.Println("userid -", user.UserId)
 	c.Set("userId", user.UserId)
-    // c.Redirect(http.StatusFound, "https://ticked.hng.tech/lo?accessToken="+user.Token)
+	println(c.GetString("userId"))
+
 	c.JSON(http.StatusOK, user)
+	
 }

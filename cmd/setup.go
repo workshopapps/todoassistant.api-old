@@ -193,7 +193,7 @@ func Setup() {
 
 	// social login service
 
-	loginSrv := socialLoginService.NewLoginSrv(userRepo)
+	loginSrv := socialLoginService.NewLoginSrv(userRepo, timeSrv)
 
 	// va service
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
