@@ -179,6 +179,7 @@ func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) er
 
 	_, err = tx.ExecContext(ctx, stmt)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -192,6 +193,7 @@ func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) er
 		VALUES ('%v', '%v', '%v')`, req.TaskId, file.FileLink, file.FileType)
 		_, err = tx.ExecContext(ctx, stmt2)
 		if err != nil {
+			log.Println("err", err)
 			return err
 		}
 	}
