@@ -18,3 +18,4 @@
 # vendor/
 taskman.json
 app.env
+tmp
