@@ -24,6 +24,7 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
+		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Input Data", err, nil))
 		return
 	}

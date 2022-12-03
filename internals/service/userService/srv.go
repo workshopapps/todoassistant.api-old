@@ -2,6 +2,7 @@ package userService
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/ResponseEntity"
@@ -77,12 +78,14 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
+		log.Println(err)
 		return nil, ResponseEntity.NewValidatingError(err)
 	}
 	// check if user with that email exists already
 
 	_, err = u.repo.GetByEmail(req.Email)
 	if err == nil {
+		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError("Email Already Exists")
 	}
 
@@ -100,6 +103,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	// save to DB
 	err = u.repo.Persist(req)
 	if err != nil {
+		log.Println(err)
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
