@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/handlers/paymentHandler"
+	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -247,7 +247,7 @@ func Setup() {
 	routes.NotificationRoutes(v1, notificationSrv)
 
 	//handle VA
-	routes.VARoutes(v1, vaSrv, srv, taskSrv)
+	routes.VARoutes(v1, vaSrv, srv, taskSrv, userSrv)
 
 	//handle subscribe route
 	routes.SubscribeRoutes(v1, subscribeSrv)

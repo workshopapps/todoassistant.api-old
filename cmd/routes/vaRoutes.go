@@ -5,13 +5,14 @@ import (
 	"test-va/cmd/middlewares/vaMiddleware"
 	"test-va/internals/service/taskService"
 	tokenservice "test-va/internals/service/tokenService"
+	"test-va/internals/service/userService"
 	"test-va/internals/service/vaService"
 
 	"github.com/gin-gonic/gin"
 )
 
-func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice.TokenSrv, taskService taskService.TaskService) {
-	handler := vaHandler.NewVaHandler(srv, service, taskService)
+func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice.TokenSrv, taskService taskService.TaskService, userService userService.UserSrv) {
+	handler := vaHandler.NewVaHandler(srv, service, taskService, userService)
 	mWare := vaMiddleware.NewVaMiddleWare(srv)
 
 	va := v1.Group("/va")
@@ -20,6 +21,7 @@ func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice
 	va.POST("/login", handler.Login)
 	va.GET("/user/:va_id", handler.GetUserAssignedToVA)
 	va.GET("/user/task/:user_id", handler.GetTaskByUser)
+	va.GET("/user/profile/:user_id", handler.GetSingleUserProfile)
 
 	va.Use(mWare.MapMasterToReq)
 

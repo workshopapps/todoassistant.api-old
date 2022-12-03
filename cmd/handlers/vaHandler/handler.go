@@ -9,6 +9,7 @@ import (
 	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/taskService"
 	tokenservice "test-va/internals/service/tokenService"
+	"test-va/internals/service/userService"
 	"test-va/internals/service/vaService"
 
 	"github.com/gin-gonic/gin"
@@ -18,10 +19,11 @@ type vaHandler struct {
 	tokenSrv tokenservice.TokenSrv
 	vaSrv    vaService.VAService
 	taskSrv  taskService.TaskService
+	userSrv  userService.UserSrv
 }
 
-func NewVaHandler(tokenSrv tokenservice.TokenSrv, vaSrv vaService.VAService, taskSrv taskService.TaskService) *vaHandler {
-	return &vaHandler{tokenSrv: tokenSrv, vaSrv: vaSrv, taskSrv: taskSrv}
+func NewVaHandler(tokenSrv tokenservice.TokenSrv, vaSrv vaService.VAService, taskSrv taskService.TaskService, userSrv userService.UserSrv) *vaHandler {
+	return &vaHandler{tokenSrv: tokenSrv, vaSrv: vaSrv, taskSrv: taskSrv, userSrv: userSrv}
 }
 
 func (v *vaHandler) UpdateVA(c *gin.Context) {
@@ -250,4 +252,30 @@ func (v *vaHandler) GetTaskByUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
 		"Found Tasks Successfully", task, nil))
+}
+
+func (v *vaHandler) GetSingleUserProfile(c *gin.Context) {
+	param := c.Param("user_id")
+	if param == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
+		return
+	}
+	log.Println(param)
+
+	user, serviceError := v.userSrv.GetUser(param)
+	if serviceError != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Error getting user ", serviceError, nil))
+		return
+	}
+
+	// if len(task) == 0 {
+	// 	c.JSON(http.StatusOK, ResponseEntity.BuildErrorResponse(http.StatusOK,
+	// 		"No Task Found", "", nil))
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
+		"Found User Successfully", user, nil))
 }
