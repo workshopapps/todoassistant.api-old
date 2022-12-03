@@ -9,9 +9,6 @@ import (
 func SocialLoginRoute(v1 *gin.RouterGroup, srv socialLoginService.LoginSrv) {
 	loginHandler := socialLoginHandler.NewCallHandler(srv)
 
-	
-
-	v1.GET("/googlelogin", loginHandler.GoogleLogin)
-	v1.GET("/callback", loginHandler.GoogleCallBack)
+	v1.POST("/googlelogin", loginHandler.GoogleLogin)
 	
 }
