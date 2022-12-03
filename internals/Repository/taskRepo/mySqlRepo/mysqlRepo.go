@@ -50,9 +50,10 @@ func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*v
     concat(U.first_name, ' ', U.last_name) AS 'name',
     T.user_id,
     U.phone
-		FROM va_table vt
-		    join Users U on vt.va_id = U.virtual_assistant_id join Tasks T on U.user_id = T.user_id
-		WHERE vt.va_id = '%s'`, vaId)
+FROM Tasks T
+         join Users U on T.va_id = U.virtual_assistant_id
+WHERE T.va_id = '%s'
+;`, vaId)
 
 	queryRow, err := s.conn.QueryContext(ctx, stmt)
 	if err != nil {
