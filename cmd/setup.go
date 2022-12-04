@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"test-va/cmd/handlers/paymentHandler"
-	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -49,8 +48,6 @@ import (
 
 func Setup() {
 
-	stripe.Key = "sk_test_51M9xknFf5hgzULIC40q0q9nzGz6ByBYNrFYzgUB2zsVfDZwhhiss5fi3OmLVhzOwxLfnT4bMqjj9Uh4oaLQrCRhU00EUIT0yl3"
-
 	//Load configurations
 	config, err := utils.LoadConfig("./")
 
@@ -59,6 +56,14 @@ func Setup() {
 
 	if err != nil {
 		log.Fatal("cannot load config", err)
+	}
+
+	stripe.Key = config.StripeKey
+
+	if config.StripeKey == "" {
+
+		stripe.Key = "sk_test_51M9xknFf5hgzULIC40q0q9nzGz6ByBYNrFYzgUB2zsVfDZwhhiss5fi3OmLVhzOwxLfnT4bMqjj9Uh4oaLQrCRhU00EUIT0yl3"
+
 	}
 
 	dsn := config.DataSourceName
@@ -206,16 +211,10 @@ func Setup() {
 	r.Use(middlewares.CORS())
 	v1 := r.Group("/api/v1")
 
-	//Refactor/ remove this later
-	handler := taskHandler.NewTaskHandler(taskSrv)
-
 	// Middlewares
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	v1.Use(gzip.Gzip(gzip.DefaultCompression))
-
-	// Get all Pending Users
-	v1.GET("/pendingtasks", handler.GetListOfPendingTasks)
 
 	//handle cors
 	//v1.Use(cors.New(cors.Config{

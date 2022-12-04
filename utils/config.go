@@ -21,6 +21,7 @@ type Config struct {
 	SMTPpwd        string `mapstructure:"SMTPpwd"`
 	SMTPhost       string `mapstructure:"SMTPhost"`
 	SMTPport       string `mapstructure:"SMTPport"`
+	StripeKey      string `mapstructure:"STRIPE_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
