@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"test-va/cmd/handlers/paymentHandler"
-	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -206,16 +205,10 @@ func Setup() {
 	r.Use(middlewares.CORS())
 	v1 := r.Group("/api/v1")
 
-	//Refactor/ remove this later
-	handler := taskHandler.NewTaskHandler(taskSrv)
-
 	// Middlewares
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	v1.Use(gzip.Gzip(gzip.DefaultCompression))
-
-	// Get all Pending Users
-	v1.GET("/pendingtasks", handler.GetListOfPendingTasks)
 
 	//handle cors
 	//v1.Use(cors.New(cors.Config{
