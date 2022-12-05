@@ -121,10 +121,10 @@ func (u *userHandler) UpdateUser(c *gin.Context) {
 
 func (u *userHandler) ChangePassword(c *gin.Context) {
 	var req userEntity.ChangePasswordReq
-	userSession, _ := c.Get("userId")
-	userURL := userFromRequest(c)
-	if userSession != userURL {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Authorization error", nil, nil))
+	userId := c.GetString("userId")
+	//userURL := userFromRequest(c)
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid User", nil, nil))
 		return
 	}
 
@@ -134,7 +134,8 @@ func (u *userHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	errRes := u.srv.ChangePassword(&req, userURL)
+	req.UserId = userId
+	errRes := u.srv.ChangePassword(&req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Cannot Change Password", errRes, nil))
 		return
