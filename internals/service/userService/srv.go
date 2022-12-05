@@ -24,7 +24,7 @@ type UserSrv interface {
 	GetUsers(page int) ([]*userEntity.UsersRes, error)
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError)
-	ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError
+	ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError
 	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, *ResponseEntity.ServiceError)
 	ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError
 	DeleteUser(user_id string) error
@@ -162,7 +162,7 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 // @Failure	500  {object}  ResponseEntity.ServiceError
 // @Security BasicAuth
 // @Router	/user/{userId}/change-password [put]
-func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId string) *ResponseEntity.ServiceError {
+func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError {
 	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -170,26 +170,30 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq, userId strin
 	}
 
 	// Get user by user id
-	user, err := u.repo.GetById(userId)
+	user, err := u.repo.GetById(req.UserId)
 	if err != nil {
 		return ResponseEntity.NewInternalServiceError("Check the access token!")
 	}
 
+
 	// Compare password in database and password gotten from user
 	err = u.cryptoSrv.ComparePassword(user.Password, req.OldPassword)
 	if err != nil {
+		log.Println("request",req)
+		log.Println(err)
 		return ResponseEntity.NewInternalServiceError("Passwords do not match!")
 	}
 
 	// Check if new password is the same as old password
-	err = u.cryptoSrv.ComparePassword(user.Password, req.NewPassword)
-	if err == nil {
-		return ResponseEntity.NewInternalServiceError("The new password cannot be the same as your old password!")
-	}
+	//err = u.cryptoSrv.ComparePassword(user.Password, req.NewPassword)
+
+	// if err == nil {
+	// 	return ResponseEntity.NewInternalServiceError("The new password cannot be the same as your old password!")
+	// }
 
 	// Create a new password hash
 	newPassword, _ := u.cryptoSrv.HashPassword(req.NewPassword)
-	err = u.repo.ChangePassword(userId, newPassword)
+	err = u.repo.ChangePassword(req.UserId, newPassword)
 	if err != nil {
 		return ResponseEntity.NewInternalServiceError("Could not change password!")
 	}
