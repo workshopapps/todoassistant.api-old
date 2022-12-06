@@ -175,11 +175,10 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEnt
 		return ResponseEntity.NewInternalServiceError("Check the access token!")
 	}
 
-
 	// Compare password in database and password gotten from user
 	err = u.cryptoSrv.ComparePassword(user.Password, req.OldPassword)
 	if err != nil {
-		log.Println("request",req)
+		log.Println("request", req)
 		log.Println(err)
 		return ResponseEntity.NewInternalServiceError("Passwords do not match!")
 	}
@@ -307,7 +306,7 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 	// Send message to users email, if it exists
 	message.EmailAddress = user.Email
 	message.EmailSubject = "Subject: Reset Password Token\n"
-	message.EmailBody = CreateMessageBody(user.FirstName, user.LastName, user.UserId, token.Token)
+	message.EmailBody = CreateMessageBody(user.FirstName, user.LastName, token.Token)
 
 	err = u.emailSrv.SendMail(message)
 	if err != nil {
@@ -379,11 +378,9 @@ func GenerateToken(tokenLength int) string {
 	return string(b)
 }
 
-func CreateMessageBody(firstName, lastName, email, token string) string {
-	link := fmt.Sprintf("https://ticked.hng.tech/reset-password?token=%v&user_id=%v", token, email)
-
+func CreateMessageBody(firstName, lastName, token string) string {
 	subject := fmt.Sprintf("Hi %v %v, \n\n", firstName, lastName)
-	mainBody := fmt.Sprintf("You have requested to reset your password, this is your otp code %v\n\nIf you have difficulty using the otp code, please copy this link and paste it in your browser:\n%v\n\nBut if you did not request for a change of password, you can forget about this email\n\nLink expires in 30 minutes!", token, link)
+	mainBody := fmt.Sprintf("You have requested to reset your password, this is your otp code %v\nBut if you did not request for a change of password, you can ignore this email.\n\nLink expires in 30 minutes!", token)
 
 	message := subject + mainBody
 	return string(message)
