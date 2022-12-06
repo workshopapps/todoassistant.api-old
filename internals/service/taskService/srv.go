@@ -3,6 +3,7 @@ package taskService
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"test-va/internals/Repository/taskRepo"
@@ -10,6 +11,7 @@ import (
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/loggerService"
+	"test-va/internals/service/notificationService"
 	"test-va/internals/service/reminderService"
 	"test-va/internals/service/timeSrv"
 	"test-va/internals/service/validationService"
@@ -46,13 +48,15 @@ type taskSrv struct {
 	validationSrv validationService.ValidationSrv
 	logger        loggerService.LogSrv
 	remindSrv     reminderService.ReminderSrv
+	nSrv 		  notificationService.NotificationSrv
 }
 
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 	srv validationService.ValidationSrv, logSrv loggerService.LogSrv,
-	reminderSrv reminderService.ReminderSrv) TaskService {
+	reminderSrv reminderService.ReminderSrv, 
+	notificationSrv notificationService.NotificationSrv) TaskService {
 	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv,
-		logger: logSrv, remindSrv: reminderSrv}
+		logger: logSrv, remindSrv: reminderSrv, nSrv: notificationSrv}
 }
 
 func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError) {
@@ -82,6 +86,9 @@ func (t *taskSrv) AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.Serv
 		log.Println(" error here 2", err)
 		return ResponseEntity.NewInternalServiceError(err)
 	}
+
+	// t.nSrv.SendNotificationToVA(req.UserId, "Task Assigned", fmt.Sprintf("%s Just Assigned a Task to You", req.UserId), data)
+
 	return nil
 }
 
@@ -197,6 +204,8 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		VAOption:    req.VAOption,
 		Repeat:      req.Repeat,
 	}
+
+	t.nSrv.SendNotificationToVA(req.UserId, "Task Created", fmt.Sprintf("%s Just Created a Task", req.UserId), data)
 
 	return &data, nil
 

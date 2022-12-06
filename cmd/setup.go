@@ -191,7 +191,7 @@ func Setup() {
 	//Note Handle Unable to Connect to Firebase
 
 	// task service
-	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv)
+	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv, notificationSrv)
 
 	// user service
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv)

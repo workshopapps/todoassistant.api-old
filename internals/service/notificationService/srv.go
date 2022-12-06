@@ -2,6 +2,7 @@ package notificationService
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"test-va/internals/Repository/notificationRepo"
 	"test-va/internals/entity/ResponseEntity"
@@ -17,6 +18,10 @@ type NotificationSrv interface {
 	RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError
 	SendNotification(token, title, body string, taskId string) error
 	SendVaNotification(token, title, body string, taskId string) error
+	GetUserVaToken(userId string) (string, error)
+	SendNotificationToVA(userId, topic, body string, data interface{})
+	GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
+	GetTasksToExpireInAFewHours() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	//GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 }
 
@@ -100,3 +105,80 @@ func (n notificationSrv) RegisterForNotifications(req *notificationEntity.Create
 	}
 	return nil
 }
+
+func (n notificationSrv) GetUserVaToken(userId string) (string, error) {
+	return n.repo.GetUserVaToken(userId)
+}
+
+func (n notificationSrv) SendNotificationToVA(userId, topic, body string, data interface{}) {
+	vaDeviceId, err := n.GetUserVaToken(userId)
+	if err != nil {
+		fmt.Println("Error Getting VA DeviceId For Notifications", err)
+	}
+	dataToString, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Error Marshalling in Notifications", err)
+	}
+	n.SendNotification(vaDeviceId, "Task Created", fmt.Sprintf("%s Just Created a Task", userId), string(dataToString))
+
+}
+
+func (n notificationSrv) GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	// Select All The Users with Pending Tasks and Send Notifications to Them
+	userTaskMap, err := n.repo.GetTasksToExpireToday("user")
+	if err != nil {
+		return nil, err
+	}
+
+	vaTaskMap, err := n.repo.GetTasksToExpireToday("va")
+	if err != nil {
+		return nil, err
+	}
+
+	taskMap := make(map[string][]notificationEntity.GetExpiredTasksWithDeviceId)
+
+	for k, v := range userTaskMap {
+		taskMap[k] = v
+	}
+
+	for k, v := range vaTaskMap {
+		if _, ok := taskMap[k]; !ok {
+			taskMap[k] = v
+		} else {
+			taskMap[k] = append(taskMap[k], v...)
+		}
+	}
+
+	return taskMap, nil
+}
+
+func (n notificationSrv) GetTasksToExpireInAFewHours() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	// Select All The Users with Pending Tasks and Send Notifications to Them
+	userTaskMap, err := n.repo.GetTasksToExpireInAFewHours("user")
+	if err != nil {
+		return nil, err
+	}
+	
+	// Select All The VA with Users that Have Pending Tasks and Send Notifications to Them
+	vaTaskMap, err := n.repo.GetTasksToExpireInAFewHours("va")
+	if err != nil {
+		return nil, err
+	}
+
+	taskMap := make(map[string][]notificationEntity.GetExpiredTasksWithDeviceId)
+
+	for k, v := range userTaskMap {
+		taskMap[k] = v
+	}
+
+	for k, v := range vaTaskMap {
+		if _, ok := taskMap[k]; !ok {
+			taskMap[k] = v
+		} else {
+			taskMap[k] = append(taskMap[k], v...)
+		}
+	}
+
+	return taskMap, nil
+}
+
