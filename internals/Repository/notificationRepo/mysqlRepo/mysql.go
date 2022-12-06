@@ -3,6 +3,7 @@ package mySqlRepo
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"test-va/internals/Repository/notificationRepo"
 	"test-va/internals/entity/notificationEntity"
 )
@@ -38,32 +39,104 @@ func (m *mySql) Persist(req *notificationEntity.CreateNotification) error {
 
 	_, err := m.conn.Exec(stmt)
 	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			return nil
+		}
 		return err
 	}
 	return nil
 }
 
-func (n *mySql) GetTasksToExpireToday() ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
-	stmt := fmt.Sprint(`
+func (n *mySql) GetUserVaToken(userId string) (string, error) {
+	query := fmt.Sprintf(`
+		SELECT device_id 
+		FROM Users 
+		LEFT JOIN Notifications ON virtual_assistant_id = Notifications.user_id
+		WHERE Users.user_id = '%s';
+		`, userId)
+
+	var deviceId string
+	err := n.conn.QueryRow(query).Scan(&deviceId)
+	if err != nil {
+		return "", err
+	}
+	return deviceId, nil
+}
+
+func (n *mySql) GetTasksToExpireToday(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	str := ""
+	if (userClass == "va") {
+		str = "va_id"
+	} else {
+		str = "user_id"
+	}
+
+	stmt := fmt.Sprintf(`
 		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
 		FROM Tasks
-		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
-		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
+		INNER JOIN Notifications ON Tasks.%s = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE )
 		AND Tasks.status = 'PENDING';
-	`)
+	`, str)
 
-	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
+	taskMap := make(map[string][]notificationEntity.GetExpiredTasksWithDeviceId)
 	query, err := n.conn.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
 	for query.Next() {
 		var task notificationEntity.GetExpiredTasksWithDeviceId
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		var deviceId string
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &deviceId)
 		if err != nil {
 			return nil, err
 		}
-		tasks = append(tasks, task)
+
+		if mTask, ok := taskMap[deviceId]; !ok {
+			taskMap[deviceId] = []notificationEntity.GetExpiredTasksWithDeviceId{task}
+		} else {
+			taskMap[deviceId] = append(mTask, task)
+		}
 	}
-	return tasks, nil
+	return taskMap, nil
+}
+
+func (n *mySql) GetTasksToExpireInAFewHours(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
+	str := ""
+	if (userClass == "va") {
+		str = "va_id"
+	} else {
+		str = "user_id"
+	}
+
+	stmt := fmt.Sprintf(`
+		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
+		FROM Tasks
+		INNER JOIN Notifications ON Tasks.%v = Notifications.user_id
+		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
+		AND  
+		CAST(Tasks.end_time as TIME ) < CAST(NOW() + INTERVAL 7 HOUR as TIME )
+		AND Tasks.status = 'PENDING';
+	`, str)
+
+	taskMap := make(map[string][]notificationEntity.GetExpiredTasksWithDeviceId)
+	query, err := n.conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var task notificationEntity.GetExpiredTasksWithDeviceId
+		var deviceId string
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &deviceId)
+		if err != nil {
+			return nil, err
+		}
+
+		if mTask, ok := taskMap[deviceId]; !ok {
+			taskMap[deviceId] = []notificationEntity.GetExpiredTasksWithDeviceId{task}
+		} else {
+			taskMap[deviceId] = append(mTask, task)
+		}
+	}
+	return taskMap, nil
 }

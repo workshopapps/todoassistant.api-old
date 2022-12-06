@@ -6,7 +6,6 @@ type GetExpiredTasksWithDeviceId struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	EndTime     string `json:"end_time"`
-	DeviceId    string `json:"device_id"`
 }
 
 type CreateNotification struct {

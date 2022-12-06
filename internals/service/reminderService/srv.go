@@ -3,6 +3,7 @@ package reminderService
 import (
 	"database/sql"
 	"errors"
+	"encoding/json"
 	"fmt"
 	"log"
 	"test-va/internals/Repository/taskRepo"
@@ -316,18 +317,25 @@ func checkIfTimeElapsed5Minutes(due string) bool {
 func (r *reminderSrv) ScheduleNotificationDaily() {
 	fmt.Println("Daily Notifications Setup")
 	r.cron.Every(1).Days().At("00:00").Do(func() {
-		tasks, err := getTasksToExpireToday(r.conn)
+		tasks, err := r.nSrv.GetTasksToExpireToday()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		// fmt.Println(tasks, "Daily")
+
+		fmt.Println("Daily")
+
 		if len(tasks) < 1 {
 			fmt.Println("No Notifications to Send Just Yet", tasks)
 			return
 		}
-		for _, v := range tasks {
-			err := r.nSrv.SendNotification(v.DeviceId, "Rise and Shine, These Are Due Today", v.Description, v.TaskId)
+		for k, v := range tasks {
+			tasksToString, err := json.Marshal(v)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			err = r.nSrv.SendNotification(k, "Due Today", "Rise and Shine, These Are Due Today", string(tasksToString))
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -340,19 +348,26 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 	fmt.Println("Six Hour Notifications Setup")
 	r.cron.Every(6).Hours().Do(func() {
-		tasks, err := getTasksToExpireInAFewHours(r.conn)
+		tasks, err := r.nSrv.GetTasksToExpireInAFewHours()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		// fmt.Println(tasks, "six Hourly")
+
+		fmt.Println("Six Hourly")
+
 		if len(tasks) < 1 {
 			fmt.Println("No Notifications to Send Just Yet", tasks)
 			return
 		}
 
-		for _, v := range tasks {
-			err := r.nSrv.SendNotification(v.DeviceId, "Warning: Few Hours to Go", v.Description, v.TaskId)
+		for k, v := range tasks {
+			tasksToString, err := json.Marshal(v)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			err = r.nSrv.SendNotification(k, "Due Shortly", "Warning: Few Hours to Go", string(tasksToString))
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -361,131 +376,6 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 	})
 }
 
-func getTasksToExpireToday(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
-	// Select All The Users with Pending Tasks and Send Notifications to Them
-	stmt := fmt.Sprint(`
-		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
-		FROM Tasks
-		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
-		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE )
-		AND Tasks.status = 'PENDING';
-	`)
-
-	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
-	var userTasks []notificationEntity.GetExpiredTasksWithDeviceId
-	var vaTasks []notificationEntity.GetExpiredTasksWithDeviceId
-
-	query, err := conn.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	for query.Next() {
-		var task notificationEntity.GetExpiredTasksWithDeviceId
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
-		if err != nil {
-			return nil, err
-		}
-		userTasks = append(userTasks, task)
-	}
-
-	// Select All The VA with Users that Have Pending Tasks and Send Notifications to Them
-	stmt = fmt.Sprint(`
-		SELECT task_id, Tasks.va_id, title ,description, end_time, device_id
-		FROM Tasks
-		INNER JOIN Notifications ON Tasks.va_id = Notifications.user_id
-		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
-		AND Tasks.status = 'PENDING';
-	`)
-
-	query, err = conn.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	for query.Next() {
-		var task notificationEntity.GetExpiredTasksWithDeviceId
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
-		if err != nil {
-			return nil, err
-		}
-		vaTasks = append(vaTasks, task)
-	}
-	tasks = append(tasks, userTasks...)
-	// tasks = append(tasks, vaTasks...)
-	return tasks, nil
-}
-
-func getTasksToExpireInAFewHours(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDeviceId, error) {
-	// Select All The Users with Pending Tasks and Send Notifications to Them
-	stmt := fmt.Sprint(`
-		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id
-		FROM Tasks
-		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
-		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
-		AND  
-		CAST(Tasks.end_time as TIME ) < CAST(NOW() + INTERVAL 7 HOUR as TIME )
-		AND Tasks.status = 'PENDING';
-	`)
-
-	var tasks []notificationEntity.GetExpiredTasksWithDeviceId
-	var userTasks []notificationEntity.GetExpiredTasksWithDeviceId
-	var vaTasks []notificationEntity.GetExpiredTasksWithDeviceId
-
-	query, err := conn.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	for query.Next() {
-		var task notificationEntity.GetExpiredTasksWithDeviceId
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
-		if err != nil {
-			return nil, err
-		}
-		tasks = append(tasks, task)
-	}
-
-	// stmt = `SELECT CAST(timestamp '2022-12-03T18:20:59+01:00' as DATE )`
-	// res, err := conn.Query(stmt)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// for res.Next() {
-	// 	var val string
-	// 	err = res.Scan(&val)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// 	println(val, "here")
-	// }
-
-	// Select All The VA with Users that Have Pending Tasks and Send Notifications to Them
-	stmt = fmt.Sprint(`
-		SELECT task_id, Tasks.va_id, title, description, end_time, device_id
-		FROM Tasks
-		INNER JOIN Notifications ON Tasks.va_id = Notifications.user_id
-		WHERE CAST( Tasks.end_time as DATE ) = CAST( NOW() as DATE ) 
-		AND  
-		CAST(Tasks.end_time as TIME ) < CAST(NOW() + INTERVAL 7 HOUR as TIME )
-		AND Tasks.status = 'PENDING';
-	`)
-
-	query, err = conn.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	for query.Next() {
-		var task notificationEntity.GetExpiredTasksWithDeviceId
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
-		if err != nil {
-			return nil, err
-		}
-		task.DeviceId = "slack"
-		vaTasks = append(vaTasks, task)
-	}
-	tasks = append(tasks, userTasks...)
-	tasks = append(tasks, vaTasks...)
-	return tasks, nil
-}
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
@@ -500,7 +390,8 @@ func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	}
 	for query.Next() {
 		var task taskEntity.GetPendingTasks
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		var deviceId string
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &deviceId)
 		if err != nil {
 			return nil, err
 		}
@@ -525,7 +416,8 @@ func getExpiredTasks(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDevi
 	}
 	for query.Next() {
 		var task notificationEntity.GetExpiredTasksWithDeviceId
-		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &task.DeviceId)
+		var deviceId string
+		err = query.Scan(&task.TaskId, &task.UserId, &task.Title, &task.Description, &task.EndTime, &deviceId)
 		if err != nil {
 			return nil, err
 		}
