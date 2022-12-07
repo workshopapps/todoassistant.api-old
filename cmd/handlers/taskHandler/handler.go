@@ -372,7 +372,8 @@ func (t *taskHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, comment)
+	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK, "Comment saved successfully", comment, nil)
+	c.JSON(http.StatusOK, rd)
 
 }
 
@@ -380,8 +381,7 @@ func (t *taskHandler) CreateComment(c *gin.Context) {
 func (t *taskHandler) GetComments(c *gin.Context) {
 	userId := c.GetString("userId")
 	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No User ID", nil, nil))
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "you are not allowed to access this resource", nil, nil))
 		return
 	}
 
@@ -394,7 +394,38 @@ func (t *taskHandler) GetComments(c *gin.Context) {
 	comments, errRes := t.srv.GetAllComments(taskId)
 
 	if comments == nil {
-		message := "no Task with id " + taskId + " exists"
+		message := "no comments belong to task id " + taskId
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, comments, nil))
+		return
+	}
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find comments", errRes, nil))
+		return
+	}
+	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK, "Comments returned successfully", comments, nil)
+	c.JSON(http.StatusOK, rd)
+}
+
+// delete comments on a task
+func (t *taskHandler) DeleteComment(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "you are not allowed to access this resource", nil, nil))
+		return
+	}
+
+	commentId := c.Params.ByName("commentId")
+	if commentId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "comment ID was not provided", nil, nil))
+		return
+	}
+	comments, errRes := t.srv.DeleteCommentByID(commentId)
+
+	if comments == nil {
+		message := "no comment with id " + commentId + " exists"
 		c.AbortWithStatusJSON(http.StatusOK,
 			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, comments, nil))
 		return

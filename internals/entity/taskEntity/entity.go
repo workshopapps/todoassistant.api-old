@@ -153,13 +153,15 @@ type CreateCommentReq struct {
 }
 
 type CreateCommentRes struct {
+	Id  string `json:"id,omitempty"`
 	TaskId  string `json:"task_id"`
 	Comment string `json:"comment" validate:"required,min=3"`
 }
 
 type GetCommentRes struct {
-	TaskId    string `json:"task_id" validate:"required"`
-	UserId    string `json:"user_id" validate:"required"`
-	Comment   string `json:"comment" validate:"required,min=3"`
+	Id    	  string `json:"id"`
+	TaskId    string `json:"task_id"`
+	UserId    string `json:"user_id"`
+	Comment   string `json:"comment"`
 	CreatedAt string `json:"created_at"`
 }

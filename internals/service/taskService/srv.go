@@ -40,6 +40,7 @@ type TaskService interface {
 	//comments
 	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
 	GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
+	DeleteCommentByID(commentId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -600,4 +601,18 @@ func (t *taskSrv) GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *R
 	}
 	return comments, nil
 
+}
+
+// delete comment By ID
+func (t *taskSrv) DeleteCommentByID(commentId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	err := t.repo.DeleteCommentByID(ctx, commentId)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Deleted successfully", nil, nil), nil
 }
