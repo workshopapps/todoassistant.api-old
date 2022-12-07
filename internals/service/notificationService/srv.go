@@ -16,10 +16,11 @@ import (
 
 type NotificationSrv interface {
 	RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError
-	SendNotification(token, title, body string, taskId string) error
+	SendNotification(token, title string, body, data interface{}) error
+	SendBatchNotifications(tokens []string, title string, body, data interface{}) error 
 	SendVaNotification(token, title, body string, taskId string) error
-	GetUserVaToken(userId string) (string, error)
-	SendNotificationToVA(userId, topic, body string, data interface{})
+	GetUserVaToken(userId string) ([]string, error)
+	GetUserToken(userId string) ([]string, error)
 	GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetTasksToExpireInAFewHours() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	//GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
@@ -54,28 +55,81 @@ func New(app *firebase.App, repo notificationRepo.NotificationRepository,
 	}
 }
 
-func (n notificationSrv) SendNotification(token, title, body string, taskId string) error {
+func (n notificationSrv) SendBatchNotifications(tokens []string, title string, body, data interface{}) error {
 	ctx := context.Background()
+	if (n.app == nil) {
+		return fmt.Errorf("could not initialize firebase app")
+	}
 	fmcClient, err := n.app.Messaging(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	// taskIdsToString, err := json.Marshal(taskIds)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return err
-	// }
+	bodyToString, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	dataToString, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	response, err := fmcClient.SendMulticast(ctx, &messaging.MulticastMessage{
+		Tokens: tokens,
+		Notification: &messaging.Notification{
+			Title: title,
+			Body:  string(bodyToString),
+		},
+		Data: map[string]string{
+			"tasks": string(dataToString),
+		},
+		Webpush: &messaging.WebpushConfig{
+			Headers: map[string]string{
+				"Urgency": "high",
+				"TTL":     "5000",
+			},
+		},
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println("Successfully Sent Message", response)
+	return nil
+}
+
+func (n notificationSrv) SendNotification(token, title string, body, data interface{}) error {
+	ctx := context.Background()
+	if (n.app == nil) {
+		return fmt.Errorf("could not initialize firebase app")
+	}
+	fmcClient, err := n.app.Messaging(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	bodyToString, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	dataToString, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
 
 	response, err := fmcClient.Send(ctx, &messaging.Message{
 		Token: token,
 		Notification: &messaging.Notification{
 			Title: title,
-			Body:  body,
+			Body:  string(bodyToString),
 		},
 		Data: map[string]string{
-			"tasks": taskId,
+			"tasks": string(dataToString),
 		},
 		Webpush: &messaging.WebpushConfig{
 			Headers: map[string]string{
@@ -106,21 +160,12 @@ func (n notificationSrv) RegisterForNotifications(req *notificationEntity.Create
 	return nil
 }
 
-func (n notificationSrv) GetUserVaToken(userId string) (string, error) {
+func (n notificationSrv) GetUserVaToken(userId string) ([]string, error) {
 	return n.repo.GetUserVaToken(userId)
 }
 
-func (n notificationSrv) SendNotificationToVA(userId, topic, body string, data interface{}) {
-	vaDeviceId, err := n.GetUserVaToken(userId)
-	if err != nil {
-		fmt.Println("Error Getting VA DeviceId For Notifications", err)
-	}
-	dataToString, err := json.Marshal(data)
-	if err != nil {
-		fmt.Println("Error Marshalling in Notifications", err)
-	}
-	n.SendNotification(vaDeviceId, "Task Created", fmt.Sprintf("%s Just Created a Task", userId), string(dataToString))
-
+func (n notificationSrv) GetUserToken(userId string) ([]string, error) {
+	return n.repo.GetUserVaToken(userId)
 }
 
 func (n notificationSrv) GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {

@@ -51,6 +51,12 @@ type taskSrv struct {
 	nSrv 		  notificationService.NotificationSrv
 }
 
+type bodyStruct struct {
+	Content string `json:"content"`
+	Color string `json:"color"`
+	Time string `json:"time"`
+}
+
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 	srv validationService.ValidationSrv, logSrv loggerService.LogSrv,
 	reminderSrv reminderService.ReminderSrv, 
@@ -154,7 +160,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+		err = t.remindSrv.SetReminder(req)
 
 		if err != nil {
 			log.Println(err)
@@ -205,7 +211,26 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		Repeat:      req.Repeat,
 	}
 
-	t.nSrv.SendNotificationToVA(req.UserId, "Task Created", fmt.Sprintf("%s Just Created a Task", req.UserId), data)
+	body := []bodyStruct{
+		{
+			Content: fmt.Sprintf("%s Just Created a Task", req.UserId),
+			Color: "#FF0000",
+			Time: time.Now().String(),
+		},
+	}
+
+	tokens, err := t.nSrv.GetUserVaToken(req.UserId)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if len(tokens) > 0 {
+		err := t.nSrv.SendBatchNotifications(tokens, "Task Created", body, data)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println("User Has Not VA or VA Has Not Registered For Notifications")
+	}
 
 	return &data, nil
 
@@ -255,7 +280,7 @@ func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateT
 	}
 
 	// create a reminder
-	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+	err = t.remindSrv.SetReminder(req)
 
 	if err != nil {
 		log.Println(err)
@@ -507,7 +532,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(ndate.EndTime, ndate.TaskId)
+		err = t.remindSrv.SetReminder(ndate)
 
 		if err != nil {
 			log.Println(err)

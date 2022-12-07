@@ -3,7 +3,6 @@ package reminderService
 import (
 	"database/sql"
 	"errors"
-	"encoding/json"
 	"fmt"
 	"log"
 	"test-va/internals/Repository/taskRepo"
@@ -16,7 +15,7 @@ import (
 )
 
 type ReminderSrv interface {
-	SetReminder(dueDate, taskId string) error
+	SetReminder(data *taskEntity.CreateTaskReq) error
 	SetReminderEvery30Min()
 	SetReminderEvery5Min()
 	SetDailyReminder(data *taskEntity.CreateTaskReq) error
@@ -33,6 +32,12 @@ type reminderSrv struct {
 	conn *sql.DB
 	repo taskRepo.TaskRepository
 	nSrv notificationService.NotificationSrv
+}
+
+type bodyStruct struct {
+	Content string `json:"content"`
+	Color string `json:"color"`
+	Time string `json:"time"`
 }
 
 func (r *reminderSrv) SetBiWeeklyReminder(data *taskEntity.CreateTaskReq) error {
@@ -210,7 +215,9 @@ func (r *reminderSrv) SetDailyReminder(data *taskEntity.CreateTaskReq) error {
 	return nil
 }
 
-func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
+func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
+	dueDate := data.EndTime
+	taskId := data.TaskId
 	s := gocron.NewScheduler(time.UTC)
 	// get string of date and convert it to Time.Time
 	dDate, err := time.Parse(time.RFC3339, dueDate)
@@ -221,6 +228,37 @@ func (r *reminderSrv) SetReminder(dueDate, taskId string) error {
 	s.Every(1).StartAt(dDate).Do(func() {
 		log.Println("setting status to expired")
 		r.repo.SetTaskToExpired(taskId)
+
+		vaTokens, err := r.nSrv.GetUserVaToken(data.UserId)
+		if err != nil {
+			fmt.Println("Error Getting VA Tokens", err)
+		}
+		if len(vaTokens) < 1 {
+			fmt.Println("User Has No VA, Or VA Has Not Registered For Notifications")
+		}
+		userTokens, err := r.nSrv.GetUserToken(data.UserId)
+		if err != nil {
+			fmt.Println("Error Getting User Tokens", err)
+		}
+		if len(userTokens) < 1 {
+			fmt.Println("User Has Not Registered For Notifications")
+		}
+
+		body := []bodyStruct{
+			{
+				Content: "This Task Has Expired",
+				Color: "#FF0000",
+				Time: time.Now().String(),
+			},
+		}
+
+		allTokens := append(userTokens, vaTokens...)
+		if len(allTokens) > 0 {
+			err = r.nSrv.SendBatchNotifications(allTokens, "Expired", body, []interface{}{data})
+			if err != nil {
+				fmt.Println("Error Sending Notifications",err)
+			}
+		}
 	})
 
 	s.LimitRunsTo(1)
@@ -330,12 +368,15 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 			return
 		}
 		for k, v := range tasks {
-			tasksToString, err := json.Marshal(v)
-			if err != nil {
-				fmt.Println(err)
-				return
+			body := []bodyStruct{
+				{
+					Content: "Warning: Few Hours to Go",
+					Color: "#FF0000",
+					Time: time.Now().String(),
+				},
 			}
-			err = r.nSrv.SendNotification(k, "Due Today", "Rise and Shine, These Are Due Today", string(tasksToString))
+
+			err = r.nSrv.SendNotification(k, "Due Today", body, v)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -362,12 +403,15 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 		}
 
 		for k, v := range tasks {
-			tasksToString, err := json.Marshal(v)
-			if err != nil {
-				fmt.Println(err)
-				return
+			body := []bodyStruct{
+				{
+					Content: "Warning: Few Hours to Go",
+					Color: "#FF0000",
+					Time: time.Now().String(),
+				},
 			}
-			err = r.nSrv.SendNotification(k, "Due Shortly", "Warning: Few Hours to Go", string(tasksToString))
+
+			err = r.nSrv.SendNotification(k, "Due Shortly", body, v)
 			if err != nil {
 				fmt.Println(err)
 				return

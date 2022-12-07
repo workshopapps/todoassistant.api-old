@@ -47,20 +47,51 @@ func (m *mySql) Persist(req *notificationEntity.CreateNotification) error {
 	return nil
 }
 
-func (n *mySql) GetUserVaToken(userId string) (string, error) {
-	query := fmt.Sprintf(`
+func (n *mySql) GetUserVaToken(userId string) ([]string, error) {
+	stmt := fmt.Sprintf(`
 		SELECT device_id 
 		FROM Users 
-		LEFT JOIN Notifications ON virtual_assistant_id = Notifications.user_id
+		INNER JOIN Notifications ON virtual_assistant_id = Notifications.user_id
 		WHERE Users.user_id = '%s';
 		`, userId)
 
-	var deviceId string
-	err := n.conn.QueryRow(query).Scan(&deviceId)
+	var deviceIds []string
+	query, err := n.conn.Query(stmt)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return deviceId, nil
+	for query.Next() {
+		var deviceId string
+		err = query.Scan(&deviceId)
+		if err != nil {
+			return nil, err
+		}
+		deviceIds = append(deviceIds, deviceId)
+	}
+	return deviceIds, err
+}
+
+func (n *mySql) GetUserToken(userId string) ([]string, error) {
+	stmt := fmt.Sprintf(`
+		SELECT * 
+		FROM Notifications 
+        WHERE Notifications.user_id = '%s';
+		`, userId)
+
+	var deviceIds []string
+	query, err := n.conn.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	for query.Next() {
+		var deviceId string
+		err = query.Scan(&deviceId)
+		if err != nil {
+			return nil, err
+		}
+		deviceIds = append(deviceIds, deviceId)
+	}
+	return deviceIds, err
 }
 
 func (n *mySql) GetTasksToExpireToday(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
