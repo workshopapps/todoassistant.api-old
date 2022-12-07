@@ -3,12 +3,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/handlers/paymentHandler"
+	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -48,6 +49,18 @@ import (
 )
 
 func Setup() {
+	// set up sentry
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://cffbc6e0ff4c480bb9ad07108811485b@o4504281294176256.ingest.sentry.io/4504282768539648",
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
 
 	stripe.Key = "sk_test_51M9xknFf5hgzULIC40q0q9nzGz6ByBYNrFYzgUB2zsVfDZwhhiss5fi3OmLVhzOwxLfnT4bMqjj9Uh4oaLQrCRhU00EUIT0yl3"
 

@@ -54,12 +54,14 @@ func (v *vaMiddleWare) MapVAToReq(c *gin.Context) {
 		return
 	}
 	auth := strings.Split(authHeader, " ")
+	if len(auth) < 1 {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, "Invalid Token Format")
+	}
 
 	token, err := v.tokenSrv.ValidateToken(auth[1])
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
-
 	}
 
 	if token.Status != "VA" && token.Status != "MASTER" {
