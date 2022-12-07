@@ -127,3 +127,10 @@ type GoogleLoginReq struct {
 	Profile       string `json:"imageUrl"`
 	Name 		  string `json:"name"`
 }
+
+
+type FacebookLoginReq struct {
+	Email         string `json:"email"`
+	Name 		  string `json:"name"`
+
+}
