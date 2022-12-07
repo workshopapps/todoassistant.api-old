@@ -11,6 +11,7 @@ type CreateTaskReq struct {
 	Title       string     `json:"title" validate:"required,min=3"`
 	Description string     `json:"description" validate:"required,min=3"`
 	Repeat      string     `json:"repeat"`
+	Assigned    string     `json:"assigned"`
 	Files       []TaskFile `json:"files"`
 	StartTime   string     `json:"start_time" validate:"required"`
 	EndTime     string     `json:"end_time" validate:"required"`
