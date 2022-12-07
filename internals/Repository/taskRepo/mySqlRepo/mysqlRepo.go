@@ -527,6 +527,7 @@ func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateComm
 	return nil
 }
 
+// get all comments
 func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEntity.GetCommentRes, error) {
 
 	//tx, err := s.conn.BeginTx(ctx, nil)
@@ -536,7 +537,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT user_id, task_id, comment, created_at
+		SELECT id, user_id, task_id, comment, created_at
 		FROM Comments WHERE task_id = '%s'`, taskId)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -551,6 +552,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 		var singleTask taskEntity.GetCommentRes
 
 		err := rows.Scan(
+			&singleTask.Id,
 			&singleTask.UserId,
 			&singleTask.TaskId,
 			&singleTask.Comment,
@@ -562,4 +564,15 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 		AllComment = append(AllComment, &singleTask)
 	}
 	return AllComment, nil
+}
+
+// Delete comment by id
+func (s *sqlRepo) DeleteCommentByID(ctx context.Context, commentId string) error {
+	log.Println("hererer",commentId)
+	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`Delete from Comments  WHERE id = '%s'`, commentId))
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	return nil
 }

@@ -30,4 +30,5 @@ type TaskRepository interface {
 	//Comment
 	PersistComment(ctx context.Context, req *taskEntity.CreateCommentReq) error
 	GetAllComments(ctx context.Context, taskId string) ([]*taskEntity.GetCommentRes, error)
+	DeleteCommentByID(ctx context.Context, commentId string) error
 }
