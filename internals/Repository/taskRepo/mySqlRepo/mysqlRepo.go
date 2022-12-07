@@ -148,8 +148,74 @@ func (s *sqlRepo) GetPendingTasks(userId string, ctx context.Context) ([]*taskEn
 	return tasks, nil
 }
 
+func (s *sqlRepo) PersistAndAssign(ctx context.Context, req *taskEntity.CreateTaskReq) error {
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	var vaId string
+	stmt3 := fmt.Sprintf(`
+		SELECT
+			virtual_Assistant_id from Users
+		WHERE user_id = '%v'
+		`, req.UserId)
+	row := tx.QueryRowContext(ctx, stmt3)
+	err = row.Scan(&vaId)
+	if err != nil {
+		log.Println("3", err)
+		return err
+	}
+
+	stmt := fmt.Sprintf(`INSERT
+		INTO Tasks(
+					task_id,
+                  user_id,
+                  title,
+                  description,
+                  start_time,
+                  end_time,
+                  created_at,
+                  va_option,
+                  repeat_frequency,
+		           va_id
+				   )
+		VALUES ('%v','%v','%v','%v','%v','%v','%v', '%v', '%v', '%v')`, req.TaskId, req.UserId, req.Title, req.Description,
+		req.StartTime, req.EndTime, req.CreatedAt, req.VAOption, req.Repeat, vaId)
+
+	_, err = tx.ExecContext(ctx, stmt)
+	if err != nil {
+		log.Println("1", err)
+		return err
+	}
+
+	for _, file := range req.Files {
+		stmt2 := fmt.Sprintf(`INSERT
+		INTO Taskfiles(
+		               task_id,
+		               file_link,
+		               file_type
+		               )
+		VALUES ('%v', '%v', '%v')`, req.TaskId, file.FileLink, file.FileType)
+		_, err = tx.ExecContext(ctx, stmt2)
+		if err != nil {
+			log.Println("2", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *sqlRepo) Persist(ctx context.Context, req *taskEntity.CreateTaskReq) error {
-	log.Printf("#%v\n", req)
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
