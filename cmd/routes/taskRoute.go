@@ -22,17 +22,17 @@ func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokens
 	{
 		task.POST("", handler.CreateTask)
 		task.GET("/:taskId", handler.GetTaskByID)
-		task.GET("/pending/:userId", handler.GetPendingTasks)
-		task.GET("/expired", handler.GetListOfExpiredTasks)
+		task.GET("/pending", handler.GetPendingTasks)
+		task.GET("/expired", handler.GetExpiredTasks)
 		task.GET("/", handler.GetAllTask)               //Get all task by a user
 		task.DELETE("/:taskId", handler.DeleteTaskById) //Delete Task By ID
 		//task.DELETE("/", handler.DeleteAllTask)               //Delete all task of a user
-		task.POST("/status/:taskId", handler.UpdateUserStatus) //Update User Status
-		task.GET("/comment/:taskId", handler.GetComments)      //get all comment on task
-		task.POST("/comment", handler.CreateComment)           //comment on task
-		task.DELETE("/comment/:commentId", handler.DeleteComment)   //delete comment
+		task.POST("/status/:taskId", handler.UpdateUserStatus)    //Update User Status
+		task.GET("/comment/:taskId", handler.GetComments)         //get all comment on task
+		task.POST("/comment", handler.CreateComment)              //comment on task
+		task.DELETE("/comment/:commentId", handler.DeleteComment) //delete comment
 		//task.PUT("/comment", handler.CreateComment)   //edit comment
-		task.PUT("/:taskId", handler.EditTaskById)             //EditTaskById
+		task.PUT("/:taskId", handler.EditTaskById) //EditTaskById
 		task.GET("/search", handler.SearchTask)
 
 		//assign task to VA

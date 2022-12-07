@@ -25,7 +25,7 @@ type TaskService interface {
 	PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError)
 	GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksRes, *ResponseEntity.ServiceError)
 	SearchTask(req *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError)
-	GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError)
+	GetExpiredTasks(userId string) ([]*taskEntity.GetExpiredTasksRes, *ResponseEntity.ServiceError)
 	GetListOfPendingTasks() ([]*taskEntity.GetAllPendingRes, *ResponseEntity.ServiceError)
 	DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 	GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError)
@@ -50,12 +50,12 @@ type taskSrv struct {
 	validationSrv validationService.ValidationSrv
 	logger        loggerService.LogSrv
 	remindSrv     reminderService.ReminderSrv
-	nSrv 		  notificationService.NotificationSrv
+	nSrv          notificationService.NotificationSrv
 }
 
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 	srv validationService.ValidationSrv, logSrv loggerService.LogSrv,
-	reminderSrv reminderService.ReminderSrv, 
+	reminderSrv reminderService.ReminderSrv,
 	notificationSrv notificationService.NotificationSrv) TaskService {
 	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv,
 		logger: logSrv, remindSrv: reminderSrv, nSrv: notificationSrv}
@@ -345,11 +345,11 @@ func (t *taskSrv) GetTaskByID(taskId string) (*taskEntity.GetTasksByIdRes, *Resp
 // @Failure	500  {object}  ResponseEntity.ServiceError
 // @Security BasicAuth
 // @Router	/task/expired [get]
-func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *ResponseEntity.ServiceError) {
+func (t *taskSrv) GetExpiredTasks(userId string) ([]*taskEntity.GetExpiredTasksRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
-	task, err := t.repo.GetListOfExpiredTasks(ctx)
+	task, err := t.repo.GetExpiredTasks(ctx, userId)
 
 	if task == nil {
 		log.Println("no rows returned")

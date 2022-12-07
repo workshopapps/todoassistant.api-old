@@ -12,7 +12,7 @@ type TaskRepository interface {
 	GetPendingTasks(userId string, ctx context.Context) ([]*taskEntity.GetPendingTasksRes, error)
 	GetTaskByID(ctx context.Context, taskId string) (*taskEntity.GetTasksByIdRes, error)
 	SearchTasks(title *taskEntity.SearchTitleParams, ctx context.Context) ([]*taskEntity.SearchTaskRes, error)
-	GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error)
+	GetExpiredTasks(ctx context.Context, userId string) ([]*taskEntity.GetExpiredTasksRes, error)
 	GetListOfPendingTasks(ctx context.Context) ([]*taskEntity.GetAllPendingRes, error)
 	SetTaskToExpired(id string) error
 

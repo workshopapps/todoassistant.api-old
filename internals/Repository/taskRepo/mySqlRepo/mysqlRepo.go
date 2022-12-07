@@ -384,16 +384,16 @@ func (s *sqlRepo) GetTaskByID(ctx context.Context, taskId string) (*taskEntity.G
 	return &res, nil
 }
 
-func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetAllExpiredRes, error) {
+func (s *sqlRepo) GetExpiredTasks(ctx context.Context, userId string) ([]*taskEntity.GetExpiredTasksRes, error) {
 	db, err := s.conn.Begin()
 	if err != nil {
 		return nil, err
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT task_id, user_id, title, start_time
+		SELECT task_id, title, description, start_time, end_time, status, created_at
 		FROM Tasks
-		WHERE status = 'EXPIRED'`)
+		WHERE status = 'EXPIRED' AND user_id = '%s'`, userId)
 
 	rows, err := db.QueryContext(ctx, stmt)
 	if err != nil {
@@ -401,15 +401,18 @@ func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetA
 	}
 	defer rows.Close()
 
-	var Searchedtasks []*taskEntity.GetAllExpiredRes
+	var Searchedtasks []*taskEntity.GetExpiredTasksRes
 
 	for rows.Next() {
-		var singleTask taskEntity.GetAllExpiredRes
+		var singleTask taskEntity.GetExpiredTasksRes
 
 		err := rows.Scan(
 			&singleTask.TaskId,
-			&singleTask.UserId,
 			&singleTask.Title,
+			&singleTask.Description,
+			&singleTask.StartTime,
+			&singleTask.EndTime,
+			&singleTask.Status,
 			&singleTask.CreatedAt,
 		)
 		if err != nil {
@@ -634,7 +637,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 
 // Delete comment by id
 func (s *sqlRepo) DeleteCommentByID(ctx context.Context, commentId string) error {
-	log.Println("hererer",commentId)
+	log.Println("hererer", commentId)
 	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`Delete from Comments  WHERE id = '%s'`, commentId))
 	if err != nil {
 		log.Fatal(err)

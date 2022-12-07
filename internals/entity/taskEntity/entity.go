@@ -102,6 +102,16 @@ type SearchTaskRes struct {
 	CreatedAt string `json:"created_at"`
 }
 
+type GetExpiredTasksRes struct {
+	TaskId      string `json:"task_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	Status      string `json:"status"`
+	CreatedAt   string `json:"created_at"`
+}
+
 type GetAllExpiredRes struct {
 	TaskId    string `json:"task_id"`
 	Title     string `json:"title"`
@@ -154,13 +164,13 @@ type CreateCommentReq struct {
 }
 
 type CreateCommentRes struct {
-	Id  string `json:"id,omitempty"`
+	Id      string `json:"id,omitempty"`
 	TaskId  string `json:"task_id"`
 	Comment string `json:"comment" validate:"required,min=3"`
 }
 
 type GetCommentRes struct {
-	Id    	  string `json:"id"`
+	Id        string `json:"id"`
 	TaskId    string `json:"task_id"`
 	UserId    string `json:"user_id"`
 	Comment   string `json:"comment"`

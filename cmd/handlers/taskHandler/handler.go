@@ -50,31 +50,48 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 }
 
 func (t *taskHandler) GetPendingTasks(c *gin.Context) {
-	userId := c.Params.ByName("userId")
+	userId := c.GetString("userId")
 	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user id available", nil, nil))
+			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
 		return
 	}
 
 	tasks, errRes := t.srv.GetPendingTasks(userId)
+	if tasks == nil {
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildErrorResponse(http.StatusNoContent, "You do not have any pending tasks", nil, nil))
+		return
+	}
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error Finding Pending Tasks", errRes, nil))
 		return
 	}
-	c.JSON(http.StatusOK, tasks)
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "List of all pending tasks", tasks, nil))
 }
 
-func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
+func (t *taskHandler) GetExpiredTasks(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
+		return
+	}
 
-	tasks, errRes := t.srv.GetListOfExpiredTasks()
+	tasks, errRes := t.srv.GetExpiredTasks(userId)
+	if tasks == nil {
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildErrorResponse(http.StatusNoContent, "You do not have any expired tasks", nil, nil))
+		return
+	}
+
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error finding Expired Tasks", errRes, nil))
 		return
 	}
-	c.JSON(http.StatusOK, tasks)
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "List of all expired tasks", tasks, nil))
 
 }
 
@@ -161,20 +178,15 @@ func (t *taskHandler) GetAllTask(c *gin.Context) {
 	userId := c.GetString("userId")
 	log.Println(userId)
 	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
 		return
 	}
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
-	task, errRes := t.srv.GetAllTask(userId)
-	if task == nil {
-		message := "no Task with id " + userId + " exists"
+	tasks, errRes := t.srv.GetAllTask(userId)
+	if tasks == nil {
+		message := "You do not have any created task"
 		c.AbortWithStatusJSON(http.StatusOK,
-			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, task, nil))
+			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, tasks, nil))
 		return
 	}
 	if errRes != nil {
@@ -182,7 +194,7 @@ func (t *taskHandler) GetAllTask(c *gin.Context) {
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find all task", errRes, nil))
 		return
 	}
-	c.JSON(http.StatusOK, task)
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "List of all tasks", tasks, nil))
 
 }
 

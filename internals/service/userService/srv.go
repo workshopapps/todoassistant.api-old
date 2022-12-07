@@ -325,7 +325,7 @@ func (u *userSrv) ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenR
 	tokenDB, err := u.repo.GetTokenById(token, userId)
 	fmt.Println(tokenDB)
 	if err != nil {
-		return ResponseEntity.NewInternalServiceError("Invalid access token!")
+		return ResponseEntity.NewInternalServiceError("Invalid token!")
 	}
 
 	timeNow := time.Now().Format(time.RFC3339)

@@ -30,7 +30,7 @@ func (u *userHandler) CreateUser(c *gin.Context) {
 	}
 	user, errorRes := u.srv.SaveUser(&req)
 	if errorRes != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failed To Save User", errorRes, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Failed To Save User", errorRes, nil))
 		return
 	}
 	//c.Set("userId", user.UserId)
@@ -48,9 +48,10 @@ func (u *userHandler) Login(c *gin.Context) {
 	}
 
 	user, errorRes := u.srv.Login(&req)
+
 	if errorRes != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "Authorization Error", errorRes, nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Authorization Error", errorRes, nil))
 		return
 	}
 	log.Println("userid -", user.UserId)
