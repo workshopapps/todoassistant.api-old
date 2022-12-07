@@ -3,13 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"test-va/cmd/handlers/paymentHandler"
-	"test-va/cmd/handlers/taskHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
@@ -34,6 +32,8 @@ import (
 	"test-va/internals/service/validationService"
 	"test-va/utils"
 	"time"
+
+	"github.com/getsentry/sentry-go"
 
 	"github.com/go-co-op/gocron"
 
