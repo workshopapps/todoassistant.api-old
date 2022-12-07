@@ -26,9 +26,8 @@ func ValidateJWT() gin.HandlerFunc {
 		token, err := tokenSrv.ValidateToken(auth[1])
 
 		if err != nil {
-			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
-
+			return
 		}
 		c.Set("userId", token.Id)
 		log.Println("middleware passed")

@@ -31,6 +31,7 @@ func (t *taskHandler) CreateTask(c *gin.Context) {
 	}
 	err := c.ShouldBind(&req)
 	if err != nil {
+		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
 		return
