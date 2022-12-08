@@ -37,9 +37,11 @@ func (m *mySql) AssignVAToUser(user_id, va_id string) error {
 	if vaId != "" {
 		return fmt.Errorf("user already has a VA")
 	}
+
 	query = fmt.Sprintf(`
 		UPDATE Users SET virtual_assistant_id = '%s' WHERE user_id = '%s'
 	`, va_id, user_id)
+
 	_, err = m.conn.ExecContext(context.Background(), query)
 	if err != nil {
 		fmt.Println(err)
