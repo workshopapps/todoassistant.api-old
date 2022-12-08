@@ -9,6 +9,7 @@ import (
 	"strings"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/ResponseEntity"
+	"test-va/internals/entity/notificationEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/entity/vaEntity"
 	"test-va/internals/service/loggerService"
@@ -50,12 +51,12 @@ type taskSrv struct {
 	validationSrv validationService.ValidationSrv
 	logger        loggerService.LogSrv
 	remindSrv     reminderService.ReminderSrv
-	nSrv 		  notificationService.NotificationSrv
+	nSrv          notificationService.NotificationSrv
 }
 
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 	srv validationService.ValidationSrv, logSrv loggerService.LogSrv,
-	reminderSrv reminderService.ReminderSrv, 
+	reminderSrv reminderService.ReminderSrv,
 	notificationSrv notificationService.NotificationSrv) TaskService {
 	return &taskSrv{repo: repo, timeSrv: timeSrv, validationSrv: srv,
 		logger: logSrv, remindSrv: reminderSrv, nSrv: notificationSrv}
@@ -156,7 +157,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+		err = t.remindSrv.SetReminder(req)
 
 		if err != nil {
 			log.Println(err)
@@ -191,8 +192,53 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
-	switch req.Assigned {
+	// insert into db
+	err = t.repo.Persist(ctx, req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	data := taskEntity.CreateTaskRes{
+		TaskId:      req.TaskId,
+		Title:       req.Title,
+		Description: req.Description,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
+		VAOption:    req.VAOption,
+		Repeat:      req.Repeat,
+	}
 
+	if err != nil {
+		fmt.Println("Error Uploading Notification to DB", err)
+	}
+	body := []notificationEntity.NotificationBody{
+		{
+			Content: fmt.Sprintf("%s Just Created a Task", req.UserId),
+			Color:   notificationEntity.CreatedColor,
+			Time:    time.Now().String(),
+		},
+	}
+
+	tokens, vaId, err := t.nSrv.GetUserVaToken(req.UserId)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if vaId != "" {
+		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.Title), notificationEntity.CreatedColor)
+		if err != nil {
+			fmt.Println("Error Uploading Notification to DB", err)
+		}
+	}
+	if len(tokens) > 0 {
+		err := t.nSrv.SendBatchNotifications(tokens, "Task Created", body, data)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println("User Has Not VA or VA Has Not Registered For Notifications")
+	}
+
+	switch req.Assigned {
 	case "assigned":
 		err = t.repo.PersistAndAssign(ctx, req)
 		if err != nil {
@@ -213,75 +259,9 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 
 	}
 
-	data := taskEntity.CreateTaskRes{
-		TaskId:      req.TaskId,
-		Title:       req.Title,
-		Description: req.Description,
-		StartTime:   req.StartTime,
-		EndTime:     req.EndTime,
-		VAOption:    req.VAOption,
-		Repeat:      req.Repeat,
-	}
-
-	t.nSrv.SendNotificationToVA(req.UserId, "Task Created", fmt.Sprintf("%s Just Created a Task", req.UserId), data)
-
 	return &data, nil
 
 }
-
-//func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
-//	// create context of 1 minute
-//	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
-//	defer cancelFunc()
-//
-//	// implement validation for struct
-//
-//	err := t.validationSrv.Validate(req)
-//	if err != nil {
-//		log.Println(err)
-//		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
-//	}
-//
-//	//check if timeDueDate and StartDate is valid
-//	err = t.timeSrv.CheckFor339Format(req.EndTime)
-//	if err != nil {
-//		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
-//	}
-//
-//	err = t.timeSrv.CheckFor339Format(req.StartTime)
-//	if err != nil {
-//		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
-//	}
-//
-//	//set time
-//	req.CreatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
-//	//set id
-//	req.TaskId = uuid.New().String()
-//	req.Status = "PENDING"
-//	// insert into db
-//	err = t.repo.Persist(ctx, req)
-//	if err != nil {
-//		log.Println(err, "rrrr")
-//		return nil, ResponseEntity.NewInternalServiceError(err)
-//	}
-//	data := taskEntity.CreateTaskRes{
-//		TaskId:      req.TaskId,
-//		Title:       req.Title,
-//		Description: req.Description,
-//		StartTime:   req.StartTime,
-//		EndTime:     req.EndTime,
-//	}
-//
-//	// create a reminder
-//	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
-//
-//	if err != nil {
-//		log.Println(err)
-//		return nil, ResponseEntity.NewInternalServiceError(err)
-//	}
-//	return &data, nil
-//
-//}
 
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
@@ -525,7 +505,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(ndate.EndTime, ndate.TaskId)
+		err = t.remindSrv.SetReminder(ndate)
 
 		if err != nil {
 			log.Println(err)

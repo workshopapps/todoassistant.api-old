@@ -24,7 +24,6 @@ type VAService interface {
 	UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError)
 	ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError
 	DeleteUser(id string) *ResponseEntity.ServiceError
-
 	GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEntity.ServiceError)
 }
 

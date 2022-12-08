@@ -36,3 +36,19 @@ func (n *notificationHandler) RegisterForNotifications(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(200, "Notification Registration Successful", "", nil))
 }
+
+func (n *notificationHandler) GetNotifications(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid User ID", nil, nil))
+		return
+	}
+	notifications, err := n.srv.GetNotifications(userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, 
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Internal Server Error", err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, notifications)
+}
