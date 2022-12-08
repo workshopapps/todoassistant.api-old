@@ -23,6 +23,7 @@ type NotificationSrv interface {
 	GetUserToken(userId string) ([]string, error)
 	GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetTasksToExpireInAFewHours() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
+	CreateNotification(userId, title, time, content, color string) error
 	//GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 }
 
@@ -165,7 +166,7 @@ func (n notificationSrv) GetUserVaToken(userId string) ([]string, error) {
 }
 
 func (n notificationSrv) GetUserToken(userId string) ([]string, error) {
-	return n.repo.GetUserVaToken(userId)
+	return n.repo.GetUserToken(userId)
 }
 
 func (n notificationSrv) GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
@@ -225,5 +226,9 @@ func (n notificationSrv) GetTasksToExpireInAFewHours() (map[string][]notificatio
 	}
 
 	return taskMap, nil
+}
+
+func (n notificationSrv) CreateNotification(userId, title, time, content, color string) error {
+	return n.repo.CreateNotification(userId, title, time, content, color)
 }
 

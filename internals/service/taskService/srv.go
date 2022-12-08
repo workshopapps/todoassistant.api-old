@@ -211,6 +211,10 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		Repeat:      req.Repeat,
 	}
 
+	err = t.nSrv.CreateNotification(req.UserId, "Created Task", time.Now().String(), fmt.Sprintf("%s just created a new task", req.Title), "#FF0000")
+	if err != nil {
+		fmt.Println("Error Uploading Notification to DB", err)
+	}
 	body := []bodyStruct{
 		{
 			Content: fmt.Sprintf("%s Just Created a Task", req.UserId),

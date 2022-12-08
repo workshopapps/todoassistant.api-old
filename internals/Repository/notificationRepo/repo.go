@@ -11,4 +11,5 @@ type NotificationRepository interface {
 	GetTaskDetailsWhenDue(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetUserVaToken(userId string) ([]string, error)
 	GetUserToken(userId string) ([]string, error)
+	CreateNotification(userId, title, time, content, color string) error
 }

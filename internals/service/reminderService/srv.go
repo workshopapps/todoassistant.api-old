@@ -229,6 +229,12 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		log.Println("setting status to expired")
 		r.repo.SetTaskToExpired(taskId)
 
+		//Upload the Notifications to DB
+		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), "#FF0000")
+		if err != nil {
+			fmt.Println("Error Uploading Notification to DB", err)
+		}
+		//Send Notifications to Firebase
 		vaTokens, err := r.nSrv.GetUserVaToken(data.UserId)
 		if err != nil {
 			fmt.Println("Error Getting VA Tokens", err)
@@ -367,6 +373,7 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 			fmt.Println("No Notifications to Send Just Yet", tasks)
 			return
 		}
+
 		for k, v := range tasks {
 			body := []bodyStruct{
 				{
@@ -424,7 +431,7 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
 		SELECT T.task_id, T.user_id, T.title,T.description, T.end_time, N.device_id
-		FROM Tasks T join Notifications N on T.user_id = N.user_id
+		FROM Tasks T join Notification_Tokens N on T.user_id = N.user_id
 		WHERE status = 'PENDING';
 	`)
 	var tasks []taskEntity.GetPendingTasks
@@ -448,7 +455,7 @@ func getExpiredTasks(conn *sql.DB) ([]notificationEntity.GetExpiredTasksWithDevi
 	stmt := fmt.Sprint(`
 		SELECT task_id, Tasks.user_id, title ,description, end_time, device_id, va_id
 		FROM Tasks
-		INNER JOIN Notifications ON Tasks.user_id = Notifications.user_id
+		INNER JOIN Notification_Tokens ON Tasks.user_id = Notification_Tokens.user_id
 		WHERE Tasks.status = 'EXPIRED';
 	`)
 
