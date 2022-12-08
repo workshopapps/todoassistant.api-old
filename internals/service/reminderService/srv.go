@@ -235,15 +235,9 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}
 		//Send Notifications to Firebase
-		vaTokens, vaId, err := r.nSrv.GetUserVaToken(data.UserId)
+		vaTokens, err := r.nSrv.GetUserVaToken(data.UserId)
 		if err != nil {
 			fmt.Println("Error Getting VA Tokens", err)
-		}
-		if vaId != "" {
-			err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), "#FF0000")
-			if err != nil {
-				fmt.Println("Error Uploading Notification to DB", err)
-			}
 		}
 		if len(vaTokens) < 1 {
 			fmt.Println("User Has No VA, Or VA Has Not Registered For Notifications")
