@@ -24,3 +24,11 @@ type NotificationRegisterRes struct {
 	DeviceId string `json:"device_id"`
 	Message  string `json:"message"`
 }
+
+type GetNotifcationsRes struct {
+	UserId      string `json:"user_id"`
+	Title       string `json:"title"`
+	Content string `json:"content"`
+	Time     string `json:"time"`
+	Color string `json:"color"`
+}
