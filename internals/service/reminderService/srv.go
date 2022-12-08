@@ -34,12 +34,6 @@ type reminderSrv struct {
 	nSrv notificationService.NotificationSrv
 }
 
-type bodyStruct struct {
-	Content string `json:"content"`
-	Color string `json:"color"`
-	Time string `json:"time"`
-}
-
 func (r *reminderSrv) SetBiWeeklyReminder(data *taskEntity.CreateTaskReq) error {
 	s := gocron.NewScheduler(time.UTC)
 	// get string of date and convert it to Time.Time
@@ -230,7 +224,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		r.repo.SetTaskToExpired(taskId)
 
 		//Upload the Notifications to DB
-		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), "#FF0000")
+		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), notificationEntity.ExpiredColor)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}
@@ -240,7 +234,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 			fmt.Println("Error Getting VA Tokens", err)
 		}
 		if vaId != "" {
-			err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), "#FF0000")
+			err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), notificationEntity.ExpiredColor)
 			if err != nil {
 				fmt.Println("Error Uploading Notification to DB", err)
 			}
@@ -256,10 +250,10 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 			fmt.Println("User Has Not Registered For Notifications")
 		}
 
-		body := []bodyStruct{
+		body := []notificationEntity.NotificationBody{
 			{
 				Content: "This Task Has Expired",
-				Color: "#FF0000",
+				Color: notificationEntity.ExpiredColor,
 				Time: time.Now().String(),
 			},
 		}
@@ -381,10 +375,10 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 		}
 
 		for k, v := range tasks {
-			body := []bodyStruct{
+			body := []notificationEntity.NotificationBody{
 				{
 					Content: "Warning: Few Hours to Go",
-					Color: "#FF0000",
+					Color: notificationEntity.DueColor,
 					Time: time.Now().String(),
 				},
 			}
@@ -416,10 +410,10 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 		}
 
 		for k, v := range tasks {
-			body := []bodyStruct{
+			body := []notificationEntity.NotificationBody{
 				{
 					Content: "Warning: Few Hours to Go",
-					Color: "#FF0000",
+					Color: notificationEntity.DueColor,
 					Time: time.Now().String(),
 				},
 			}

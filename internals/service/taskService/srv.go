@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"test-va/internals/Repository/taskRepo"
+	"test-va/internals/entity/notificationEntity"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/entity/vaEntity"
@@ -49,12 +50,6 @@ type taskSrv struct {
 	logger        loggerService.LogSrv
 	remindSrv     reminderService.ReminderSrv
 	nSrv 		  notificationService.NotificationSrv
-}
-
-type bodyStruct struct {
-	Content string `json:"content"`
-	Color string `json:"color"`
-	Time string `json:"time"`
 }
 
 func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
@@ -214,10 +209,10 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	if err != nil {
 		fmt.Println("Error Uploading Notification to DB", err)
 	}
-	body := []bodyStruct{
+	body := []notificationEntity.NotificationBody{
 		{
 			Content: fmt.Sprintf("%s Just Created a Task", req.UserId),
-			Color: "#FF0000",
+			Color: notificationEntity.CreatedColor,
 			Time: time.Now().String(),
 		},
 	}
@@ -227,7 +222,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		fmt.Println(err)
 	}
 	if vaId != "" {
-		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.Title), "#FF0000")
+		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.Title), notificationEntity.CreatedColor)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}

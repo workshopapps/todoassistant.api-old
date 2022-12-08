@@ -9,10 +9,13 @@ import (
 
 func NotificationRoutes(v1 *gin.RouterGroup, service notificationService.NotificationSrv) {
 	notificationHandler := notificationHandler.NewNotificationHandler(service)
-	v1.POST("/notification", notificationHandler.RegisterForNotifications)
 
 	v1.Use(middlewares.ValidateJWT()) 
 	{
+		//Create a Notification
+		v1.POST("/notification", notificationHandler.RegisterForNotifications)
+
+		//Register For Notifications
 		v1.GET("/notification", notificationHandler.GetNotifications)
 	}
 }

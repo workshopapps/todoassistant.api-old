@@ -14,6 +14,18 @@ type CreateNotification struct {
 	DeviceId       string `json:"device_id"`
 }
 
+type NotificationBody struct {
+	Content string `json:"content"`
+	Color string `json:"color"`
+	Time string `json:"time"`
+}
+
+type NotificationColors struct {
+	Content string `json:"content"`
+	Color string `json:"color"`
+	Time string `json:"time"`
+}
+
 type NotificationRegisterReq struct {
 	UserId   string `json:"user_id"`
 	DeviceId string `json:"device_id"`
@@ -32,3 +44,9 @@ type GetNotifcationsRes struct {
 	Time     string `json:"time"`
 	Color string `json:"color"`
 }
+
+const (
+	CreatedColor string = "#E9F3F5"
+	DueColor string = "#FF0000"
+	ExpiredColor string = "#DB0004"
+)
