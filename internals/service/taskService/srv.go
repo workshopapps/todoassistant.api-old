@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"test-va/internals/Repository/taskRepo"
+	"test-va/internals/entity/notificationEntity"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/taskEntity"
 	"test-va/internals/entity/vaEntity"
@@ -156,7 +157,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+		err = t.remindSrv.SetReminder(req)
 
 		if err != nil {
 			log.Println(err)
@@ -191,7 +192,55 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
+
+	// insert into db
+	err = t.repo.Persist(ctx, req)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	data := taskEntity.CreateTaskRes{
+		TaskId:      req.TaskId,
+		Title:       req.Title,
+		Description: req.Description,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
+		VAOption:    req.VAOption,
+		Repeat:      req.Repeat,
+	}
+
+	if err != nil {
+		fmt.Println("Error Uploading Notification to DB", err)
+	}
+	body := []notificationEntity.NotificationBody{
+		{
+			Content: fmt.Sprintf("%s Just Created a Task", req.UserId),
+			Color: notificationEntity.CreatedColor,
+			Time: time.Now().String(),
+		},
+	}
+
+	tokens, vaId, err := t.nSrv.GetUserVaToken(req.UserId)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if vaId != "" {
+		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.Title), notificationEntity.CreatedColor)
+		if err != nil {
+			fmt.Println("Error Uploading Notification to DB", err)
+		}
+	} 
+	if len(tokens) > 0 {
+		err := t.nSrv.SendBatchNotifications(tokens, "Task Created", body, data)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println("User Has Not VA or VA Has Not Registered For Notifications")
+	}
+
 	switch req.Assigned {
+
 
 	case "assigned":
 		err = t.repo.PersistAndAssign(ctx, req)
@@ -222,6 +271,10 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		VAOption:    req.VAOption,
 		Repeat:      req.Repeat,
 	}
+
+
+	// create a reminder
+	err = t.remindSrv.SetReminder(req)
 
 	t.nSrv.SendNotificationToVA(req.UserId, "Task Created", fmt.Sprintf("%s Just Created a Task", req.UserId), data)
 
@@ -525,7 +578,7 @@ func (t *taskSrv) EditTaskByID(taskId string, req *taskEntity.EditTaskReq) (*tas
 	// create a reminder
 	switch req.Repeat {
 	case "never":
-		err = t.remindSrv.SetReminder(ndate.EndTime, ndate.TaskId)
+		err = t.remindSrv.SetReminder(ndate)
 
 		if err != nil {
 			log.Println(err)
