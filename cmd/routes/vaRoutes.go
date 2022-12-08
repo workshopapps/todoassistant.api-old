@@ -22,6 +22,7 @@ func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice
 	va.GET("/user/:va_id", handler.GetUserAssignedToVA)
 	va.GET("/user/task/:user_id", handler.GetTaskByUser)
 	va.GET("/user/profile/:user_id", handler.GetSingleUserProfile)
+	va.GET("/user/assigned-tasks/:va_id", handler.GetAllAssignedUsersTask)
 
 	va.Use(mWare.MapMasterToReq)
 	{

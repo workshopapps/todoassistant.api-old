@@ -375,6 +375,27 @@ func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *Respo
 
 }
 
+// get all tasks of user assigned to va
+func (t *taskSrv) GetAllVaTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
+	log.Println("inside Fn")
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	task, err := t.repo.GetAllTasks(ctx, userId)
+
+	if task == nil {
+		log.Println("no rows returned")
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return task, nil
+
+}
+
 func (t *taskSrv) DeleteTaskByID(taskId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
