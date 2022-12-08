@@ -47,12 +47,12 @@ func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*v
     T.end_time,
     T.status,
     T.description,
-    concat(U.first_name, ' ', U.last_name) AS 'name',
+    concat(U2.first_name, ' ', U2.last_name) AS 'name',
     T.user_id,
     U.phone
 FROM Tasks T
-         join Users U on T.va_id = U.virtual_assistant_id
-WHERE T.va_id = '%s'
+         join va_table U on T.va_id = U.va_id join Users U2 on U2.user_id = T.user_id
+WHERE T.va_id = '%s';
 ;`, vaId)
 
 	queryRow, err := s.conn.QueryContext(ctx, stmt)
@@ -634,7 +634,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 
 // Delete comment by id
 func (s *sqlRepo) DeleteCommentByID(ctx context.Context, commentId string) error {
-	log.Println("hererer",commentId)
+	log.Println("hererer", commentId)
 	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`Delete from Comments  WHERE id = '%s'`, commentId))
 	if err != nil {
 		log.Fatal(err)

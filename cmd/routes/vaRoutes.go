@@ -24,7 +24,6 @@ func VARoutes(v1 *gin.RouterGroup, service vaService.VAService, srv tokenservice
 	va.GET("/user/profile/:user_id", handler.GetSingleUserProfile)
 
 	va.Use(mWare.MapMasterToReq)
-
 	{
 		//master middleware
 		va.POST("/signup", handler.SignUp)
