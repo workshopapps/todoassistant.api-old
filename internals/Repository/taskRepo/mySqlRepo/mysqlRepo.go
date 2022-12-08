@@ -504,9 +504,25 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 // Delete task by id
 func (s *sqlRepo) DeleteTaskByID(ctx context.Context, taskId string) error {
 
-	_, err := s.conn.ExecContext(ctx, fmt.Sprintf(`Delete from Tasks  WHERE task_id = '%s'`, taskId))
+	tx, err := s.conn.BeginTx(ctx,nil)
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Comments Where task_id = '%s'`,taskId))
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Tasks  WHERE task_id = '%s'`, taskId))
+	if err != nil {
+		return err
 	}
 	return nil
 }
