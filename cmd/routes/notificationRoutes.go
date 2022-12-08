@@ -15,9 +15,9 @@ func NotificationRoutes(v1 *gin.RouterGroup, service notificationService.Notific
 	not.Use(middlewares.ValidateJWT())
 	{
 		//Create a Notification
-		not.POST("/notification", notificationHandler.RegisterForNotifications)
+		not.POST("", notificationHandler.RegisterForNotifications)
 
 		//Register For Notifications
-		not.GET("/notification", notificationHandler.GetNotifications)
+		not.GET("", notificationHandler.GetNotifications)
 	}
 }
