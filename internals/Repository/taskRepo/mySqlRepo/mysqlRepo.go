@@ -52,7 +52,8 @@ func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*v
     U.phone
 FROM Tasks T
          join va_table U on T.va_id = U.va_id join Users U2 on U2.user_id = T.user_id
-WHERE T.va_id = '%s';
+WHERE T.va_id = '%s'
+ORDER BY T.created_at DESC 
 ;`, vaId)
 
 	queryRow, err := s.conn.QueryContext(ctx, stmt)
