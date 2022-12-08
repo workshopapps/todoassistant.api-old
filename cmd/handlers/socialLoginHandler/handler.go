@@ -26,6 +26,7 @@ func (t *socialLoginHandler) GoogleLogin(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 
 	if err != nil {
+		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
 		return
@@ -55,6 +56,7 @@ func (t *socialLoginHandler) FacebookLogin(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 
 	if err != nil {
+		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err, nil))
 		return
@@ -63,6 +65,7 @@ func (t *socialLoginHandler) FacebookLogin(c *gin.Context) {
 	user, errorRes := t.srv.FacebookLoginResponse(&req)
 
 	if errorRes != nil {
+		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
 			ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "Authorization Error", errorRes, nil))
 		return
@@ -70,7 +73,7 @@ func (t *socialLoginHandler) FacebookLogin(c *gin.Context) {
 
 	log.Println("userid -", user.UserId)
 	c.Set("userId", user.UserId)
-	println(c.GetString("userId"))
+
     
 	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK,"login successful",user,nil))
 	
