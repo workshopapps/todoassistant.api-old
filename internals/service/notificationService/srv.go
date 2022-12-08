@@ -19,8 +19,9 @@ type NotificationSrv interface {
 	SendNotification(token, title string, body, data interface{}) error
 	SendBatchNotifications(tokens []string, title string, body, data interface{}) error 
 	SendVaNotification(token, title, body string, taskId string) error
-	GetUserVaToken(userId string) ([]string, error)
+	GetUserVaToken(userId string) ([]string, string, error)
 	GetUserToken(userId string) ([]string, error)
+	GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, *ResponseEntity.ServiceError)
 	GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetTasksToExpireInAFewHours() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	CreateNotification(userId, title, time, content, color string) error
@@ -161,7 +162,7 @@ func (n notificationSrv) RegisterForNotifications(req *notificationEntity.Create
 	return nil
 }
 
-func (n notificationSrv) GetUserVaToken(userId string) ([]string, error) {
+func (n notificationSrv) GetUserVaToken(userId string) ([]string, string, error) {
 	return n.repo.GetUserVaToken(userId)
 }
 
@@ -230,5 +231,13 @@ func (n notificationSrv) GetTasksToExpireInAFewHours() (map[string][]notificatio
 
 func (n notificationSrv) CreateNotification(userId, title, time, content, color string) error {
 	return n.repo.CreateNotification(userId, title, time, content, color)
+}
+
+func (n notificationSrv) GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, *ResponseEntity.ServiceError) {
+	notifications, err := n.repo.GetNotifications(userId)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return notifications, nil 
 }
 

@@ -9,7 +9,8 @@ type NotificationRepository interface {
 	GetTasksToExpireToday(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetTasksToExpireInAFewHours(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetTaskDetailsWhenDue(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
-	GetUserVaToken(userId string) ([]string, error)
+	GetUserVaToken(userId string) ([]string, string, error)
 	GetUserToken(userId string) ([]string, error)
 	CreateNotification(userId, title, time, content, color string) error
+	GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, error)
 }
