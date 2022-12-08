@@ -16,6 +16,6 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-taskman.json
+taskman-firebase-adminsdk.json
 app.env
 tmp
