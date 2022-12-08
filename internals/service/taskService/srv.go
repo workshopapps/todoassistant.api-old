@@ -192,12 +192,6 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
-	// insert into db
-	err = t.repo.Persist(ctx, req)
-	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewInternalServiceError(err)
-	}
 	data := taskEntity.CreateTaskRes{
 		TaskId:      req.TaskId,
 		Title:       req.Title,
