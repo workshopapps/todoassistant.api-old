@@ -33,6 +33,8 @@ import (
 	"test-va/utils"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+
 	"github.com/go-co-op/gocron"
 
 	_ "test-va/docs"
@@ -47,6 +49,18 @@ import (
 )
 
 func Setup() {
+	// set up sentry
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://cffbc6e0ff4c480bb9ad07108811485b@o4504281294176256.ingest.sentry.io/4504282768539648",
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
 
 	//Load configurations
 	config, err := utils.LoadConfig("./")

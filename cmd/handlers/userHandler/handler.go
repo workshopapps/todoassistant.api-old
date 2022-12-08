@@ -56,7 +56,7 @@ func (u *userHandler) Login(c *gin.Context) {
 	log.Println("userid -", user.UserId)
 	c.Set("userId", user.UserId)
 	println(c.GetString("userId"))
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusAccepted, "Login Successful", user, nil))
 }
 
 func (u *userHandler) GetUsers(c *gin.Context) {

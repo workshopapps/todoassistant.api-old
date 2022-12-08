@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"test-va/internals/Repository/taskRepo"
 	"test-va/internals/entity/notificationEntity"
 	"test-va/internals/entity/ResponseEntity"
@@ -41,6 +42,7 @@ type TaskService interface {
 	//comments
 	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
 	GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
+	DeleteCommentByID(commentId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -124,7 +126,7 @@ func (t *taskSrv) GetPendingTasks(userId string) ([]*taskEntity.GetPendingTasksR
 
 func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
-	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Second*60)
 	defer cancelFunc()
 
 	// implement validation for struct
@@ -190,6 +192,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		return nil, ResponseEntity.NewInternalServiceError("Bad Recurrent Input(check enum data)")
 	}
 
+
 	// insert into db
 	err = t.repo.Persist(ctx, req)
 	if err != nil {
@@ -236,63 +239,102 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		fmt.Println("User Has Not VA or VA Has Not Registered For Notifications")
 	}
 
-	return &data, nil
+	switch req.Assigned {
 
-}
 
-func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
-	// create context of 1 minute
-	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
-	defer cancelFunc()
+	case "assigned":
+		err = t.repo.PersistAndAssign(ctx, req)
+		if err != nil {
+			log.Println(err)
+			if strings.Contains(err.Error(), `"virtual_Assistant_id": converting NULL to string is unsupported`) {
+				return nil, ResponseEntity.NewInternalServiceError("YOU DON'T HAVE A VA. GET YA MONEY UP. BROKE BOY.")
+			}
 
-	// implement validation for struct
+			return nil, ResponseEntity.NewInternalServiceError(err)
+		}
+	default:
+		// insert into db
+		err = t.repo.Persist(ctx, req)
+		if err != nil {
+			log.Println(err)
+			return nil, ResponseEntity.NewInternalServiceError(err)
+		}
 
-	err := t.validationSrv.Validate(req)
-	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
 	}
 
-	//check if timeDueDate and StartDate is valid
-	err = t.timeSrv.CheckFor339Format(req.EndTime)
-	if err != nil {
-		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
-	}
-
-	err = t.timeSrv.CheckFor339Format(req.StartTime)
-	if err != nil {
-		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
-	}
-
-	//set time
-	req.CreatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
-	//set id
-	req.TaskId = uuid.New().String()
-	req.Status = "PENDING"
-	// insert into db
-	err = t.repo.Persist(ctx, req)
-	if err != nil {
-		log.Println(err, "rrrr")
-		return nil, ResponseEntity.NewInternalServiceError(err)
-	}
 	data := taskEntity.CreateTaskRes{
 		TaskId:      req.TaskId,
 		Title:       req.Title,
 		Description: req.Description,
 		StartTime:   req.StartTime,
 		EndTime:     req.EndTime,
+		VAOption:    req.VAOption,
+		Repeat:      req.Repeat,
 	}
+
 
 	// create a reminder
 	err = t.remindSrv.SetReminder(req)
 
-	if err != nil {
-		log.Println(err)
-		return nil, ResponseEntity.NewInternalServiceError(err)
-	}
+	t.nSrv.SendNotificationToVA(req.UserId, "Task Created", fmt.Sprintf("%s Just Created a Task", req.UserId), data)
+
 	return &data, nil
 
 }
+
+//func (t *taskSrv) CreateTask(req *taskEntity.CreateTaskReq) (*taskEntity.CreateTaskRes, *ResponseEntity.ServiceError) {
+//	// create context of 1 minute
+//	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+//	defer cancelFunc()
+//
+//	// implement validation for struct
+//
+//	err := t.validationSrv.Validate(req)
+//	if err != nil {
+//		log.Println(err)
+//		return nil, ResponseEntity.NewValidatingError("Bad Data Input")
+//	}
+//
+//	//check if timeDueDate and StartDate is valid
+//	err = t.timeSrv.CheckFor339Format(req.EndTime)
+//	if err != nil {
+//		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
+//	}
+//
+//	err = t.timeSrv.CheckFor339Format(req.StartTime)
+//	if err != nil {
+//		return nil, ResponseEntity.NewCustomServiceError("Bad Time Input", err)
+//	}
+//
+//	//set time
+//	req.CreatedAt = t.timeSrv.CurrentTime().Format(time.RFC3339)
+//	//set id
+//	req.TaskId = uuid.New().String()
+//	req.Status = "PENDING"
+//	// insert into db
+//	err = t.repo.Persist(ctx, req)
+//	if err != nil {
+//		log.Println(err, "rrrr")
+//		return nil, ResponseEntity.NewInternalServiceError(err)
+//	}
+//	data := taskEntity.CreateTaskRes{
+//		TaskId:      req.TaskId,
+//		Title:       req.Title,
+//		Description: req.Description,
+//		StartTime:   req.StartTime,
+//		EndTime:     req.EndTime,
+//	}
+//
+//	// create a reminder
+//	err = t.remindSrv.SetReminder(req.EndTime, req.TaskId)
+//
+//	if err != nil {
+//		log.Println(err)
+//		return nil, ResponseEntity.NewInternalServiceError(err)
+//	}
+//	return &data, nil
+//
+//}
 
 func (t *taskSrv) SearchTask(title *taskEntity.SearchTitleParams) ([]*taskEntity.SearchTaskRes, *ResponseEntity.ServiceError) {
 	// create context of 1 minute
@@ -629,4 +671,18 @@ func (t *taskSrv) GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *R
 	}
 	return comments, nil
 
+}
+
+// delete comment By ID
+func (t *taskSrv) DeleteCommentByID(commentId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	err := t.repo.DeleteCommentByID(ctx, commentId)
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return ResponseEntity.BuildSuccessResponse(http.StatusOK, "Deleted successfully", nil, nil), nil
 }

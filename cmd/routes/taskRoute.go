@@ -30,6 +30,8 @@ func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokens
 		task.POST("/status/:taskId", handler.UpdateUserStatus) //Update User Status
 		task.GET("/comment/:taskId", handler.GetComments)      //get all comment on task
 		task.POST("/comment", handler.CreateComment)           //comment on task
+		task.DELETE("/comment/:commentId", handler.DeleteComment)   //delete comment
+		//task.PUT("/comment", handler.CreateComment)   //edit comment
 		task.PUT("/:taskId", handler.EditTaskById)             //EditTaskById
 		task.GET("/search", handler.SearchTask)
 
