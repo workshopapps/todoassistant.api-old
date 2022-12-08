@@ -279,3 +279,29 @@ func (v *vaHandler) GetSingleUserProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
 		"Found User Successfully", user, nil))
 }
+
+func (v *vaHandler) GetAllAssignedUsersTask(c *gin.Context) {
+	param := c.Param("va_id")
+	if param == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Va Id in url"})
+		return
+	}
+	log.Println(param)
+
+	task, serviceError := v.taskSrv.GetTaskAssignedToVA(param)
+	if serviceError != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+				"Error Task ", serviceError, nil))
+		return
+	}
+
+	if len(task) == 0 {
+		c.JSON(http.StatusOK, ResponseEntity.BuildErrorResponse(http.StatusOK,
+			"No Task Found", "", nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK,
+		"Found Tasks Successfully", task, nil))
+}
