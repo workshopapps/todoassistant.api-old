@@ -236,7 +236,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 			fmt.Println("Error Getting VA Tokens", err)
 		}
 		if vaId != "" {
-			err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), notificationEntity.ExpiredColor)
+			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), notificationEntity.ExpiredColor)
 			if err != nil {
 				fmt.Println("Error Uploading Notification to DB", err)
 			}
@@ -379,13 +379,13 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 		for k, v := range tasks {
 			body := []notificationEntity.NotificationBody{
 				{
-					Content: "Warning: Few Hours to Go",
+					Content: fmt.Sprintf("You Have %v tasks due today", len(v)),
 					Color: notificationEntity.DueColor,
 					Time: time.Now().String(),
 				},
 			}
 
-			err = r.nSrv.SendNotification(k, "Due Today", body, v)
+			err = r.nSrv.SendNotification(k, "Due Today", body, v[0])
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -414,13 +414,13 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 		for k, v := range tasks {
 			body := []notificationEntity.NotificationBody{
 				{
-					Content: "Warning: Few Hours to Go",
+					Content: fmt.Sprintf("You Have %v tasks due in a few hours", len(v)),
 					Color: notificationEntity.DueColor,
 					Time: time.Now().String(),
 				},
 			}
 
-			err = r.nSrv.SendNotification(k, "Due Shortly", body, v)
+			err = r.nSrv.SendNotification(k, "Due Shortly", body, v[0])
 			if err != nil {
 				fmt.Println(err)
 				return
