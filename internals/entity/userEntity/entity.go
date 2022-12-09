@@ -121,16 +121,16 @@ type ResetPasswordWithTokenRes struct {
 
 type GoogleLoginReq struct {
 	Id            string `json:"googleId"`
-	FirstName     string `json:"givenName"`
-	LastName      string `json:"familyName"`
-	Email         string `json:"email"`
+	FirstName     string `json:"givenName" binding:"required"`
+	LastName      string `json:"familyName" binding:"required"`
+	Email         string `json:"email" binding:"required,email"`
 	Profile       string `json:"imageUrl"`
-	Name 		  string `json:"name"`
+	Name 		  string `json:"name" binding:"required"`
 }
 
 
 type FacebookLoginReq struct {
-	Email         string `json:"email"`
-	Name 		  string `json:"name"`
+	Email         string `json:"email" binding:"required,email"`
+	Name 		  string `json:"name" binding:"required"`
 
 }

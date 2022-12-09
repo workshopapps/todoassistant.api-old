@@ -10,6 +10,7 @@ import (
 	"test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
+	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	mySqlRepo4 "test-va/internals/Repository/subscribeRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
@@ -17,6 +18,7 @@ import (
 	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
+	"test-va/internals/service/callService"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/emailService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
@@ -133,6 +135,9 @@ func Setup() {
 	//user repo service
 	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
 
+	//call repo service
+	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
+
 	//notification repo service
 	notificationRepo := mySqlNotifRepo.NewMySqlNotificationRepo(conn)
 
@@ -211,6 +216,9 @@ func Setup() {
 	// user service
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv)
 
+	//call service
+	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
+
 	// social login service
 
 	loginSrv := socialLoginService.NewLoginSrv(userRepo, timeSrv)
@@ -256,6 +264,10 @@ func Setup() {
 
 	//handle task routes
 	routes.TaskRoutes(v1, taskSrv, srv)
+
+	
+	//handle call routes
+	routes.CallRoute(v1, callSrv)
 
 	//handle Notifications
 	routes.NotificationRoutes(v1, notificationSrv)
