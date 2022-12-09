@@ -148,9 +148,10 @@ type AssignReq struct {
 
 type CreateCommentReq struct {
 	TaskId    string `json:"task_id" validate:"required"`
-	UserId    string `json:"user_id" validate:"required"`
+	SenderId  string `json:"sender_id" validate:"required"`
 	Comment   string `json:"comment" validate:"required,min=3"`
 	CreatedAt string `json:"created_at"`
+	Status    string `json:"status" validate:"required,min=3"`
 }
 
 type CreateCommentRes struct {
@@ -162,7 +163,8 @@ type CreateCommentRes struct {
 type GetCommentRes struct {
 	Id    	  string `json:"id"`
 	TaskId    string `json:"task_id"`
-	UserId    string `json:"user_id"`
+	SenderId    string `json:"sender_id"`
 	Comment   string `json:"comment"`
 	CreatedAt string `json:"created_at"`
+	Status    string `json:"status"`
 }
