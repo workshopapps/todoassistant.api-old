@@ -365,7 +365,7 @@ func (t *taskHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	req.UserId = value
+	req.SenderId = value
 	comment, errRes := t.srv.PersistComment(&req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
@@ -387,6 +387,7 @@ func (t *taskHandler) GetComments(c *gin.Context) {
 	}
 
 	taskId := c.Params.ByName("taskId")
+	log.Println(taskId)
 	if taskId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
