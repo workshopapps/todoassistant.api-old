@@ -3,7 +3,7 @@ module test-va
 go 1.19
 
 require (
-	github.com/appoptics/appoptics-apm-go/v1/ao
+	github.com/appoptics/appoptics-apm-go/v1/ao v1.7.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
