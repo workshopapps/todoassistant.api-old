@@ -53,7 +53,7 @@ func (s *sqlRepo) GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*v
 FROM Tasks T
          join va_table U on T.va_id = U.va_id join Users U2 on U2.user_id = T.user_id
 WHERE T.va_id = '%s'
-ORDER BY T.created_at DESC 
+ORDER BY T.created_at DESC
 ;`, vaId)
 
 	queryRow, err := s.conn.QueryContext(ctx, stmt)
@@ -592,13 +592,14 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error
 func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateCommentReq) error {
 
 	stmt := fmt.Sprintf(`INSERT INTO Comments(
-                  user_id,
+                  sender_id,
                   task_id,
                   comment,
-				  created_at
+				  created_at,
+				  status
                   )
-	VALUES ('%v','%v','%v','%v')
-	`, req.UserId, req.TaskId, req.Comment, req.CreatedAt)
+	VALUES ('%v','%v','%v','%v','%v')
+	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt,req.Status)
 
 	_, err := s.conn.Exec(stmt)
 	if err != nil {
@@ -620,7 +621,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT id, user_id, task_id, comment, created_at
+		SELECT id, sender_id, task_id, comment, created_at,status
 		FROM Comments WHERE task_id = '%s'`, taskId)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -636,10 +637,12 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 
 		err := rows.Scan(
 			&singleTask.Id,
-			&singleTask.UserId,
+			&singleTask.SenderId,
 			&singleTask.TaskId,
 			&singleTask.Comment,
 			&singleTask.CreatedAt,
+			&singleTask.Status,
+
 		)
 		if err != nil {
 			return nil, err
