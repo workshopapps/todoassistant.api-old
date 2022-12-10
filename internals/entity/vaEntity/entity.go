@@ -97,9 +97,23 @@ type VATask struct {
 	Title       string `json:"title"`
 	EndTime     string `json:"end_time"`
 	Description string `json:"description"`
+	VaOption    string `json:"va_option"`
+	VaId		string `json:"va_id"`
 	Status      string `json:"status"`
 	User        VAUser `json:"user"`
 }
+
+type VATaskAll struct {
+	TaskId      string `json:"task_id"`
+	Title       string `json:"title"`
+	EndTime     string `json:"end_time"`
+	Description string `json:"description"`
+	VaOption    string `json:"va_option"`
+	VaId		string `json:"va_id"`
+	Status      string `json:"status"`
+	User        VAUser `json:"user"`
+}
+
 
 type VAUser struct {
 	UserId string `json:"user_id"`

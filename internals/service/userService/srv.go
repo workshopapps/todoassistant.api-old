@@ -168,19 +168,22 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userEntity.ProfileImageRes, error) {
 	var res userEntity.ProfileImageRes
 	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
-
+	log.Println("heererrerer")
 	fileName := fmt.Sprintf("%s/%s.%s", userId, uuid.New().String(), fileType)
-	err := u.awsSrv.UploadImage(file, fileName) // uploadObject(file, fileName)
+
+	err := uploadObject(file, fileName)
+
 	if err != nil {
 		return nil, err
 	}
 
 	res.Image = fmt.Sprintf("https://ticked-v1-backend-bucket.s3.amazonaws.com/%v", fileName)
 	err = u.repo.UpdateImage(userId, res.Image)
+	log.Println("heererrerer 2")
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println("heererrerer 3")
 	res.Size = file.Size
 	res.FileType = fileType
 	return &res, nil
@@ -432,7 +435,7 @@ func uploadObject(file *multipart.FileHeader, filename string) error {
 		return err
 	}
 	defer image.Close()
-
+	log.Println("heererrerer from upload object")
 	_, err = s3session.PutObject(&s3.PutObjectInput{
 		Body:        image,
 		Bucket:      aws.String("ticked-v1-backend-bucket"),
