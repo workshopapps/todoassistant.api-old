@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	firebase.google.com/go v3.13.0+incompatible
+	github.com/aws/aws-sdk-go v1.44.157
 	github.com/getsentry/sentry-go v0.16.0
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
