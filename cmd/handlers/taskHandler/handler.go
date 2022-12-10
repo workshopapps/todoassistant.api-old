@@ -165,11 +165,7 @@ func (t *taskHandler) GetAllTask(c *gin.Context) {
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
 		return
 	}
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
-		return
-	}
+
 	task, errRes := t.srv.GetAllTask(userId)
 	if task == nil {
 		message := "no Task with id " + userId + " exists"

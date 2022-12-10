@@ -1,6 +1,7 @@
 package userHandler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -119,6 +120,29 @@ func (u *userHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+func (u *userHandler) UploadImage(c *gin.Context) {
+	userId := c.GetString("userId")
+	fmt.Println(userId)
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusUnauthorized, "You are not allowed to access this resource", nil, nil))
+		return
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Error getting uploaded file", err, nil))
+		return
+	}
+
+	userImage, err := u.srv.UploadImage(file, userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error saving image", err, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Image uploaded successfully", userImage, nil))
+}
+
 func (u *userHandler) ChangePassword(c *gin.Context) {
 	var req userEntity.ChangePasswordReq
 	userId := c.GetString("userId")
@@ -200,6 +224,7 @@ func (u *userHandler) AssignVAToUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no user_id or va_id provided", nil, nil))
 		return
 	}
+
 	err := u.srv.AssignVAToUser(user_id, va_id)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.NewInternalServiceError(err))

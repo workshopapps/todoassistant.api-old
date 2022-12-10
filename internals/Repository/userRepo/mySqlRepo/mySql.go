@@ -98,7 +98,7 @@ func (m *mySql) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 
 func (m *mySql) GetByEmail(email string) (*userEntity.GetByEmailRes, error) {
 	query := fmt.Sprintf(`
-		SELECT user_id, email, password, first_name, last_name, phone, gender 
+		SELECT user_id, email, password, first_name, last_name, phone, gender, avatar
 		FROM Users
 		WHERE email = '%s'
 	`, email)
@@ -112,6 +112,7 @@ func (m *mySql) GetByEmail(email string) (*userEntity.GetByEmailRes, error) {
 		&user.LastName,
 		&user.Phone,
 		&user.Gender,
+		&user.Avatar,
 	)
 	if err != nil {
 		fmt.Println(err)
@@ -122,7 +123,7 @@ func (m *mySql) GetByEmail(email string) (*userEntity.GetByEmailRes, error) {
 
 func (m *mySql) GetById(user_id string) (*userEntity.GetByIdRes, error) {
 	query := fmt.Sprintf(`
-		SELECT user_id, password, email, first_name, last_name, phone, gender 
+		SELECT user_id, password, email, first_name, last_name, phone, gender, avatar
 		FROM Users
 		WHERE user_id = '%s'
 	`, user_id)
@@ -137,6 +138,7 @@ func (m *mySql) GetById(user_id string) (*userEntity.GetByIdRes, error) {
 		&user.LastName,
 		&user.Phone,
 		&user.Gender,
+		&user.Avatar,
 	)
 
 	if err != nil {
@@ -183,6 +185,22 @@ func (m *mySql) UpdateUser(req *userEntity.UpdateUserReq, userId string) error {
                  gender='%s',
                  date_of_birth='%s' WHERE user_id ='%s'
                  `, req.FirstName, req.LastName, req.Email, req.Phone, req.Gender, req.DateOfBirth, userId)
+
+	_, err := m.conn.ExecContext(ctx, stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *mySql) UpdateImage(userId, fileName string) error {
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Second*60)
+	defer cancelFunc()
+
+	stmt := fmt.Sprintf(`UPDATE Users SET 
+                 avatar = '%s'
+                 WHERE user_id ='%s'
+                 `, fileName, userId)
 
 	_, err := m.conn.ExecContext(ctx, stmt)
 	if err != nil {

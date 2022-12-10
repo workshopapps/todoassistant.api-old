@@ -19,3 +19,4 @@
 taskman-firebase-adminsdk.json
 app.env
 tmp
+.aws/
