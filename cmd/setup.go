@@ -48,6 +48,7 @@ import (
 	"github.com/pusher/pusher-http-go"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.atatus.com/agent/module/atgin"
 )
 
 func Setup() {
@@ -235,6 +236,7 @@ func Setup() {
 	v1 := r.Group("/api/v1")
 
 	// Middlewares
+	v1.Use(atgin.Middleware(r))
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	v1.Use(gzip.Gzip(gzip.DefaultCompression))
@@ -265,7 +267,7 @@ func Setup() {
 	//handle task routes
 	routes.TaskRoutes(v1, taskSrv, srv)
 
-	
+
 	//handle call routes
 	routes.CallRoute(v1, callSrv)
 
