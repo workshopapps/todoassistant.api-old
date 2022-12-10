@@ -18,6 +18,9 @@ import (
 	"test-va/internals/service/validationService"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 )
 
@@ -170,17 +173,20 @@ func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userE
 	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
 
 	fileName := fmt.Sprintf("%s/%s.%s", userId, uuid.New().String(), fileType)
-	err := u.awsSrv.UploadImage(file, fileName) // uploadObject(file, fileName)
+
+	err := u.awsSrv.UploadImage(file, fileName)
+
 	if err != nil {
 		return nil, err
 	}
 
 	res.Image = fmt.Sprintf("https://ticked-v1-backend-bucket.s3.amazonaws.com/%v", fileName)
 	err = u.repo.UpdateImage(userId, res.Image)
+	log.Println("heererrerer 2")
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println("heererrerer 3")
 	res.Size = file.Size
 	res.FileType = fileType
 	return &res, nil
@@ -426,28 +432,4 @@ func CreateMessageBody(firstName, lastName, token string) string {
 
 func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, awsSrv awsService.AWSService) UserSrv {
 	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, awsSrv: awsSrv}
-func uploadObject(file *multipart.FileHeader, filename string) error {
-	image, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer image.Close()
-
-	_, err = s3session.PutObject(&s3.PutObjectInput{
-		Body:        image,
-		Bucket:      aws.String("ticked-v1-backend-bucket"),
-		Key:         aws.String(filename),
-		ContentType: aws.String("image/jpeg"),
-		// ACL:    aws.String(s3.BucketCannedACLPublicRead),
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, tokenSrv tokenservice.TokenSrv) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, tokenSrv: tokenSrv}
 }
