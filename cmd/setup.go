@@ -10,15 +10,15 @@ import (
 	"test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
-	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	mySqlRepo4 "test-va/internals/Repository/subscribeRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
 	mySqlRepo2 "test-va/internals/Repository/userRepo/mySqlRepo"
 	mySqlRepo3 "test-va/internals/Repository/vaRepo/mySqlRepo"
+	awss3 "test-va/internals/amazon/awsS3"
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
-	"test-va/internals/service/callService"
+	"test-va/internals/service/awsService"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/emailService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
@@ -48,7 +48,6 @@ import (
 	"github.com/pusher/pusher-http-go"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"go.atatus.com/agent/module/atgin"
 )
 
 func Setup() {
@@ -119,6 +118,16 @@ func Setup() {
 		log.Fatal("smtp port not found")
 	}
 
+	AWSAccess := config.AWSAccess
+	if AWSAccess == "" {
+		log.Fatal("AWS Access Key not found")
+	}
+
+	AWSSecret := config.AWSSecret
+	if AWSSecret == "" {
+		log.Fatal("AWS Secret Key not found")
+	}
+
 	//Repo
 
 	//db service
@@ -135,9 +144,6 @@ func Setup() {
 
 	//user repo service
 	userRepo := mySqlRepo2.NewMySqlUserRepo(conn)
-
-	//call repo service
-	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 
 	//notification repo service
 	notificationRepo := mySqlNotifRepo.NewMySqlNotificationRepo(conn)
@@ -167,6 +173,13 @@ func Setup() {
 		fmt.Println("Could Not Send Message", err)
 	}
 
+	// s3 init
+	s3session, err := awss3.NewAWSSession(AWSAccess, AWSSecret, "")
+	if err != nil {
+		log.Println("Error Connecting to AWS S3: ", err)
+		return
+	}
+	// fmt.Println(s3session)
 	// create cron tasks for checking if time is due
 
 	//callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
@@ -205,6 +218,8 @@ func Setup() {
 	//crypto service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	awsSrv := awsService.NewAWSSrv(s3session)
+
 	//email service
 	emailSrv := emailService.NewEmailSrv(fromEmailAddr, smtpPWD, smtpHost, smtpPort)
 
@@ -215,10 +230,7 @@ func Setup() {
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv, notificationSrv)
 
 	// user service
-	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv)
-
-	//call service
-	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
+	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv, awsSrv)
 
 	// social login service
 
@@ -237,7 +249,6 @@ func Setup() {
 	v1 := r.Group("/api/v1")
 
 	// Middlewares
-	v1.Use(atgin.Middleware(r))
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	v1.Use(gzip.Gzip(gzip.DefaultCompression))
@@ -267,10 +278,6 @@ func Setup() {
 
 	//handle task routes
 	routes.TaskRoutes(v1, taskSrv, srv)
-
-
-	//handle call routes
-	routes.CallRoute(v1, callSrv)
 
 	//handle Notifications
 	routes.NotificationRoutes(v1, notificationSrv)

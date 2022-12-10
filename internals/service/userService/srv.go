@@ -10,6 +10,7 @@ import (
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/emailEntity"
 	"test-va/internals/entity/userEntity"
+	"test-va/internals/service/awsService"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/emailService"
 	"test-va/internals/service/timeSrv"
@@ -17,9 +18,6 @@ import (
 	"test-va/internals/service/validationService"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 )
 
@@ -43,16 +41,7 @@ type userSrv struct {
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
 	emailSrv  emailService.EmailService
-}
-
-var (
-	s3session *s3.S3
-)
-
-func init() {
-	s3session = s3.New(session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1"),
-	})))
+	awsSrv    awsService.AWSService
 }
 
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
@@ -171,7 +160,7 @@ func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userE
 	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
 
 	fileName := fmt.Sprintf("%s/%s.%s", userId, uuid.New().String(), fileType)
-	err := uploadObject(file, fileName)
+	err := u.awsSrv.UploadImage(file, fileName) // uploadObject(file, fileName)
 	if err != nil {
 		return nil, err
 	}
@@ -424,28 +413,6 @@ func CreateMessageBody(firstName, lastName, token string) string {
 	return string(message)
 }
 
-func uploadObject(file *multipart.FileHeader, filename string) error {
-	image, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer image.Close()
-
-	_, err = s3session.PutObject(&s3.PutObjectInput{
-		Body:        image,
-		Bucket:      aws.String("ticked-v1-backend-bucket"),
-		Key:         aws.String(filename),
-		ContentType: aws.String("image/jpeg"),
-		// ACL:    aws.String(s3.BucketCannedACLPublicRead),
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv}
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, awsSrv awsService.AWSService) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, awsSrv: awsSrv}
 }
