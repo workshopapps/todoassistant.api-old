@@ -10,6 +10,7 @@ import (
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/emailEntity"
 	"test-va/internals/entity/userEntity"
+	"test-va/internals/service/awsService"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/emailService"
 	"test-va/internals/service/timeSrv"
@@ -17,9 +18,6 @@ import (
 	"test-va/internals/service/validationService"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 )
 
@@ -43,6 +41,9 @@ type userSrv struct {
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
 	emailSrv  emailService.EmailService
+
+	awsSrv    awsService.AWSService
+	tokenSrv tokenservice.TokenSrv
 }
 
 var (
@@ -71,8 +72,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
 	}
 
-	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, "user", req.Email)
+	token, refreshToken, errToken := u.tokenSrv.CreateToken(user.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -124,8 +124,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
-	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, "user", req.Email)
+	token, refreshToken, errToken := u.tokenSrv.CreateToken(req.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -171,7 +170,7 @@ func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userE
 	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
 
 	fileName := fmt.Sprintf("%s/%s.%s", userId, uuid.New().String(), fileType)
-	err := uploadObject(file, fileName)
+	err := u.awsSrv.UploadImage(file, fileName) // uploadObject(file, fileName)
 	if err != nil {
 		return nil, err
 	}
@@ -424,6 +423,9 @@ func CreateMessageBody(firstName, lastName, token string) string {
 	return string(message)
 }
 
+
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, awsSrv awsService.AWSService) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, awsSrv: awsSrv}
 func uploadObject(file *multipart.FileHeader, filename string) error {
 	image, err := file.Open()
 	if err != nil {
@@ -446,6 +448,6 @@ func uploadObject(file *multipart.FileHeader, filename string) error {
 	return nil
 }
 
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv}
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, tokenSrv tokenservice.TokenSrv) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, tokenSrv: tokenSrv}
 }

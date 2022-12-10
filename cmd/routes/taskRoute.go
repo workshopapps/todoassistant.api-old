@@ -13,12 +13,13 @@ import (
 
 func TaskRoutes(v1 *gin.RouterGroup, service taskService.TaskService, srv tokenservice.TokenSrv) {
 	mWare := vaMiddleware.NewVaMiddleWare(srv)
+	jwtMWare := middlewares.NewJWTMiddleWare(srv)
 
 	handler := taskHandler.NewTaskHandler(service)
 	task := v1.Group("/task")
 	task2 := v1.Group("/task")
 
-	task.Use(middlewares.ValidateJWT())
+	task.Use(jwtMWare.ValidateJWT())
 	{
 		task.POST("", handler.CreateTask)
 		task.GET("/:taskId", handler.GetTaskByID)
