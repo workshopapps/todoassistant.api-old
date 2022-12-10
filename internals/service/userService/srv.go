@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"mime/multipart"
+	"strings"
 	"test-va/internals/Repository/userRepo"
 	"test-va/internals/entity/ResponseEntity"
 	"test-va/internals/entity/emailEntity"
@@ -15,6 +17,9 @@ import (
 	"test-va/internals/service/validationService"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 )
 
@@ -24,6 +29,7 @@ type UserSrv interface {
 	GetUsers(page int) ([]*userEntity.UsersRes, error)
 	GetUser(user_id string) (*userEntity.GetByIdRes, error)
 	UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError)
+	UploadImage(file *multipart.FileHeader, userId string) (*userEntity.ProfileImageRes, error)
 	ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError
 	ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, *ResponseEntity.ServiceError)
 	ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError
@@ -37,6 +43,16 @@ type userSrv struct {
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
 	emailSrv  emailService.EmailService
+}
+
+var (
+	s3session *s3.S3
+)
+
+func init() {
+	s3session = s3.New(session.Must(session.NewSession(&aws.Config{
+		Region: aws.String("us-east-1"),
+	})))
 }
 
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
@@ -68,6 +84,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 		LastName:     user.LastName,
 		Phone:        user.Phone,
 		Gender:       user.Gender,
+		Avatar:       user.Avatar,
 		Token:        token,
 		RefreshToken: refreshToken,
 	}
@@ -147,6 +164,27 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 	}
 
 	return data, nil
+}
+
+func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userEntity.ProfileImageRes, error) {
+	var res userEntity.ProfileImageRes
+	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
+
+	fileName := fmt.Sprintf("%s/%s.%s", userId, uuid.New().String(), fileType)
+	err := uploadObject(file, fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	res.Image = fmt.Sprintf("https://ticked-v1-backend-bucket.s3.amazonaws.com/%v", fileName)
+	err = u.repo.UpdateImage(userId, res.Image)
+	if err != nil {
+		return nil, err
+	}
+
+	res.Size = file.Size
+	res.FileType = fileType
+	return &res, nil
 }
 
 // Change Password godoc
@@ -384,6 +422,28 @@ func CreateMessageBody(firstName, lastName, token string) string {
 
 	message := subject + mainBody
 	return string(message)
+}
+
+func uploadObject(file *multipart.FileHeader, filename string) error {
+	image, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer image.Close()
+
+	_, err = s3session.PutObject(&s3.PutObjectInput{
+		Body:        image,
+		Bucket:      aws.String("ticked-v1-backend-bucket"),
+		Key:         aws.String(filename),
+		ContentType: aws.String("image/jpeg"),
+		// ACL:    aws.String(s3.BucketCannedACLPublicRead),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService) UserSrv {
