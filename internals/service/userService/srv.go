@@ -41,7 +41,19 @@ type userSrv struct {
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
 	emailSrv  emailService.EmailService
+
 	awsSrv    awsService.AWSService
+	tokenSrv tokenservice.TokenSrv
+}
+
+var (
+	s3session *s3.S3
+)
+
+func init() {
+	s3session = s3.New(session.Must(session.NewSession(&aws.Config{
+		Region: aws.String("us-east-1"),
+	})))
 }
 
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
@@ -60,8 +72,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
 	}
 
-	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, "user", req.Email)
+	token, refreshToken, errToken := u.tokenSrv.CreateToken(user.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -113,8 +124,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
-	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, "user", req.Email)
+	token, refreshToken, errToken := u.tokenSrv.CreateToken(req.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -413,6 +423,31 @@ func CreateMessageBody(firstName, lastName, token string) string {
 	return string(message)
 }
 
+
 func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, awsSrv awsService.AWSService) UserSrv {
 	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, awsSrv: awsSrv}
+func uploadObject(file *multipart.FileHeader, filename string) error {
+	image, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer image.Close()
+
+	_, err = s3session.PutObject(&s3.PutObjectInput{
+		Body:        image,
+		Bucket:      aws.String("ticked-v1-backend-bucket"),
+		Key:         aws.String(filename),
+		ContentType: aws.String("image/jpeg"),
+		// ACL:    aws.String(s3.BucketCannedACLPublicRead),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, tokenSrv tokenservice.TokenSrv) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, tokenSrv: tokenSrv}
 }

@@ -230,7 +230,12 @@ func Setup() {
 	taskSrv := taskService.NewTaskSrv(repo, timeSrv, validationSrv, logger, reminderSrv, notificationSrv)
 
 	// user service
+
 	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv, awsSrv)
+
+	//call service
+	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
+
 
 	// social login service
 
@@ -271,7 +276,7 @@ func Setup() {
 	})
 
 	//handle user routes
-	routes.UserRoutes(v1, userSrv)
+	routes.UserRoutes(v1, userSrv, srv)
 
 	//handle social login route
 	routes.SocialLoginRoute(v1, loginSrv)
@@ -280,7 +285,7 @@ func Setup() {
 	routes.TaskRoutes(v1, taskSrv, srv)
 
 	//handle Notifications
-	routes.NotificationRoutes(v1, notificationSrv)
+	routes.NotificationRoutes(v1, notificationSrv, srv)
 
 	//handle VA
 	routes.VARoutes(v1, vaSrv, srv, taskSrv, userSrv)
