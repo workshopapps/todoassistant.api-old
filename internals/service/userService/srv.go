@@ -43,6 +43,7 @@ type userSrv struct {
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
 	emailSrv  emailService.EmailService
+	tokenSrv tokenservice.TokenSrv
 }
 
 var (
@@ -71,8 +72,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 		return nil, ResponseEntity.NewInternalServiceError("Passwords Don't Match")
 	}
 
-	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(user.UserId, "user", req.Email)
+	token, refreshToken, errToken := u.tokenSrv.CreateToken(user.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -124,8 +124,7 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
 
-	tokenSrv := tokenservice.NewTokenSrv("tokenString")
-	token, refreshToken, errToken := tokenSrv.CreateToken(req.UserId, "user", req.Email)
+	token, refreshToken, errToken := u.tokenSrv.CreateToken(req.UserId, "user", req.Email)
 	if errToken != nil {
 		return nil, ResponseEntity.NewInternalServiceError("Cannot create access token!")
 	}
@@ -446,6 +445,6 @@ func uploadObject(file *multipart.FileHeader, filename string) error {
 	return nil
 }
 
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv}
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, tokenSrv tokenservice.TokenSrv) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, tokenSrv: tokenSrv}
 }

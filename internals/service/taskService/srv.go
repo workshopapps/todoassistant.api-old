@@ -217,8 +217,9 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(vaId)
 	if vaId != "" {
-		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.Title), notificationEntity.CreatedColor)
+		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.UserId), notificationEntity.CreatedColor)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}

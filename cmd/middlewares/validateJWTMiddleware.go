@@ -11,9 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ValidateJWT() gin.HandlerFunc {
+type jwtMiddleWare struct {
+	tokenSrv tokenservice.TokenSrv
+}
+
+func NewJWTMiddleWare(tokenSrv tokenservice.TokenSrv) *jwtMiddleWare {
+	return &jwtMiddleWare{tokenSrv: tokenSrv}
+}
+
+func (j *jwtMiddleWare) ValidateJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenSrv := tokenservice.NewTokenSrv("tokenString")
 
 		// const BEARER_HEADER = "Bearer "
 		authHeader := c.GetHeader("Authorization")
@@ -23,7 +30,7 @@ func ValidateJWT() gin.HandlerFunc {
 		}
 		auth := strings.Split(authHeader, " ")
 
-		token, err := tokenSrv.ValidateToken(auth[1])
+		token, err := j.tokenSrv.ValidateToken(auth[1])
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))

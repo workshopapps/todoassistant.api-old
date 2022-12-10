@@ -226,7 +226,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		r.repo.SetTaskToExpired(taskId)
 
 		//Upload the Notifications to DB
-		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), notificationEntity.ExpiredColor)
+		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}
@@ -236,7 +236,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 			fmt.Println("Error Getting VA Tokens", err)
 		}
 		if vaId != "" {
-			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.Title), notificationEntity.ExpiredColor)
+			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor)
 			if err != nil {
 				fmt.Println("Error Uploading Notification to DB", err)
 			}
