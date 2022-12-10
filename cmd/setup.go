@@ -232,6 +232,7 @@ func Setup() {
 
 	//router setup
 	r := gin.New()
+	r.MaxMultipartMemory = 1 << 20
 	r.Use(middlewares.CORS())
 	v1 := r.Group("/api/v1")
 

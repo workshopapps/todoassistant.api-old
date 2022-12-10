@@ -36,6 +36,7 @@ type LoginRes struct {
 	LastName     string `json:"last_name"`
 	Phone        string `json:"phone"`
 	Gender       string `json:"gender"`
+	Avatar       string `json:"avatar"`
 	Token        string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
@@ -48,6 +49,7 @@ type GetByEmailRes struct {
 	LastName  string `json:"last_name"`
 	Phone     string `json:"phone"`
 	Gender    string `json:"gender"`
+	Avatar    string `json:"avatar"`
 }
 
 type GetByIdRes struct {
@@ -58,6 +60,7 @@ type GetByIdRes struct {
 	LastName    string `json:"last_name"`
 	Phone       string `json:"phone"`
 	Gender      string `json:"gender"`
+	Avatar      string `json:"avatar"`
 	DateOfBirth string `json:"date_of_birth"`
 }
 
@@ -120,17 +123,21 @@ type ResetPasswordWithTokenRes struct {
 }
 
 type GoogleLoginReq struct {
-	Id            string `json:"googleId"`
-	FirstName     string `json:"givenName" binding:"required"`
-	LastName      string `json:"familyName" binding:"required"`
-	Email         string `json:"email" binding:"required,email"`
-	Profile       string `json:"imageUrl"`
-	Name 		  string `json:"name" binding:"required"`
+	Id        string `json:"googleId"`
+	FirstName string `json:"givenName"`
+	LastName  string `json:"familyName"`
+	Email     string `json:"email"`
+	Profile   string `json:"imageUrl"`
+	Name      string `json:"name"`
 }
 
-
 type FacebookLoginReq struct {
-	Email         string `json:"email" binding:"required,email"`
-	Name 		  string `json:"name" binding:"required"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
 
+type ProfileImageRes struct {
+	Image    string `json:"avatar"`
+	Size     int64  `json:"size"`
+	FileType string `json:"fileType"`
 }

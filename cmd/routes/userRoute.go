@@ -30,8 +30,9 @@ func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
 		users.GET("/:user_id", userHandler.GetUser)
 		// Update a specific user
 		users.PUT("/:user_id", userHandler.UpdateUser)
+		// Update user image
+		users.POST("/upload", userHandler.UploadImage)
 		// Change user password
-
 		users.PUT("/change-password", userHandler.ChangePassword)
 		// Delete a user
 		users.DELETE("/:user_id", userHandler.DeleteUser)
