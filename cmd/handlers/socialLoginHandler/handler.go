@@ -14,7 +14,7 @@ type socialLoginHandler struct {
 	srv socialLoginService.LoginSrv
 }
 
-func NewCallHandler(srv socialLoginService.LoginSrv) *socialLoginHandler {
+func NewLoginHandler(srv socialLoginService.LoginSrv) *socialLoginHandler {
 	return &socialLoginHandler{srv: srv}
 }
 
