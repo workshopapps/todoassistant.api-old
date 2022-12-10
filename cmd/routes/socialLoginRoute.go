@@ -7,7 +7,7 @@ import (
 )
 
 func SocialLoginRoute(v1 *gin.RouterGroup, srv socialLoginService.LoginSrv) {
-	loginHandler := socialLoginHandler.NewCallHandler(srv)
+	loginHandler := socialLoginHandler.NewLoginHandler(srv)
 
 	v1.POST("/googlelogin", loginHandler.GoogleLogin)
 	v1.POST("/facebooklogin", loginHandler.FacebookLogin)
