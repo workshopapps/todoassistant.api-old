@@ -24,6 +24,28 @@ require (
 )
 
 require (
+	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/elastic/go-sysinfo v1.1.1 // indirect
+	github.com/elastic/go-windows v1.0.0 // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/jcchavezs/porto v0.1.0 // indirect
+	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/prometheus/procfs v0.0.0-20190425082905-87a4384529e0 // indirect
+	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
+	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
+	github.com/tklauser/go-sysconf v0.3.10 // indirect
+	github.com/tklauser/numcpus v0.4.0 // indirect
+	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	go.atatus.com/agent v1.0.1 // indirect
+	go.atatus.com/agent/module/athttp v1.0.1 // indirect
+	go.elastic.co/fastjson v1.1.0 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
+)
+
+require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
@@ -74,6 +96,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/toolkits/file v0.0.0-20160325033739-a5b3c5147e07 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	go.atatus.com/agent/module/atgin v1.0.1
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
