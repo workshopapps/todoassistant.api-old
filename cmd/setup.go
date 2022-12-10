@@ -10,6 +10,7 @@ import (
 	"test-va/cmd/handlers/paymentHandler"
 	"test-va/cmd/middlewares"
 	"test-va/cmd/routes"
+	mySqlCallRepo "test-va/internals/Repository/callRepo/mySqlRepo"
 	mySqlNotifRepo "test-va/internals/Repository/notificationRepo/mysqlRepo"
 	mySqlRepo4 "test-va/internals/Repository/subscribeRepo/mySqlRepo"
 	"test-va/internals/Repository/taskRepo/mySqlRepo"
@@ -19,6 +20,7 @@ import (
 	"test-va/internals/data-store/mysql"
 	firebaseinit "test-va/internals/firebase-init"
 	"test-va/internals/service/awsService"
+	"test-va/internals/service/callService"
 	"test-va/internals/service/cryptoService"
 	"test-va/internals/service/emailService"
 	log_4_go "test-va/internals/service/loggerService/log-4-go"
@@ -182,7 +184,7 @@ func Setup() {
 	// fmt.Println(s3session)
 	// create cron tasks for checking if time is due
 
-	//callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
+	callRepo := mySqlCallRepo.NewSqlCallRepo(conn)
 
 	// cron service
 	s := gocron.NewScheduler(time.UTC)
@@ -277,6 +279,9 @@ func Setup() {
 
 	//handle user routes
 	routes.UserRoutes(v1, userSrv, srv)
+
+	//handle call routes
+    routes.CallRoute(v1, callSrv)
 
 	//handle social login route
 	routes.SocialLoginRoute(v1, loginSrv)

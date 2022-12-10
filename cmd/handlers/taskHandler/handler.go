@@ -321,7 +321,6 @@ func (t *taskHandler) AssignTaskToVA(c *gin.Context) {
 }
 
 // get tasks assigned to Va
-
 func (t *taskHandler) GetTasksAssignedToVa(c *gin.Context) {
 	vaId := c.GetString("id")
 	if vaId == "" {
@@ -332,6 +331,30 @@ func (t *taskHandler) GetTasksAssignedToVa(c *gin.Context) {
 
 	tasks, errRes := t.srv.GetTaskAssignedToVA(vaId)
 	if errRes != nil {
+		if errRes != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError,
+				ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
+					"Error Getting All Task", errRes, nil))
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK,
+		ResponseEntity.BuildSuccessResponse(http.StatusOK, "Fetched All task Successfully", tasks, nil))
+}
+
+// get all task for VA
+func (t *taskHandler) GetAllTasksAssignedForVa(c *gin.Context) {
+	vaId := c.GetString("id")
+	if vaId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid VA ID", nil, nil))
+		return
+	}
+
+	tasks, errRes := t.srv.GetAllTaskForVA(vaId)
+	if errRes != nil {
+		log.Println(errRes)
 		if errRes != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError,
 				ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
