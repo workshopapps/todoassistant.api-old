@@ -4,12 +4,14 @@ import (
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
 	"test-va/internals/service/userService"
+	tokenservice "test-va/internals/service/tokenService"
 
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
+func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv, tokenSrv tokenservice.TokenSrv) {
 	userHandler := userHandler.NewUserHandler(srv)
+	jwtMWare := middlewares.NewJWTMiddleWare(tokenSrv)
 
 	// Register a user
 
@@ -22,7 +24,7 @@ func UserRoutes(v1 *gin.RouterGroup, srv userService.UserSrv) {
 	v1.POST("/user/reset-password-token", userHandler.ResetPasswordWithToken)
 
 	users := v1.Group("/user")
-	users.Use(middlewares.ValidateJWT())
+	users.Use(jwtMWare.ValidateJWT())
 	{
 		// Get all users
 		users.GET("", userHandler.GetUsers)
