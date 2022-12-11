@@ -388,7 +388,6 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 			err = r.nSrv.SendNotification(k, "Due Today", body, v[0])
 			if err != nil {
 				fmt.Println(err)
-				return
 			}
 		}
 	})
@@ -423,7 +422,6 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 			err = r.nSrv.SendNotification(k, "Due Shortly", body, v[0])
 			if err != nil {
 				fmt.Println(err)
-				return
 			}
 		}
 	})
