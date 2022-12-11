@@ -74,7 +74,7 @@ func Setup() {
 	utils.LoadGoogleConfig()
 
 	if err != nil {
-		log.Fatal("cannot load config", err)
+		log.Fatal("cannot load config file", err)
 	}
 
 	stripe.Key = config.StripeKey
@@ -233,11 +233,10 @@ func Setup() {
 
 	// user service
 
-	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv, awsSrv)
+	userSrv := userService.NewUserSrv(userRepo, validationSrv, timeSrv, cryptoSrv, emailSrv, awsSrv, srv)
 
 	//call service
 	callSrv := callService.NewCallSrv(callRepo, timeSrv, validationSrv, logger)
-
 
 	// social login service
 
@@ -281,7 +280,7 @@ func Setup() {
 	routes.UserRoutes(v1, userSrv, srv)
 
 	//handle call routes
-    routes.CallRoute(v1, callSrv)
+	routes.CallRoute(v1, callSrv)
 
 	//handle social login route
 	routes.SocialLoginRoute(v1, loginSrv)
