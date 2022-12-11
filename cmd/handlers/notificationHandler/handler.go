@@ -52,3 +52,19 @@ func (n *notificationHandler) GetNotifications(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, notifications)
 }
+
+func (n *notificationHandler) DeleteNotifications(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid User ID", nil, nil))
+		return
+	}
+	err := n.srv.DeleteNotifications(userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, 
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Internal Server Error", err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, "Deleted Successful")
+}
