@@ -635,10 +635,11 @@ func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateComm
                   task_id,
                   comment,
 				  created_at,
-				  status
+				  status,
+				  isEmoji
                   )
-	VALUES ('%v','%v','%v','%v','%v')
-	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt,req.Status)
+	VALUES ('%v','%v','%v','%v','%v','%v')
+	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt,req.Status,req.IsEmoji)
 
 	_, err := s.conn.Exec(stmt)
 	if err != nil {
@@ -660,7 +661,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT id, sender_id, task_id, comment, created_at,status
+		SELECT id, sender_id, task_id, comment, created_at,status,isEmoji
 		FROM Comments WHERE task_id = '%s'`, taskId)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -681,6 +682,7 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 			&singleTask.Comment,
 			&singleTask.CreatedAt,
 			&singleTask.Status,
+			&singleTask.IsEmoji,
 
 		)
 		if err != nil {
