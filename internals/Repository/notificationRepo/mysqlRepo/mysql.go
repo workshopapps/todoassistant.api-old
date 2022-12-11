@@ -200,6 +200,19 @@ func (n *mySql) CreateNotification(userId, title, time, content, color string) e
 	return nil
 }
 
+func (n *mySql) DeleteNotifications(userId string) error {
+	stmt := fmt.Sprintf(`
+		DELETE FROM Notifications
+		WHERE user_id = '%s'
+		`, userId)
+
+	_, err := n.conn.Exec(stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (n *mySql) GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, error) {
 	stmt := fmt.Sprintf(`
 		SELECT user_id, title, time, content, color

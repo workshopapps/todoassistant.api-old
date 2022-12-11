@@ -13,4 +13,5 @@ type NotificationRepository interface {
 	GetUserToken(userId string) ([]string, error)
 	CreateNotification(userId, title, time, content, color string) error
 	GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, error)
+	DeleteNotifications(userId string) error
 }

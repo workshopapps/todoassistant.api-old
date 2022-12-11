@@ -21,5 +21,8 @@ func NotificationRoutes(v1 *gin.RouterGroup, service notificationService.Notific
 
 		//Register For Notifications
 		not.GET("", notificationHandler.GetNotifications)
+
+		//Delete Notifications
+		not.DELETE("", notificationHandler.DeleteNotifications)
 	}
 }
