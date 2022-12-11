@@ -90,6 +90,7 @@ type VAStruct struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Status    string `json:"status"`
+	Avatar    string `json:"avatar"`
 }
 
 type VATask struct {

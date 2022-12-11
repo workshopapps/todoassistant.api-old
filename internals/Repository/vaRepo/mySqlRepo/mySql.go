@@ -14,7 +14,7 @@ type mySql struct {
 
 func (m *mySql) GetUserAssignedToVa(ctx context.Context, vaId string) ([]*vaEntity.VAStruct, error) {
 	stmt := fmt.Sprintf(`
-SELECT first_name, last_name, user_id, email, phone, account_status 
+SELECT first_name, last_name, user_id, email, phone, account_status,avatar
 FROM Users
 WHERE virtual_assistant_id = '%v'`, vaId)
 
@@ -25,7 +25,7 @@ WHERE virtual_assistant_id = '%v'`, vaId)
 	var Results []*vaEntity.VAStruct
 	for queryRow.Next() {
 		var res vaEntity.VAStruct
-		err := queryRow.Scan(&res.FirstName, &res.LastName, &res.UserId, &res.Email, &res.Phone, &res.Status)
+		err := queryRow.Scan(&res.FirstName, &res.LastName, &res.UserId, &res.Email, &res.Phone, &res.Status,&res.Avatar)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func (m *mySql) Persist(ctx context.Context, req *vaEntity.CreateVAReq) error {
 }
 
 func (m *mySql) FindById(ctx context.Context, id string) (*vaEntity.FindByIdRes, error) {
-	stmt := fmt.Sprintf(` SELECT 
+	stmt := fmt.Sprintf(` SELECT
                    va_id,
                         first_name,
                         last_name,
@@ -77,7 +77,7 @@ FROM va_table where va_id = '%v'`, id)
 }
 
 func (m *mySql) FindByEmail(ctx context.Context, email string) (*vaEntity.FindByEmailRes, error) {
-	stmt := fmt.Sprintf(` SELECT 
+	stmt := fmt.Sprintf(` SELECT
 						 va_id,
 	                     first_name,
 	                     last_name,
@@ -109,7 +109,7 @@ func (m *mySql) DeleteUser(ctx context.Context, id string) error {
 }
 
 func (m *mySql) UpdateUser(ctx context.Context, req *vaEntity.EditVaReq, id string) error {
-	stmt := fmt.Sprintf(`UPDATE va_table 
+	stmt := fmt.Sprintf(`UPDATE va_table
 SET
 			first_name='%v',
 			last_name='%v',
