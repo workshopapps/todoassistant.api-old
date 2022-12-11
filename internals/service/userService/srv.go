@@ -44,9 +44,8 @@ type userSrv struct {
 	timeSrv   timeSrv.TimeService
 	cryptoSrv cryptoService.CryptoSrv
 	emailSrv  emailService.EmailService
-
 	awsSrv    awsService.AWSService
-	tokenSrv tokenservice.TokenSrv
+	tokenSrv  tokenservice.TokenSrv
 }
 
 var (
@@ -429,7 +428,9 @@ func CreateMessageBody(firstName, lastName, token string) string {
 	return string(message)
 }
 
-
-func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService, cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, awsSrv awsService.AWSService) UserSrv {
-	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv, cryptoSrv: cryptoSrv, emailSrv: emailSrv, awsSrv: awsSrv}
+func NewUserSrv(repo userRepo.UserRepository, validator validationService.ValidationSrv, timeSrv timeSrv.TimeService,
+	cryptoSrv cryptoService.CryptoSrv, emailSrv emailService.EmailService, awsSrv awsService.AWSService,
+	tokenSrv tokenservice.TokenSrv) UserSrv {
+	return &userSrv{repo: repo, validator: validator, timeSrv: timeSrv,
+		cryptoSrv: cryptoSrv, emailSrv: emailSrv, awsSrv: awsSrv, tokenSrv: tokenSrv}
 }
