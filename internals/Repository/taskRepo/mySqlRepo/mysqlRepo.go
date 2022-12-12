@@ -78,33 +78,33 @@ ORDER BY T.created_at DESC
 }
 
 // get all task and user details for VA
-func (s *sqlRepo) GetAllTaskForVA(ctx context.Context, vaId string) ([]*vaEntity.VATask, error) {
-	stmt := fmt.Sprintf(`SELECT
+func (s *sqlRepo) GetAllTaskForVA(ctx context.Context) ([]*vaEntity.VATaskAll, error) {
+	stmt := `SELECT
     T.task_id,
     T.title,
     T.end_time,
     T.status,
     T.description,
 	T.va_option,
+	T.comment_count,
 	COALESCE(T.va_id, ''),
     concat(U.first_name, ' ', U.last_name) AS 'name',
     T.user_id,
     U.phone
-FROM Tasks T
-         join  Users U on T.user_id = U.user_id
-ORDER BY T.created_at DESC
-;`)
+	FROM Tasks T
+        join  Users U on T.user_id = U.user_id
+	ORDER BY T.created_at DESC;`
 
 	queryRow, err := s.conn.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
 
-	var Results []*vaEntity.VATask
+	var Results []*vaEntity.VATaskAll
 
 	for queryRow.Next() {
-		var res vaEntity.VATask
-		err := queryRow.Scan(&res.TaskId, &res.Title, &res.EndTime, &res.Status, &res.Description, &res.VaOption, &res.VaId, &res.User.Name, &res.User.UserId, &res.User.Phone)
+		var res vaEntity.VATaskAll
+		err := queryRow.Scan(&res.TaskId, &res.Title, &res.EndTime, &res.Status, &res.Description, &res.VaOption, &res.CommentCount, &res.VaId, &res.User.Name, &res.User.UserId, &res.User.Phone)
 		if err != nil {
 			return nil, err
 		}
@@ -544,7 +544,7 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 // Delete task by id
 func (s *sqlRepo) DeleteTaskByID(ctx context.Context, taskId string) error {
 
-	tx, err := s.conn.BeginTx(ctx,nil)
+	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -556,7 +556,7 @@ func (s *sqlRepo) DeleteTaskByID(ctx context.Context, taskId string) error {
 			tx.Commit()
 		}
 	}()
-	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Comments Where task_id = '%s'`,taskId))
+	_, err = tx.ExecContext(ctx, fmt.Sprintf(`Delete from Comments Where task_id = '%s'`, taskId))
 	if err != nil {
 		return err
 	}
@@ -652,9 +652,9 @@ func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateComm
 				  isEmoji
                   )
 	VALUES ('%v','%v','%v','%v','%v','%v')
-	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt,req.Status,req.IsEmoji)
+	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt, req.Status, req.IsEmoji)
 
-	stmt2 := fmt.Sprintf(`UPDATE Tasks SET comment_count=comment_count+1 WHERE task_id='%v'`,req.TaskId)
+	stmt2 := fmt.Sprintf(`UPDATE Tasks SET comment_count=comment_count+1 WHERE task_id='%v'`, req.TaskId)
 
 	_, err = tx.ExecContext(ctx, stmt)
 	if err != nil {
@@ -706,7 +706,6 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 			&singleTask.CreatedAt,
 			&singleTask.Status,
 			&singleTask.IsEmoji,
-
 		)
 		if err != nil {
 			return nil, err
@@ -726,7 +725,7 @@ func (s *sqlRepo) GetComments(ctx context.Context) ([]*taskEntity.GetCommentRes,
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT id, sender_id, task_id, comment, created_at,status,isEmoji
+		SELECT id, sender_id, task_id, comment, created_at, status, isEmoji
 		FROM Comments`)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -748,7 +747,6 @@ func (s *sqlRepo) GetComments(ctx context.Context) ([]*taskEntity.GetCommentRes,
 			&singleTask.CreatedAt,
 			&singleTask.Status,
 			&singleTask.IsEmoji,
-
 		)
 		if err != nil {
 			return nil, err
@@ -757,6 +755,7 @@ func (s *sqlRepo) GetComments(ctx context.Context) ([]*taskEntity.GetCommentRes,
 	}
 	return AllComment, nil
 }
+
 // Delete comment by id
 func (s *sqlRepo) DeleteCommentByID(ctx context.Context, commentId string) error {
 	log.Println("hererer", commentId)
