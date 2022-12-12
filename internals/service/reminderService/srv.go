@@ -226,7 +226,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		r.repo.SetTaskToExpired(taskId)
 
 		//Upload the Notifications to DB
-		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor)
+		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor, taskId)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}
@@ -236,7 +236,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 			fmt.Println("Error Getting VA Tokens", err)
 		}
 		if vaId != "" {
-			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor)
+			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor, taskId)
 			if err != nil {
 				fmt.Println("Error Uploading Notification to DB", err)
 			}
@@ -255,8 +255,8 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		body := []notificationEntity.NotificationBody{
 			{
 				Content: "This Task Has Expired",
-				Color: notificationEntity.ExpiredColor,
-				Time: time.Now().String(),
+				Color:   notificationEntity.ExpiredColor,
+				Time:    time.Now().String(),
 			},
 		}
 
@@ -264,7 +264,7 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		if len(allTokens) > 0 {
 			err = r.nSrv.SendBatchNotifications(allTokens, "Expired", body, []interface{}{data})
 			if err != nil {
-				fmt.Println("Error Sending Notifications",err)
+				fmt.Println("Error Sending Notifications", err)
 			}
 		}
 	})
@@ -380,8 +380,8 @@ func (r *reminderSrv) ScheduleNotificationDaily() {
 			body := []notificationEntity.NotificationBody{
 				{
 					Content: fmt.Sprintf("You Have %v tasks due today", len(v)),
-					Color: notificationEntity.DueColor,
-					Time: time.Now().String(),
+					Color:   notificationEntity.DueColor,
+					Time:    time.Now().String(),
 				},
 			}
 
@@ -414,8 +414,8 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 			body := []notificationEntity.NotificationBody{
 				{
 					Content: fmt.Sprintf("You Have %v tasks due in a few hours", len(v)),
-					Color: notificationEntity.DueColor,
-					Time: time.Now().String(),
+					Color:   notificationEntity.DueColor,
+					Time:    time.Now().String(),
 				},
 			}
 
@@ -426,7 +426,6 @@ func (r *reminderSrv) ScheduleNotificationEverySixHours() {
 		}
 	})
 }
-
 
 func getPendingTasks(conn *sql.DB) ([]taskEntity.GetPendingTasks, error) {
 	stmt := fmt.Sprint(`
