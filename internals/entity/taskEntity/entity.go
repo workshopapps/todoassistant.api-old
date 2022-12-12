@@ -127,6 +127,7 @@ type GetAllTaskRes struct {
 	VAOption    string `json:"va_option"`
 	Status      string `json:"status"`
 	Repeat      string `json:"repeat"`
+	CommentCount int   `json:"comment_count"`
 }
 
 // Get List of Task Assigned to VA
@@ -152,7 +153,7 @@ type CreateCommentReq struct {
 	Comment   string `json:"comment" validate:"required,min=3"`
 	CreatedAt string `json:"created_at"`
 	Status    string `json:"status" validate:"required,min=2"`
-	IsEmoji   int  `json:"isEmoji" validate:"required"`
+	IsEmoji   int    `json:"is_emoji"`
 }
 
 type CreateCommentRes struct {
