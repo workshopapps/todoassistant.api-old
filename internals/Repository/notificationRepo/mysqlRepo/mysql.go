@@ -107,7 +107,7 @@ func (n *mySql) GetUserToken(userId string) ([]string, error) {
 
 func (n *mySql) GetTasksToExpireToday(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
 	str := ""
-	if (userClass == "va") {
+	if userClass == "va" {
 		str = "va_id"
 	} else {
 		str = "user_id"
@@ -145,7 +145,7 @@ func (n *mySql) GetTasksToExpireToday(userClass string) (map[string][]notificati
 
 func (n *mySql) GetTasksToExpireInAFewHours(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
 	str := ""
-	if (userClass == "va") {
+	if userClass == "va" {
 		str = "va_id"
 	} else {
 		str = "user_id"
@@ -183,15 +183,16 @@ func (n *mySql) GetTasksToExpireInAFewHours(userClass string) (map[string][]noti
 	return taskMap, nil
 }
 
-func (n *mySql) CreateNotification(userId, title, time, content, color string) error {
+func (n *mySql) CreateNotification(userId, title, time, content, color, taskId string) error {
 	stmt := fmt.Sprintf(`
 		INSERT INTO Notifications(
 			user_id,
 			title,
 			time,
 			content,
-			color
-		) VALUES ('%v', '%v', '%v', '%v', '%v')`, userId, title, time, content, color)
+			color,
+			notif_task_id
+		) VALUES ('%v', '%v', '%v', '%v', '%v', '%v')`, userId, title, time, content, color, taskId)
 
 	_, err := n.conn.Exec(stmt)
 	if err != nil {
@@ -215,7 +216,7 @@ func (n *mySql) DeleteNotifications(userId string) error {
 
 func (n *mySql) GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, error) {
 	stmt := fmt.Sprintf(`
-		SELECT user_id, title, time, content, color
+		SELECT user_id, title, time, content, color, notif_task_id
 		FROM Notifications
 		WHERE user_id = '%s'`, userId)
 
@@ -227,7 +228,7 @@ func (n *mySql) GetNotifications(userId string) ([]notificationEntity.GetNotifca
 	var notifs []notificationEntity.GetNotifcationsRes
 	for query.Next() {
 		var notif notificationEntity.GetNotifcationsRes
-		err = query.Scan(&notif.UserId, &notif.Title, &notif.Time, &notif.Content, &notif.Color)
+		err = query.Scan(&notif.UserId, &notif.Title, &notif.Time, &notif.Content, &notif.Color, &notif.TaskId)
 		if err != nil {
 			return nil, err
 		}
@@ -235,4 +236,3 @@ func (n *mySql) GetNotifications(userId string) ([]notificationEntity.GetNotifca
 	}
 	return notifs, nil
 }
-
