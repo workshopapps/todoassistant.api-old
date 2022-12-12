@@ -90,7 +90,8 @@ func (s *sqlRepo) GetAllTaskForVA(ctx context.Context) ([]*vaEntity.VATaskAll, e
 	COALESCE(T.va_id, ''),
     concat(U.first_name, ' ', U.last_name) AS 'name',
     T.user_id,
-    U.phone
+    U.phone,
+	U.avatar
 	FROM Tasks T
         join  Users U on T.user_id = U.user_id
 	ORDER BY T.created_at DESC;`
@@ -104,7 +105,7 @@ func (s *sqlRepo) GetAllTaskForVA(ctx context.Context) ([]*vaEntity.VATaskAll, e
 
 	for queryRow.Next() {
 		var res vaEntity.VATaskAll
-		err := queryRow.Scan(&res.TaskId, &res.Title, &res.EndTime, &res.Status, &res.Description, &res.VaOption, &res.CommentCount, &res.VaId, &res.User.Name, &res.User.UserId, &res.User.Phone)
+		err := queryRow.Scan(&res.TaskId, &res.Title, &res.EndTime, &res.Status, &res.Description, &res.VaOption, &res.CommentCount, &res.VaId, &res.User.Name, &res.User.UserId, &res.User.Phone, &res.User.Avatar)
 		if err != nil {
 			return nil, err
 		}
