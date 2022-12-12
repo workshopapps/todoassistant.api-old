@@ -85,7 +85,6 @@ func (t *taskSrv) GetAllTaskForVA(vaId string) ([]*vaEntity.VATask, *ResponseEnt
 	return va, nil
 }
 
-
 func (t *taskSrv) AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
@@ -232,7 +231,7 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 	}
 	fmt.Println(vaId)
 	if vaId != "" {
-		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.UserId), notificationEntity.CreatedColor)
+		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.UserId), notificationEntity.CreatedColor, req.TaskId)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}

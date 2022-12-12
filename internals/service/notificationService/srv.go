@@ -17,15 +17,15 @@ import (
 type NotificationSrv interface {
 	RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError
 	SendNotification(token, title string, body, data interface{}) error
-	SendBatchNotifications(tokens []string, title string, body, data interface{}) error 
+	SendBatchNotifications(tokens []string, title string, body, data interface{}) error
 	SendVaNotification(token, title, body string, taskId string) error
 	GetUserVaToken(userId string) ([]string, string, error)
 	GetUserToken(userId string) ([]string, error)
 	GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, *ResponseEntity.ServiceError)
 	GetTasksToExpireToday() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
 	GetTasksToExpireInAFewHours() (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error)
-	CreateNotification(userId, title, time, content, color string) error
-	DeleteNotifications(userId string) error	
+	CreateNotification(userId, title, time, content, color, taskId string) error
+	DeleteNotifications(userId string) error
 	//GetTaskFromUser(userId string) (*notificationEntity.GetExpiredTasksWithDeviceId, error)
 }
 
@@ -60,7 +60,7 @@ func New(app *firebase.App, repo notificationRepo.NotificationRepository,
 
 func (n notificationSrv) SendBatchNotifications(tokens []string, title string, body, data interface{}) error {
 	ctx := context.Background()
-	if (n.app == nil) {
+	if n.app == nil {
 		return fmt.Errorf("could not initialize firebase app")
 	}
 	fmcClient, err := n.app.Messaging(ctx)
@@ -106,7 +106,7 @@ func (n notificationSrv) SendBatchNotifications(tokens []string, title string, b
 
 func (n notificationSrv) SendNotification(token, title string, body, data interface{}) error {
 	ctx := context.Background()
-	if (n.app == nil) {
+	if n.app == nil {
 		return fmt.Errorf("could not initialize firebase app")
 	}
 	fmcClient, err := n.app.Messaging(ctx)
@@ -210,7 +210,7 @@ func (n notificationSrv) GetTasksToExpireInAFewHours() (map[string][]notificatio
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Select All The VA with Users that Have Pending Tasks and Send Notifications to Them
 	vaTaskMap, err := n.repo.GetTasksToExpireInAFewHours("va")
 	if err != nil {
@@ -234,8 +234,8 @@ func (n notificationSrv) GetTasksToExpireInAFewHours() (map[string][]notificatio
 	return taskMap, nil
 }
 
-func (n notificationSrv) CreateNotification(userId, title, time, content, color string) error {
-	return n.repo.CreateNotification(userId, title, time, content, color)
+func (n notificationSrv) CreateNotification(userId, title, time, content, color, taskId string) error {
+	return n.repo.CreateNotification(userId, title, time, content, color, taskId)
 }
 
 func (n notificationSrv) GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, *ResponseEntity.ServiceError) {
@@ -243,6 +243,5 @@ func (n notificationSrv) GetNotifications(userId string) ([]notificationEntity.G
 	if err != nil {
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}
-	return notifications, nil 
+	return notifications, nil
 }
-

@@ -16,14 +16,14 @@ type CreateNotification struct {
 
 type NotificationBody struct {
 	Content string `json:"content"`
-	Color string `json:"color"`
-	Time string `json:"time"`
+	Color   string `json:"color"`
+	Time    string `json:"time"`
 }
 
 type NotificationColors struct {
 	Content string `json:"content"`
-	Color string `json:"color"`
-	Time string `json:"time"`
+	Color   string `json:"color"`
+	Time    string `json:"time"`
 }
 
 type NotificationRegisterReq struct {
@@ -38,15 +38,16 @@ type NotificationRegisterRes struct {
 }
 
 type GetNotifcationsRes struct {
-	UserId      string `json:"user_id"`
-	Title       string `json:"title"`
+	UserId  string `json:"user_id"`
+	Title   string `json:"title"`
 	Content string `json:"content"`
-	Time     string `json:"time"`
-	Color string `json:"color"`
+	Time    string `json:"time"`
+	Color   string `json:"color"`
+	TaskId  string `json:"task_id"`
 }
 
 const (
 	CreatedColor string = "#E9F3F5"
-	DueColor string = "#FF0000"
+	DueColor     string = "#FF0000"
 	ExpiredColor string = "#DB0004"
 )
