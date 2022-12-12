@@ -508,7 +508,7 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 	}
 
 	stmt := fmt.Sprintf(`
-		SELECT task_id, title, description, repeat_frequency, va_option, status, start_time, end_time
+		SELECT task_id, title, description, repeat_frequency, va_option, status, start_time, end_time,comment_count
 		FROM Tasks WHERE user_id = '%s'`, userId)
 
 	rows, err := db.QueryContext(ctx, stmt)
@@ -531,6 +531,7 @@ func (s *sqlRepo) GetAllTasks(ctx context.Context, userId string) ([]*taskEntity
 			&singleTask.Status,
 			&singleTask.StartTime,
 			&singleTask.EndTime,
+			&singleTask.CommentCount,
 		)
 		if err != nil {
 			return nil, err
@@ -629,6 +630,18 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error
 
 // comment
 func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateCommentReq) error {
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
 
 	stmt := fmt.Sprintf(`INSERT INTO Comments(
                   sender_id,
@@ -641,7 +654,17 @@ func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateComm
 	VALUES ('%v','%v','%v','%v','%v','%v')
 	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt,req.Status,req.IsEmoji)
 
-	_, err := s.conn.Exec(stmt)
+	stmt2 := fmt.Sprintf(`UPDATE Tasks SET comment_count=comment_count+1 WHERE task_id='%v'`,req.TaskId)
+
+	_, err = tx.ExecContext(ctx, stmt)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, stmt2)
+	if err != nil {
+		return err
+	}
+	// _, err := s.conn.Exec(stmt)
 	if err != nil {
 		log.Println(stmt)
 		log.Println(err)
@@ -693,6 +716,47 @@ func (s *sqlRepo) GetAllComments(ctx context.Context, taskId string) ([]*taskEnt
 	return AllComment, nil
 }
 
+// get all comments
+func (s *sqlRepo) GetComments(ctx context.Context) ([]*taskEntity.GetCommentRes, error) {
+
+	//tx, err := s.conn.BeginTx(ctx, nil)
+	db, err := s.conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := fmt.Sprintf(`
+		SELECT id, sender_id, task_id, comment, created_at,status,isEmoji
+		FROM Comments`)
+
+	rows, err := db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var AllComment []*taskEntity.GetCommentRes
+
+	for rows.Next() {
+		var singleTask taskEntity.GetCommentRes
+
+		err := rows.Scan(
+			&singleTask.Id,
+			&singleTask.SenderId,
+			&singleTask.TaskId,
+			&singleTask.Comment,
+			&singleTask.CreatedAt,
+			&singleTask.Status,
+			&singleTask.IsEmoji,
+
+		)
+		if err != nil {
+			return nil, err
+		}
+		AllComment = append(AllComment, &singleTask)
+	}
+	return AllComment, nil
+}
 // Delete comment by id
 func (s *sqlRepo) DeleteCommentByID(ctx context.Context, commentId string) error {
 	log.Println("hererer", commentId)

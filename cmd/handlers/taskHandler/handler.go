@@ -429,6 +429,38 @@ func (t *taskHandler) GetComments(c *gin.Context) {
 	c.JSON(http.StatusOK, rd)
 }
 
+// get all comments in DB
+func (t *taskHandler) GetAllComments(c *gin.Context) {
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "you are not allowed to access this resource", nil, nil))
+		return
+	}
+
+	// taskId := c.Params.ByName("taskId")
+	// log.Println(taskId)
+	// if taskId == "" {
+	// 	c.AbortWithStatusJSON(http.StatusBadRequest,
+	// 		ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
+	// 	return
+	// }
+	comments, errRes := t.srv.GetComments()
+
+	if comments == nil {
+		message := "no comments"
+		c.AbortWithStatusJSON(http.StatusOK,
+			ResponseEntity.BuildSuccessResponse(http.StatusNoContent, message, comments, nil))
+		return
+	}
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Failure To Find comments", errRes, nil))
+		return
+	}
+	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK, "Comments returned successfully", comments, nil)
+	c.JSON(http.StatusOK, rd)
+}
+
 // delete comments on a task
 func (t *taskHandler) DeleteComment(c *gin.Context) {
 	userId := c.GetString("userId")
