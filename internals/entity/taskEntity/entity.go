@@ -127,6 +127,7 @@ type GetAllTaskRes struct {
 	VAOption    string `json:"va_option"`
 	Status      string `json:"status"`
 	Repeat      string `json:"repeat"`
+	CommentCount int   `json:"comment_count"`
 }
 
 // Get List of Task Assigned to VA

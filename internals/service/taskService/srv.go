@@ -44,6 +44,7 @@ type TaskService interface {
 	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
 	GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
 	DeleteCommentByID(commentId string) (*ResponseEntity.ResponseMessage, *ResponseEntity.ServiceError)
+	GetComments() ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError)
 }
 
 type taskSrv struct {
@@ -617,6 +618,24 @@ func (t *taskSrv) GetAllComments(taskId string) ([]*taskEntity.GetCommentRes, *R
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 	comments, err := t.repo.GetAllComments(ctx, taskId)
+
+	if comments == nil {
+		log.Println("no rows returned")
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+	return comments, nil
+
+}
+
+// get all comments
+func (t *taskSrv) GetComments() ([]*taskEntity.GetCommentRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+	comments, err := t.repo.GetComments(ctx)
 
 	if comments == nil {
 		log.Println("no rows returned")
