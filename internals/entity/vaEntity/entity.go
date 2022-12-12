@@ -113,11 +113,18 @@ type VATaskAll struct {
 	VaId         string `json:"va_id"`
 	Status       string `json:"status"`
 	CommentCount string `json:"comment_count"`
-	User         VAUser `json:"user"`
+	User         NewVAUser `json:"user"`
 }
 
 type VAUser struct {
 	UserId string `json:"user_id"`
 	Name   string `json:"name"`
 	Phone  string `json:"phone"`
+}
+
+type NewVAUser struct {
+	UserId string `json:"user_id"`
+	Name   string `json:"name"`
+	Phone  string `json:"phone"`
+	Avatar  string `json:"avatar"`
 }
