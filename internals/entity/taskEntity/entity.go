@@ -152,7 +152,7 @@ type CreateCommentReq struct {
 	Comment   string `json:"comment" validate:"required,min=3"`
 	CreatedAt string `json:"created_at"`
 	Status    string `json:"status" validate:"required,min=2"`
-	IsEmoji   int  `json:"isEmoji" validate:"required"`
+	IsEmoji   int    `json:"is_emoji"`
 }
 
 type CreateCommentRes struct {

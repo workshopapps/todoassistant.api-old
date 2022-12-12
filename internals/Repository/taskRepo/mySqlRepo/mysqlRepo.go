@@ -629,6 +629,18 @@ func (s *sqlRepo) UpdateTaskStatusByID(ctx context.Context, taskId string) error
 
 // comment
 func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateCommentReq) error {
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
 
 	stmt := fmt.Sprintf(`INSERT INTO Comments(
                   sender_id,
@@ -641,7 +653,17 @@ func (s *sqlRepo) PersistComment(ctx context.Context, req *taskEntity.CreateComm
 	VALUES ('%v','%v','%v','%v','%v','%v')
 	`, req.SenderId, req.TaskId, req.Comment, req.CreatedAt,req.Status,req.IsEmoji)
 
-	_, err := s.conn.Exec(stmt)
+	stmt2 := fmt.Sprintf(`UPDATE Tasks SET comment_count=comment_count+1 WHERE task_id='%v'`,req.TaskId)
+
+	_, err = tx.ExecContext(ctx, stmt)
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, stmt2)
+	if err != nil {
+		return err
+	}
+	// _, err := s.conn.Exec(stmt)
 	if err != nil {
 		log.Println(stmt)
 		log.Println(err)
