@@ -352,7 +352,7 @@ func (t *taskHandler) GetAllTasksAssignedForVa(c *gin.Context) {
 		return
 	}
 
-	tasks, errRes := t.srv.GetAllTaskForVA(vaId)
+	tasks, errRes := t.srv.GetAllTaskForVA()
 	if errRes != nil {
 		log.Println(errRes)
 		if errRes != nil {

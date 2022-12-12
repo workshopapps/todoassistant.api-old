@@ -38,7 +38,7 @@ type TaskService interface {
 	GetVADetails(userId string) (string, *ResponseEntity.ServiceError)
 	AssignVAToTask(req *taskEntity.AssignReq) *ResponseEntity.ServiceError
 	GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError)
-	GetAllTaskForVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError)
+	GetAllTaskForVA() ([]*vaEntity.VATaskAll, *ResponseEntity.ServiceError)
 
 	//comments
 	PersistComment(req *taskEntity.CreateCommentReq) (*taskEntity.CreateCommentRes, *ResponseEntity.ServiceError)
@@ -75,11 +75,11 @@ func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *Respons
 	return va, nil
 }
 
-func (t *taskSrv) GetAllTaskForVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError) {
+func (t *taskSrv) GetAllTaskForVA() ([]*vaEntity.VATaskAll, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
-	va, err := t.repo.GetAllTaskForVA(ctx, vaId)
+	va, err := t.repo.GetAllTaskForVA(ctx)
 	if err != nil {
 		return nil, ResponseEntity.NewInternalServiceError(err)
 	}

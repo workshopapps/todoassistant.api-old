@@ -25,7 +25,7 @@ type TaskRepository interface {
 
 	//VA
 	GetAllTaskAssignedToVA(ctx context.Context, vaId string) ([]*vaEntity.VATask, error)
-	GetAllTaskForVA(ctx context.Context, vaId string) ([]*vaEntity.VATask, error)
+	GetAllTaskForVA(ctx context.Context) ([]*vaEntity.VATaskAll, error)
 	GetVADetails(ctx context.Context, userId string) (string, error)
 	AssignTaskToVa(ctx context.Context, vaId, taskId string) error
 
