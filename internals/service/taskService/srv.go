@@ -215,24 +215,22 @@ func (t *taskSrv) PersistTask(req *taskEntity.CreateTaskReq) (*taskEntity.Create
 		Repeat:      req.Repeat,
 	}
 
+	tokens, vaId, username, err := t.nSrv.GetUserVaToken(req.UserId)
 	if err != nil {
-		fmt.Println("Error Uploading Notification to DB", err)
+		fmt.Println(err)
 	}
+	fmt.Println(vaId)
+
 	body := []notificationEntity.NotificationBody{
 		{
-			Content: fmt.Sprintf("%s Just Created a Task", req.UserId),
+			Content: fmt.Sprintf("%s Just Created a Task", username),
 			Color:   notificationEntity.CreatedColor,
 			Time:    time.Now().String(),
 		},
 	}
 
-	tokens, vaId, err := t.nSrv.GetUserVaToken(req.UserId)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(vaId)
 	if vaId != "" {
-		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", req.UserId), notificationEntity.CreatedColor, req.TaskId)
+		err = t.nSrv.CreateNotification(vaId, "Task Created", time.Now().String(), fmt.Sprintf("%s just created a new task", username), notificationEntity.CreatedColor, req.TaskId)
 		if err != nil {
 			fmt.Println("Error Uploading Notification to DB", err)
 		}
