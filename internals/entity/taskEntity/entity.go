@@ -75,6 +75,7 @@ type GetPendingTasks struct {
 type GetTasksByIdRes struct {
 	TaskId      string     `json:"task_id"`
 	UserId      string     `json:"user_id"`
+	VaId        string     `json:"va_id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
 	Files       []TaskFile `json:"files"`
@@ -119,15 +120,16 @@ type GetAllPendingRes struct {
 
 // GetAllTaskRes is the struct for task assocaited with a user
 type GetAllTaskRes struct {
-	TaskId      string `json:"task_id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	StartTime   string `json:"start_time"`
-	EndTime     string `json:"end_time"`
-	VAOption    string `json:"va_option"`
-	Status      string `json:"status"`
-	Repeat      string `json:"repeat"`
-	CommentCount int   `json:"comment_count"`
+	TaskId       string `json:"task_id"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	VAOption     string `json:"va_option"`
+	VaId         string `json:"va_id"`
+	Status       string `json:"status"`
+	Repeat       string `json:"repeat"`
+	CommentCount int    `json:"comment_count"`
 }
 
 // Get List of Task Assigned to VA
@@ -157,17 +159,21 @@ type CreateCommentReq struct {
 }
 
 type CreateCommentRes struct {
-	Id  string `json:"id,omitempty"`
+	Id      string `json:"id,omitempty"`
 	TaskId  string `json:"task_id"`
 	Comment string `json:"comment" validate:"required,min=3"`
 }
 
 type GetCommentRes struct {
-	Id    	  string `json:"id"`
+	Id        string `json:"id"`
 	TaskId    string `json:"task_id"`
-	SenderId    string `json:"sender_id"`
+	SenderId  string `json:"sender_id"`
 	Comment   string `json:"comment"`
 	CreatedAt string `json:"created_at"`
 	Status    string `json:"status"`
-	IsEmoji   int  `json:"isEmoji"`
+	IsEmoji   int    `json:"isEmoji"`
+}
+
+type UpdateTaskStatus struct {
+	Status string `json:"status"`
 }

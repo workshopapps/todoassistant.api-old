@@ -233,15 +233,25 @@ func (t *taskHandler) DeleteAllTask(c *gin.Context) {
 
 // Update user Status
 
-func (t *taskHandler) UpdateUserStatus(c *gin.Context) {
+func (t *taskHandler) UpdateTaskStatus(c *gin.Context) {
+	var req taskEntity.UpdateTaskStatus
 	param := c.Param("taskId")
+
+	err := c.ShouldBind(&req)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "error decoding into struct", err, nil))
+		return
+	}
+
 	if param == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "no task id available", nil, nil))
 		return
 	}
 
-	_, errRes := t.srv.UpdateTaskStatusByID(param)
+	_, errRes := t.srv.UpdateTaskStatusByID(param, &req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
