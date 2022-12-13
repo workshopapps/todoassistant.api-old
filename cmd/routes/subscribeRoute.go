@@ -7,12 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SubscribeRoutes(v1 *gin.RouterGroup, service subscribeService.SubscribeService){
+func SubscribeRoutes(v1 *gin.RouterGroup, service subscribeService.SubscribeService) {
 
-	handler:= subscribeHandler.NewSubscribeHandler(service)
+	handler := subscribeHandler.NewSubscribeHandler(service)
 	// subscribe to newsletter route
 	subscribe := v1.Group("/subscribe")
 	{
-		subscribe.POST("",handler.AddSubscriber)
+		subscribe.POST("", handler.AddSubscriber)
 	}
 }

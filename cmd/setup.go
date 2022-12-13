@@ -246,7 +246,7 @@ func Setup() {
 	vaSrv := vaService.NewVaService(vaRepo, validationSrv, timeSrv, cryptoSrv)
 
 	// subscribe service
-	subscribeSrv := subscribeService.NewSubscribeSrv(subRepo)
+	subscribeSrv := subscribeService.NewSubscribeSrv(subRepo, emailSrv)
 
 	//router setup
 	r := gin.New()
