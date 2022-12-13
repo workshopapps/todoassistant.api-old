@@ -225,18 +225,14 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		log.Println("setting status to expired")
 		r.repo.SetTaskToExpired(taskId)
 
-		//Upload the Notifications to DB
-		err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor, taskId)
-		if err != nil {
-			fmt.Println("Error Uploading Notification to DB", err)
-		}
-		//Send Notifications to Firebase
-		vaTokens, vaId, err := r.nSrv.GetUserVaToken(data.UserId)
+		//Send VA Notifications to Firebase
+		vaTokens, vaId, username, err := r.nSrv.GetUserVaToken(data.UserId)
 		if err != nil {
 			fmt.Println("Error Getting VA Tokens", err)
 		}
-		if vaId != "" {
-			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has expired", data.UserId), notificationEntity.ExpiredColor, taskId)
+		if vaId != "" && username != "" {
+			//Upload the Notifications to DB
+			err := r.nSrv.CreateNotification(vaId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has an expired task", username), notificationEntity.ExpiredColor, taskId)
 			if err != nil {
 				fmt.Println("Error Uploading Notification to DB", err)
 			}
@@ -244,9 +240,20 @@ func (r *reminderSrv) SetReminder(data *taskEntity.CreateTaskReq) error {
 		if len(vaTokens) < 1 {
 			fmt.Println("User Has No VA, Or VA Has Not Registered For Notifications")
 		}
-		userTokens, err := r.nSrv.GetUserToken(data.UserId)
+
+		//Send User Notification With Firebase
+		userTokens, username, err := r.nSrv.GetUserToken(data.UserId)
 		if err != nil {
 			fmt.Println("Error Getting User Tokens", err)
+		}
+		if username != "" {
+			err := r.nSrv.CreateNotification(data.UserId, "Expired Task", time.Now().String(), fmt.Sprintf("%s has an expired task", username), notificationEntity.ExpiredColor, taskId)
+			if err != nil {
+				fmt.Println("Error Uploading Notification to DB", err)
+			}
+		}
+		if err != nil {
+			fmt.Println("Error Uploading Notification to DB", err)
 		}
 		if len(userTokens) < 1 {
 			fmt.Println("User Has Not Registered For Notifications")

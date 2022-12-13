@@ -66,7 +66,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	// FIND BY EMAIL
 	user, err := u.repo.GetByEmail(req.Email)
 	if err != nil {
-		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("No User Found in DB: %v", err))
+		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Invalid Login Credentials"))
 	}
 	//compare password
 	err = u.cryptoSrv.ComparePassword(user.Password, req.Password)
