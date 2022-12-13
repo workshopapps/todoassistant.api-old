@@ -18,9 +18,6 @@ import (
 	"test-va/internals/service/validationService"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 )
 
@@ -48,16 +45,6 @@ type userSrv struct {
 	tokenSrv  tokenservice.TokenSrv
 }
 
-var (
-	s3session *s3.S3
-)
-
-func init() {
-	s3session = s3.New(session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1"),
-	})))
-}
-
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -66,7 +53,7 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	// FIND BY EMAIL
 	user, err := u.repo.GetByEmail(req.Email)
 	if err != nil {
-		return nil, ResponseEntity.NewInternalServiceError(fmt.Sprintf("Invalid Login Credentials"))
+		return nil, ResponseEntity.NewInternalServiceError("Invalid Login Credentials")
 	}
 	//compare password
 	err = u.cryptoSrv.ComparePassword(user.Password, req.Password)
