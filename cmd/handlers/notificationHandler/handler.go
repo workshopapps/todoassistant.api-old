@@ -46,7 +46,7 @@ func (n *notificationHandler) GetNotifications(c *gin.Context) {
 	}
 	notifications, err := n.srv.GetNotifications(userId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, 
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Internal Server Error", err, nil))
 		return
 	}
@@ -62,9 +62,27 @@ func (n *notificationHandler) DeleteNotifications(c *gin.Context) {
 	}
 	err := n.srv.DeleteNotifications(userId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, 
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Internal Server Error", err, nil))
 		return
 	}
 	c.JSON(http.StatusOK, "Deleted Successful")
+}
+
+func (n *notificationHandler) UpdateNotification(c *gin.Context) {
+	notificationId := c.Params.ByName("notification_id")
+
+	if notificationId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid NotificationID ID", nil, nil))
+		return
+	}
+
+	err := n.srv.UpdateNotification(notificationId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Internal Server Error", err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, "Updated Successful")
 }

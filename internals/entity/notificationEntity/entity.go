@@ -38,12 +38,14 @@ type NotificationRegisterRes struct {
 }
 
 type GetNotifcationsRes struct {
-	UserId  string `json:"user_id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Time    string `json:"time"`
-	Color   string `json:"color"`
-	TaskId  string `json:"task_id"`
+	NotificationId string `json:"notification_id"`
+	UserId         string `json:"user_id"`
+	Title          string `json:"title"`
+	Content        string `json:"content"`
+	Time           string `json:"time"`
+	Color          string `json:"color"`
+	TaskId         string `json:"task_id"`
+	ReadStatus     string `json:"read_status"`
 }
 
 const (

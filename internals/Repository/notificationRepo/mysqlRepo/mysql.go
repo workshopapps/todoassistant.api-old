@@ -47,16 +47,37 @@ func (m *mySql) Persist(req *notificationEntity.CreateNotification) error {
 	return nil
 }
 
-func (n *mySql) GetUserVaToken(userId string) ([]string, string, error) {
+func (n *mySql) getUserDetailsFromUserId(userId string) (string, error) {
+	stmt := fmt.Sprintf(`
+		SELECT first_name, last_name
+		FROM Users 
+		WHERE user_id = '%s'
+		`, userId)
+	var firstname string
+	var lastname string
+
+	err := n.conn.QueryRow(stmt).Scan(&firstname, &lastname)
+	if err != nil {
+		return "", err
+	}
+	username := fmt.Sprintf("%s  %s", firstname, lastname)
+	return username, nil
+}
+
+func (n *mySql) GetUserVaToken(userId string) ([]string, string, string, error) {
+	username, err := n.getUserDetailsFromUserId(userId)
+	if err != nil {
+		return nil, "", "", err
+	}
 	stmt := fmt.Sprintf(`
 		SELECT virtual_assistant_id
 		FROM Users
 		WHERE user_id = '%s'
 		`, userId)
 	var vaId string
-	err := n.conn.QueryRow(stmt).Scan(&vaId)
+	err = n.conn.QueryRow(stmt).Scan(&vaId)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	stmt = fmt.Sprintf(`
@@ -64,6 +85,33 @@ func (n *mySql) GetUserVaToken(userId string) ([]string, string, error) {
 		FROM Users 
 		INNER JOIN Notification_Tokens ON virtual_assistant_id = Notification_Tokens.user_id
 		WHERE Users.user_id = '%s';
+		`, userId)
+
+	var deviceIds []string
+	query, err := n.conn.Query(stmt)
+	if err != nil {
+		return nil, "", "", err
+	}
+	for query.Next() {
+		var deviceId string
+		err = query.Scan(&deviceId)
+		if err != nil {
+			return nil, "", "", err
+		}
+		deviceIds = append(deviceIds, deviceId)
+	}
+	return deviceIds, vaId, username, err
+}
+
+func (n *mySql) GetUserToken(userId string) ([]string, string, error) {
+	username, err := n.getUserDetailsFromUserId(userId)
+	if err != nil {
+		return nil, "", err
+	}
+	stmt := fmt.Sprintf(`
+		SELECT device_id
+		FROM Notification_Tokens 
+        WHERE Notification_Tokens.user_id = '%s';
 		`, userId)
 
 	var deviceIds []string
@@ -79,30 +127,7 @@ func (n *mySql) GetUserVaToken(userId string) ([]string, string, error) {
 		}
 		deviceIds = append(deviceIds, deviceId)
 	}
-	return deviceIds, vaId, err
-}
-
-func (n *mySql) GetUserToken(userId string) ([]string, error) {
-	stmt := fmt.Sprintf(`
-		SELECT device_id
-		FROM Notification_Tokens 
-        WHERE Notification_Tokens.user_id = '%s';
-		`, userId)
-
-	var deviceIds []string
-	query, err := n.conn.Query(stmt)
-	if err != nil {
-		return nil, err
-	}
-	for query.Next() {
-		var deviceId string
-		err = query.Scan(&deviceId)
-		if err != nil {
-			return nil, err
-		}
-		deviceIds = append(deviceIds, deviceId)
-	}
-	return deviceIds, err
+	return deviceIds, username, err
 }
 
 func (n *mySql) GetTasksToExpireToday(userClass string) (map[string][]notificationEntity.GetExpiredTasksWithDeviceId, error) {
@@ -183,16 +208,17 @@ func (n *mySql) GetTasksToExpireInAFewHours(userClass string) (map[string][]noti
 	return taskMap, nil
 }
 
-func (n *mySql) CreateNotification(userId, title, time, content, color, taskId string) error {
+func (n *mySql) CreateNotification(notificationId, userId, title, time, content, color, taskId string) error {
 	stmt := fmt.Sprintf(`
 		INSERT INTO Notifications(
+			notification_id,
 			user_id,
 			title,
 			time,
 			content,
 			color,
 			notif_task_id
-		) VALUES ('%v', '%v', '%v', '%v', '%v', '%v')`, userId, title, time, content, color, taskId)
+		) VALUES ('%v', '%v', '%v', '%v', '%v', '%v', '%v')`, notificationId, userId, title, time, content, color, taskId)
 
 	_, err := n.conn.Exec(stmt)
 	if err != nil {
@@ -216,7 +242,7 @@ func (n *mySql) DeleteNotifications(userId string) error {
 
 func (n *mySql) GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, error) {
 	stmt := fmt.Sprintf(`
-		SELECT user_id, title, time, content, color, notif_task_id
+		SELECT notification_id, user_id, title, time, content, color, notif_task_id, read_status
 		FROM Notifications
 		WHERE user_id = '%s'`, userId)
 
@@ -228,11 +254,21 @@ func (n *mySql) GetNotifications(userId string) ([]notificationEntity.GetNotifca
 	var notifs []notificationEntity.GetNotifcationsRes
 	for query.Next() {
 		var notif notificationEntity.GetNotifcationsRes
-		err = query.Scan(&notif.UserId, &notif.Title, &notif.Time, &notif.Content, &notif.Color, &notif.TaskId)
+		err = query.Scan(&notif.NotificationId, &notif.UserId, &notif.Title, &notif.Time, &notif.Content, &notif.Color, &notif.TaskId, &notif.ReadStatus)
 		if err != nil {
 			return nil, err
 		}
 		notifs = append(notifs, notif)
 	}
 	return notifs, nil
+}
+
+func (n *mySql) UpdateNotification(notificationId string) error {
+	stmt := fmt.Sprintf(`
+		UPDATE Notifications SET read_status = '1' WHERE notification_id = '%s'`, notificationId)
+	_, err := n.conn.Exec(stmt)
+	if err != nil {
+		return err
+	}
+	return nil
 }
