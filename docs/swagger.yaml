@@ -24,6 +24,34 @@ definitions:
       time:
         type: string
     type: object
+  notificationEntity.CreateNotification:
+    properties:
+      device_id:
+        type: string
+      notification_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  notificationEntity.GetNotifcationsRes:
+    properties:
+      color:
+        type: string
+      content:
+        type: string
+      notification_id:
+        type: string
+      read_status:
+        type: string
+      task_id:
+        type: string
+      time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
   subscribeEntity.SubscribeReq:
     properties:
       email:
@@ -1031,6 +1059,135 @@ paths:
       summary: Login user using google account
       tags:
       - Social Login
+  /notification:
+    delete:
+      consumes:
+      - application/json
+      description: Delete notification route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted Successful
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete notifications service
+      tags:
+      - Notifications
+    get:
+      consumes:
+      - application/json
+      description: Get notification route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/notificationEntity.GetNotifcationsRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all your notifications
+      tags:
+      - Notifications
+    post:
+      consumes:
+      - application/json
+      description: Notification registration route
+      parameters:
+      - description: Notifications Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notificationEntity.CreateNotification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Register to get notifications service
+      tags:
+      - Notifications
+  /notification/{notificationId}:
+    patch:
+      consumes:
+      - application/json
+      description: Get notification route
+      parameters:
+      - description: Notification Id
+        in: path
+        name: notificationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated Successful
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all your notifications
+      tags:
+      - Notifications
   /reset-password-token:
     post:
       consumes:
