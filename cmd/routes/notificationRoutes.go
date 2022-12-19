@@ -1,11 +1,12 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"test-va/cmd/handlers/notificationHandler"
 	"test-va/cmd/middlewares"
 	"test-va/internals/service/notificationService"
 	tokenservice "test-va/internals/service/tokenService"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NotificationRoutes(v1 *gin.RouterGroup, service notificationService.NotificationSrv, tokenSrv tokenservice.TokenSrv) {
@@ -19,7 +20,7 @@ func NotificationRoutes(v1 *gin.RouterGroup, service notificationService.Notific
 		//Create a Notification
 		not.POST("", notificationHandler.RegisterForNotifications)
 
-		//Register For Notifications
+		//Get Notifications
 		not.GET("", notificationHandler.GetNotifications)
 
 		//Delete Notifications

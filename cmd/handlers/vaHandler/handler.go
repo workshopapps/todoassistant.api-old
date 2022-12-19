@@ -41,7 +41,7 @@ func (v *vaHandler) UpdateVA(c *gin.Context) {
 		return
 	}
 
-	user, errRes := v.vaSrv.UpdateUser(&req, param)
+	user, errRes := v.vaSrv.UpdateVA(&req, param)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
@@ -59,7 +59,7 @@ func (v *vaHandler) DeleteVA(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No id in url"})
 	}
 
-	errRes := v.vaSrv.DeleteUser(param)
+	errRes := v.vaSrv.DeleteVA(param)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
@@ -191,7 +191,7 @@ func (v *vaHandler) GetVAByID(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": "No Id in url"})
 	}
 
-	user, errRes := v.vaSrv.FindById(vaId)
+	va, errRes := v.vaSrv.GetVA(vaId)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
@@ -199,7 +199,7 @@ func (v *vaHandler) GetVAByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Found User By Id Successful", user, nil))
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "Found User By Id Successful", va, nil))
 }
 
 func (v *vaHandler) GetUserAssignedToVA(c *gin.Context) {

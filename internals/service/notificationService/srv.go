@@ -151,6 +151,19 @@ func (n notificationSrv) SendNotification(token, title string, body, data interf
 	return nil
 }
 
+// Register for notifications godoc
+// @Summary	Register to get notifications service
+// @Description	Notification registration route
+// @Tags	Notifications
+// @Accept	json
+// @Produce	json
+// @Param	request	body	notificationEntity.CreateNotification	true "Notifications Details"
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/notification [post]
 func (n notificationSrv) RegisterForNotifications(req *notificationEntity.CreateNotification) *ResponseEntity.ServiceError {
 	err := n.validator.Validate(req)
 	if err != nil {
@@ -172,6 +185,18 @@ func (n notificationSrv) GetUserToken(userId string) ([]string, string, error) {
 	return n.repo.GetUserToken(userId)
 }
 
+// Delete notifications godoc
+// @Summary	Delete notifications service
+// @Description	Delete notification route
+// @Tags	Notifications
+// @Accept	json
+// @Produce	json
+// @Success	200  {string}  string    "Deleted Successful"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/notification [delete]
 func (n notificationSrv) DeleteNotifications(userId string) error {
 	return n.repo.DeleteNotifications(userId)
 }
@@ -240,6 +265,18 @@ func (n notificationSrv) CreateNotification(userId, title, time, content, color,
 	return n.repo.CreateNotification(notificationId, userId, title, time, content, color, taskId)
 }
 
+// Get notifications godoc
+// @Summary	Get all your notifications
+// @Description	Get notification route
+// @Tags	Notifications
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}	[]notificationEntity.GetNotifcationsRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/notification [get]
 func (n notificationSrv) GetNotifications(userId string) ([]notificationEntity.GetNotifcationsRes, *ResponseEntity.ServiceError) {
 	notifications, err := n.repo.GetNotifications(userId)
 	if err != nil {
@@ -248,6 +285,19 @@ func (n notificationSrv) GetNotifications(userId string) ([]notificationEntity.G
 	return notifications, nil
 }
 
+// Update notification godoc
+// @Summary	Update a specific notification
+// @Description	Update notification route
+// @Tags	Notifications
+// @Accept	json
+// @Produce	json
+// @Param	notificationId	path	string	true	"Notification Id"
+// @Success	200  {string}	string	"Updated Successful"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/notification/{notificationId} [patch]
 func (n notificationSrv) UpdateNotification(notificationId string) error {
 	return n.repo.UpdateNotification(notificationId)
 }

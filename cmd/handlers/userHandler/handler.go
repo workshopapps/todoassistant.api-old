@@ -94,10 +94,6 @@ func (u *userHandler) GetUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, nil, nil))
 		return
 	}
-	// else if err != sql.ErrNoRows {
-	// 	c.AbortWithStatusJSON(http.StatusInternalServerError, ResponseEntity.NewInternalServiceError(err))
-	// 	return
-	// }
 
 	c.JSON(http.StatusOK, user)
 }
@@ -146,7 +142,6 @@ func (u *userHandler) UploadImage(c *gin.Context) {
 func (u *userHandler) ChangePassword(c *gin.Context) {
 	var req userEntity.ChangePasswordReq
 	userId := c.GetString("userId")
-	//userURL := userFromRequest(c)
 	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid User", nil, nil))
 		return
@@ -215,7 +210,6 @@ func (u *userHandler) DeleteUser(c *gin.Context) {
 }
 
 // The Id of the Virtual Assistant is Sent Along With this Request
-
 func (u *userHandler) AssignVAToUser(c *gin.Context) {
 	user_id := c.GetString("userId")
 	va_id := c.Params.ByName("va_id")
