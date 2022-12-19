@@ -24,6 +24,16 @@ definitions:
       time:
         type: string
     type: object
+  subscribeEntity.SubscribeReq:
+    properties:
+      email:
+        type: string
+    type: object
+  subscribeEntity.SubscribeRes:
+    properties:
+      email:
+        type: string
+    type: object
   taskEntity.AssignReq:
     properties:
       taskId:
@@ -930,6 +940,40 @@ paths:
       summary: Check the provided token and reset the user's password
       tags:
       - Users
+  /subscribe:
+    post:
+      consumes:
+      - application/json
+      description: Add a subscriber route
+      parameters:
+      - description: Subscribe request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/subscribeEntity.SubscribeReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/subscribeEntity.SubscribeRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Provide email to be subscribed to our service
+      tags:
+      - Subscribe
   /task:
     post:
       consumes:

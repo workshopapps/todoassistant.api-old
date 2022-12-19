@@ -518,6 +518,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/subscribe": {
+            "post": {
+                "description": "Add a subscriber route",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscribe"
+                ],
+                "summary": "Provide email to be subscribed to our service",
+                "parameters": [
+                    {
+                        "description": "Subscribe request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/subscribeEntity.SubscribeReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/subscribeEntity.SubscribeRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ServiceError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ServiceError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ServiceError"
+                        }
+                    }
+                }
+            }
+        },
         "/task": {
             "post": {
                 "security": [
@@ -1988,6 +2040,22 @@ const docTemplate = `{
                 },
                 "error": {},
                 "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscribeEntity.SubscribeReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscribeEntity.SubscribeRes": {
+            "type": "object",
+            "properties": {
+                "email": {
                     "type": "string"
                 }
             }

@@ -24,6 +24,18 @@ func NewSubscribeSrv(repo subscribeRepo.SubscribeRepository, emailSrv emailServi
 	return &subscribeSrv{repo: repo, emailSrv: emailSrv}
 }
 
+// Subscribe to service godoc
+// @Summary	Provide email to be subscribed to our service
+// @Description	Add a subscriber route
+// @Tags	Subscribe
+// @Accept	json
+// @Produce	json
+// @Param	request	body	subscribeEntity.SubscribeReq	true	"Subscribe request"
+// @Success	200  {object}  subscribeEntity.SubscribeRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/subscribe [post]
 func (t *subscribeSrv) PersistEmail(req *subscribeEntity.SubscribeReq) (*subscribeEntity.SubscribeRes, *ResponseEntity.ServiceError) {
 	var message emailEntity.SendEmailReq
 
