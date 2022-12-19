@@ -67,7 +67,6 @@ func (t *taskHandler) GetPendingTasks(c *gin.Context) {
 }
 
 func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
-
 	tasks, errRes := t.srv.GetListOfExpiredTasks()
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
@@ -79,7 +78,6 @@ func (t *taskHandler) GetListOfExpiredTasks(c *gin.Context) {
 }
 
 func (t *taskHandler) GetListOfPendingTasks(c *gin.Context) {
-
 	tasks, errRes := t.srv.GetListOfPendingTasks()
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
@@ -90,10 +88,7 @@ func (t *taskHandler) GetListOfPendingTasks(c *gin.Context) {
 
 }
 
-// handle search function
-
 func (t *taskHandler) SearchTask(c *gin.Context) {
-
 	name := c.Query("q")
 
 	if name == "" {
@@ -123,7 +118,6 @@ func (t *taskHandler) SearchTask(c *gin.Context) {
 	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, message, searchedTasks, nil))
 }
 
-// handle get by ID
 func (t *taskHandler) GetTaskByID(c *gin.Context) {
 	userId := c.GetString("userId")
 	if userId == "" {
@@ -153,8 +147,6 @@ func (t *taskHandler) GetTaskByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, task)
 }
-
-// Handle get all task from a specific user
 
 func (t *taskHandler) GetAllTask(c *gin.Context) {
 	log.Println("here")
@@ -208,10 +200,9 @@ func (t *taskHandler) DeleteTaskById(c *gin.Context) {
 }
 
 // Handle Delete All Task of a user
-
 func (t *taskHandler) DeleteAllTask(c *gin.Context) {
 	userId, exists := c.Get("userId")
-	if exists == false {
+	if !exists {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
 			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "No userId found", nil, nil))
 		return
@@ -296,10 +287,7 @@ func (t *taskHandler) EditTaskById(c *gin.Context) {
 
 }
 
-// assign TaskTo VA
-
 func (t *taskHandler) AssignTaskToVA(c *gin.Context) {
-
 	taskId := c.Param("taskId")
 	log.Println("taskId is", taskId)
 	if taskId == "" {
@@ -318,7 +306,7 @@ func (t *taskHandler) AssignTaskToVA(c *gin.Context) {
 
 	req.UserId = userId
 	req.TaskId = taskId
-	errRes := t.srv.AssignVAToTask(&req)
+	errRes := t.srv.AssignTaskToVA(&req)
 	if errRes != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError,
@@ -327,10 +315,8 @@ func (t *taskHandler) AssignTaskToVA(c *gin.Context) {
 	}
 	rd := ResponseEntity.BuildSuccessResponse(http.StatusOK, "Task Assigned successfully", nil, nil)
 	c.JSON(http.StatusOK, rd)
-
 }
 
-// get tasks assigned to Va
 func (t *taskHandler) GetTasksAssignedToVa(c *gin.Context) {
 	vaId := c.GetString("id")
 	if vaId == "" {

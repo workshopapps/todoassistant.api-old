@@ -23,6 +23,17 @@ type callSrv struct {
 	logger        loggerService.LogSrv
 }
 
+// Get calls godoc
+// @Summary	Get all your calls
+// @Description	Get call route
+// @Tags	Calls
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}	[]callEntity.CallRes
+// @Failure	400  {object}  ResponseEntity.ResponseMessage
+// @Failure	404  {object}  ResponseEntity.ResponseMessage
+// @Failure	500  {object}  ResponseEntity.ResponseMessage
+// @Router	/calls [get]
 func (t callSrv) GetCalls() ([]*callEntity.CallRes, *ResponseEntity.ResponseMessage) {
 	// create context of 1 minute
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)

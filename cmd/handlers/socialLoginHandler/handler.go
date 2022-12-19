@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 	"test-va/internals/entity/ResponseEntity"
-	"test-va/internals/service/socialLoginService"
 	"test-va/internals/entity/userEntity"
+	"test-va/internals/service/socialLoginService"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,11 +18,9 @@ func NewLoginHandler(srv socialLoginService.LoginSrv) *socialLoginHandler {
 	return &socialLoginHandler{srv: srv}
 }
 
-
-
 func (t *socialLoginHandler) GoogleLogin(c *gin.Context) {
 	var req userEntity.GoogleLoginReq
-	
+
 	err := c.ShouldBindJSON(&req)
 
 	if err != nil {
@@ -43,15 +41,13 @@ func (t *socialLoginHandler) GoogleLogin(c *gin.Context) {
 	c.Set("userId", user.UserId)
 	println(c.GetString("userId"))
 
-	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK,"login successful",user,nil))
-	
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "login successful", user, nil))
+
 }
-
-
 
 func (t *socialLoginHandler) FacebookLogin(c *gin.Context) {
 	var req userEntity.FacebookLoginReq
-	
+
 	err := c.ShouldBindJSON(&req)
 
 	if err != nil {
@@ -71,7 +67,7 @@ func (t *socialLoginHandler) FacebookLogin(c *gin.Context) {
 	log.Println("userid -", user.UserId)
 	c.Set("userId", user.UserId)
 	println(c.GetString("userId"))
-    
-	c.JSON(http.StatusOK,ResponseEntity.BuildSuccessResponse(http.StatusOK,"login successful",user,nil))
-	
+
+	c.JSON(http.StatusOK, ResponseEntity.BuildSuccessResponse(http.StatusOK, "login successful", user, nil))
+
 }

@@ -3,8 +3,8 @@ package routes
 import (
 	"test-va/cmd/handlers/userHandler"
 	"test-va/cmd/middlewares"
-	"test-va/internals/service/userService"
 	tokenservice "test-va/internals/service/tokenService"
+	"test-va/internals/service/userService"
 
 	"github.com/gin-gonic/gin"
 )
