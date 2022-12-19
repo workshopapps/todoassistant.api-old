@@ -24,6 +24,19 @@ definitions:
       time:
         type: string
     type: object
+  callEntity.CallRes:
+    properties:
+      call_comment:
+        type: string
+      call_rating:
+        type: integer
+      id:
+        type: string
+      user_id:
+        type: string
+      va_id:
+        type: string
+    type: object
   notificationEntity.CreateNotification:
     properties:
       device_id:
@@ -852,6 +865,35 @@ paths:
       summary: A user assign task to a VA
       tags:
       - Tasks
+  /calls:
+    get:
+      consumes:
+      - application/json
+      description: Get call route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/callEntity.CallRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+      summary: Get all your calls
+      tags:
+      - Calls
   /comment:
     post:
       consumes:
@@ -1157,7 +1199,7 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Get notification route
+      description: Update notification route
       parameters:
       - description: Notification Id
         in: path
@@ -1185,7 +1227,7 @@ paths:
             $ref: '#/definitions/ResponseEntity.ServiceError'
       security:
       - ApiKeyAuth: []
-      summary: Get all your notifications
+      summary: Update a specific notification
       tags:
       - Notifications
   /reset-password-token:

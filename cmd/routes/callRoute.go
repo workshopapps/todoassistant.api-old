@@ -8,9 +8,6 @@ import (
 )
 
 func CallRoute(v1 *gin.RouterGroup, srv callService.CallService) {
-
 	callHandler := callHandler.NewCallHandler(srv)
-
 	v1.GET("/calls", callHandler.GetCalls)
-
 }

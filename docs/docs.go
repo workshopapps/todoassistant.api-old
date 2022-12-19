@@ -291,6 +291,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/calls": {
+            "get": {
+                "description": "Get call route",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Calls"
+                ],
+                "summary": "Get all your calls",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/callEntity.CallRes"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ResponseMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ResponseMessage"
+                        }
+                    }
+                }
+            }
+        },
         "/comment": {
             "post": {
                 "security": [
@@ -769,7 +813,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get notification route",
+                "description": "Update notification route",
                 "consumes": [
                     "application/json"
                 ],
@@ -779,7 +823,7 @@ const docTemplate = `{
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Get all your notifications",
+                "summary": "Update a specific notification",
                 "parameters": [
                     {
                         "type": "string",
@@ -2338,6 +2382,26 @@ const docTemplate = `{
                 },
                 "error": {},
                 "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "callEntity.CallRes": {
+            "type": "object",
+            "properties": {
+                "call_comment": {
+                    "type": "string"
+                },
+                "call_rating": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "va_id": {
                     "type": "string"
                 }
             }
