@@ -40,7 +40,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Tasks-VA"
+                    "VA - Tasks"
                 ],
                 "summary": "Get all tasks for a VA",
                 "responses": {
@@ -89,7 +89,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Tasks-VA"
+                    "VA - Tasks"
                 ],
                 "summary": "Get list of pending tasks",
                 "responses": {
@@ -99,6 +99,55 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/taskEntity.GetAllPendingRes"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ServiceError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ServiceError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseEntity.ServiceError"
+                        }
+                    }
+                }
+            }
+        },
+        "/all/va": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Tasks assigned to VA route",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "VA - Tasks"
+                ],
+                "summary": "Get all tasks assigned to a VA",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vaEntity.VATask"
                             }
                         }
                     },
@@ -471,7 +520,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Facebook Login"
+                    "Social Login"
                 ],
                 "summary": "Login user using facebook account",
                 "parameters": [
@@ -523,7 +572,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Google Login"
+                    "Social Login"
                 ],
                 "summary": "Login user using google account",
                 "parameters": [
@@ -1204,64 +1253,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/userEntity.CreateUserRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseEntity.ServiceError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseEntity.ServiceError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseEntity.ServiceError"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/assigned-tasks/{vaId}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Tasks assigned to VA route",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VA"
-                ],
-                "summary": "Get all tasks assigned to a VA",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "VA Id",
-                        "name": "vaId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/vaEntity.VATask"
-                            }
                         }
                     },
                     "400": {

@@ -685,7 +685,7 @@ paths:
       - ApiKeyAuth: []
       summary: Get all tasks for a VA
       tags:
-      - Tasks-VA
+      - VA - Tasks
   /all/pendingtasks:
     get:
       consumes:
@@ -716,7 +716,38 @@ paths:
       - ApiKeyAuth: []
       summary: Get list of pending tasks
       tags:
-      - Tasks-VA
+      - VA - Tasks
+  /all/va:
+    get:
+      consumes:
+      - application/json
+      description: Tasks assigned to VA route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/vaEntity.VATask'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all tasks assigned to a VA
+      tags:
+      - VA - Tasks
   /assign-va/{vaId}:
     post:
       consumes:
@@ -965,7 +996,7 @@ paths:
             $ref: '#/definitions/ResponseEntity.ServiceError'
       summary: Login user using facebook account
       tags:
-      - Facebook Login
+      - Social Login
   /googlelogin:
     post:
       consumes:
@@ -999,7 +1030,7 @@ paths:
             $ref: '#/definitions/ResponseEntity.ServiceError'
       summary: Login user using google account
       tags:
-      - Google Login
+      - Social Login
   /reset-password-token:
     post:
       consumes:
@@ -1574,43 +1605,6 @@ paths:
           schema:
             $ref: '#/definitions/ResponseEntity.ServiceError'
       summary: Get all users in the system assigned to a particular VA
-      tags:
-      - VA
-  /user/assigned-tasks/{vaId}:
-    get:
-      consumes:
-      - application/json
-      description: Tasks assigned to VA route
-      parameters:
-      - description: VA Id
-        in: path
-        name: vaId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/vaEntity.VATask'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ResponseEntity.ServiceError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ResponseEntity.ServiceError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ResponseEntity.ServiceError'
-      security:
-      - ApiKeyAuth: []
-      summary: Get all tasks assigned to a VA
       tags:
       - VA
   /user/login:

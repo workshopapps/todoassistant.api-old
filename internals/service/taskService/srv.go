@@ -67,19 +67,6 @@ func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 // Get Tasks Assigned To VA godoc
 // @Summary	Get all tasks assigned to a VA
 // @Description	Tasks assigned to VA route
-// @Tags	Tasks-VA
-// @Accept	json
-// @Produce	json
-// @Success	200  {object}  []vaEntity.VATask
-// @Failure	400  {object}  ResponseEntity.ServiceError
-// @Failure	404  {object}  ResponseEntity.ServiceError
-// @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security ApiKeyAuth
-// @Router	/all/va [get]
-
-// Get Tasks Assigned To VA godoc
-// @Summary	Get all tasks assigned to a VA
-// @Description	Tasks assigned to VA route
 // @Tags	VA
 // @Accept	json
 // @Produce	json
@@ -90,6 +77,19 @@ func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 // @Failure	500  {object}  ResponseEntity.ServiceError
 // @Security ApiKeyAuth
 // @Router	/user/assigned-tasks/{vaId} [get]
+
+// Get Tasks Assigned To VA godoc
+// @Summary	Get all tasks assigned to a VA
+// @Description	Tasks assigned to VA route
+// @Tags	VA - Tasks
+// @Accept	json
+// @Produce	json
+// @Success	200  {object}  []vaEntity.VATask
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/all/va [get]
 func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -104,7 +104,7 @@ func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *Respons
 // Get All Tasks For VA godoc
 // @Summary	Get all tasks for a VA
 // @Description	All tasks for VA route
-// @Tags	Tasks-VA
+// @Tags	VA - Tasks
 // @Accept	json
 // @Produce	json
 // @Success	200  {object}  []vaEntity.VATaskAll
@@ -443,7 +443,7 @@ func (t *taskSrv) GetListOfExpiredTasks() ([]*taskEntity.GetAllExpiredRes, *Resp
 // Get Pending Tasks godoc
 // @Summary	Get list of pending tasks
 // @Description	Get all pending task
-// @Tags	Tasks-VA
+// @Tags	VA - Tasks
 // @Accept	json
 // @Produce	json
 // @Success	200  {object}  []taskEntity.GetAllPendingRes

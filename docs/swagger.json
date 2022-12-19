@@ -28,7 +28,7 @@
         "description": "All tasks for VA route",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["Tasks-VA"],
+        "tags": ["VA - Tasks"],
         "summary": "Get all tasks for a VA",
         "responses": {
           "200": {
@@ -71,7 +71,7 @@
         "description": "Get all pending task",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["Tasks-VA"],
+        "tags": ["VA - Tasks"],
         "summary": "Get list of pending tasks",
         "responses": {
           "200": {
@@ -80,6 +80,49 @@
               "type": "array",
               "items": {
                 "$ref": "#/definitions/taskEntity.GetAllPendingRes"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/all/va": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Tasks assigned to VA route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VA - Tasks"],
+        "summary": "Get all tasks assigned to a VA",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/vaEntity.VATask"
               }
             }
           },
@@ -411,7 +454,7 @@
         "description": "Facebook login route",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["Facebook Login"],
+        "tags": ["Social Login"],
         "summary": "Login user using facebook account",
         "parameters": [
           {
@@ -457,7 +500,7 @@
         "description": "Google login route",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["Google Login"],
+        "tags": ["Social Login"],
         "summary": "Login user using google account",
         "parameters": [
           {
@@ -1065,58 +1108,6 @@
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/userEntity.CreateUserRes"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/ResponseEntity.ServiceError"
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "schema": {
-              "$ref": "#/definitions/ResponseEntity.ServiceError"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "$ref": "#/definitions/ResponseEntity.ServiceError"
-            }
-          }
-        }
-      }
-    },
-    "/user/assigned-tasks/{vaId}": {
-      "get": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "Tasks assigned to VA route",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["VA"],
-        "summary": "Get all tasks assigned to a VA",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "VA Id",
-            "name": "vaId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/vaEntity.VATask"
-              }
             }
           },
           "400": {

@@ -25,7 +25,7 @@ type loginSrv struct {
 // Google login godoc
 // @Summary	Login user using google account
 // @Description	Google login route
-// @Tags	Google Login
+// @Tags	Social Login
 // @Accept	json
 // @Produce	json
 // @Param	request	body	userEntity.GoogleLoginReq	true "Google login"
@@ -80,7 +80,7 @@ func (t *loginSrv) LoginResponse(req *userEntity.GoogleLoginReq) (*userEntity.Lo
 // Facebook login godoc
 // @Summary	Login user using facebook account
 // @Description	Facebook login route
-// @Tags	Facebook Login
+// @Tags	Social Login
 // @Accept	json
 // @Produce	json
 // @Param	request	body	userEntity.FacebookLoginReq	true "Facebook login"
