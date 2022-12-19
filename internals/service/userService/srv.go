@@ -314,6 +314,20 @@ func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 // @Failure	500  {object}  ResponseEntity.ServiceError
 // @Security ApiKeyAuth
 // @Router	/user/{userId} [get]
+
+// Get User godoc
+// @Summary	Get a specific user
+// @Description	Get user route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	userId	path	string	true	"User Id"
+// @Success	200  {object}  userEntity.GetByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/user/profile/{userId} [get]
 func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 	user, err := u.repo.GetById(user_id)
 	if err != nil {

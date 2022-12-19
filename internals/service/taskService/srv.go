@@ -76,6 +76,20 @@ func NewTaskSrv(repo taskRepo.TaskRepository, timeSrv timeSrv.TimeService,
 // @Failure	500  {object}  ResponseEntity.ServiceError
 // @Security ApiKeyAuth
 // @Router	/all/va [get]
+
+// Get Tasks Assigned To VA godoc
+// @Summary	Get all tasks assigned to a VA
+// @Description	Tasks assigned to VA route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"VA Id"
+// @Success	200  {object}  []vaEntity.VATask
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/user/assigned-tasks/{vaId} [get]
 func (t *taskSrv) GetTaskAssignedToVA(vaId string) ([]*vaEntity.VATask, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -469,6 +483,21 @@ func (t *taskSrv) GetListOfPendingTasks() ([]*taskEntity.GetAllPendingRes, *Resp
 // @Failure	500  {object}  ResponseEntity.ServiceError
 // @Security ApiKeyAuth
 // @Router	/task [get]
+
+// Get all task service
+// Get All Tasks godoc
+// @Summary	Get all tasks created by a user
+// @Description	Get all tasks
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	userId	path	string	true	"User Id"
+// @Success	200  {object}  []taskEntity.GetAllTaskRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/user/task/{userId} [get]
 func (t *taskSrv) GetAllTask(userId string) ([]*taskEntity.GetAllTaskRes, *ResponseEntity.ServiceError) {
 	log.Println("inside Fn")
 	// create context of 1 minute

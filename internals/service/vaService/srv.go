@@ -19,11 +19,11 @@ import (
 type VAService interface {
 	SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *ResponseEntity.ServiceError)
 	Login(req *vaEntity.LoginReq) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError)
-	FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
+	GetVA(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError)
 	FindByEmail(email string) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError)
-	UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError)
+	UpdateVA(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError)
 	ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError
-	DeleteUser(id string) *ResponseEntity.ServiceError
+	DeleteVA(id string) *ResponseEntity.ServiceError
 	GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEntity.ServiceError)
 }
 
@@ -34,6 +34,18 @@ type vaSrv struct {
 	cryptoSrv cryptoService.CryptoSrv
 }
 
+// Get All Users Assigned To VA godoc
+// @Summary	Get all users in the system assigned to a particular VA
+// @Description	Get all users assigned to VA route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"VA Id"
+// @Success	200  {object}  []vaEntity.VAStruct
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/user/{vaId} [get]
 func (v *vaSrv) GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
@@ -48,6 +60,18 @@ func (v *vaSrv) GetAllUserToVa(vaId string) ([]*vaEntity.VAStruct, *ResponseEnti
 	return va, nil
 }
 
+// Login Virtual Assistant godoc
+// @Summary	Provide email and password to be logged in
+// @Description	Login as a va
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	request	body	userEntity.LoginReq	true "Login Details"
+// @Success	200  {object}  vaEntity.FindByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/va/login [post]
 func (v *vaSrv) Login(req *vaEntity.LoginReq) (*vaEntity.FindByEmailRes, *ResponseEntity.ServiceError) {
 	// validate request first
 	err := v.validator.Validate(req)
@@ -82,7 +106,21 @@ func (v *vaSrv) FindByEmail(email string) (*vaEntity.FindByEmailRes, *ResponseEn
 	return user, nil
 }
 
-func (v *vaSrv) UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError) {
+// Update VA godoc
+// @Summary	Update a virtual assistant profile
+// @Description	Update va route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"Virtual Assistant Id"
+// @Param	request	body	vaEntity.EditVaReq	true "Update VA Details"
+// @Success	200  {object}  vaEntity.EditVARes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/va/{vaId} [post]
+func (v *vaSrv) UpdateVA(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVARes, *ResponseEntity.ServiceError) {
 	// validate request first
 	err := v.validator.Validate(req)
 	if err != nil {
@@ -106,7 +144,18 @@ func (v *vaSrv) UpdateUser(req *vaEntity.EditVaReq, id string) (*vaEntity.EditVA
 	return &data, nil
 }
 
-// Change password
+// Change VA Password godoc
+// @Summary	Change a va password
+// @Description	Change va password route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/va/change-password [post]
 func (v *vaSrv) ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.ServiceError {
 	// validate request first
 	err := v.validator.Validate(req)
@@ -134,8 +183,20 @@ func (v *vaSrv) ChangePassword(req *vaEntity.ChangeVAPassword) *ResponseEntity.S
 	return nil
 }
 
-// Delete va
-func (v *vaSrv) DeleteUser(id string) *ResponseEntity.ServiceError {
+// Delete VA godoc
+// @Summary	Delete a va from the database
+// @Description	Delete va route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"VA Id"
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/va/{vaId} [delete]
+func (v *vaSrv) DeleteVA(id string) *ResponseEntity.ServiceError {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
@@ -146,9 +207,20 @@ func (v *vaSrv) DeleteUser(id string) *ResponseEntity.ServiceError {
 	return nil
 }
 
+// Register VA godoc
+// @Summary	Register a virtual assistant
+// @Description	Register va route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	request	body	vaEntity.CreateVAReq	true "VA Details"
+// @Success	200  {object}  vaEntity.CreateVARes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/va/signup [post]
 func (v *vaSrv) SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *ResponseEntity.ServiceError) {
-
-	// validate request first
 	err := v.validator.Validate(req)
 	if err != nil {
 		return nil, ResponseEntity.NewValidatingError(fmt.Sprintf("Bad Request: %v", err))
@@ -196,7 +268,19 @@ func (v *vaSrv) SignUp(req *vaEntity.CreateVAReq) (*vaEntity.CreateVARes, *Respo
 	return &data, nil
 }
 
-func (v *vaSrv) FindById(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
+// Get Specific VA godoc
+// @Summary	Get a particular VA by the Id
+// @Description	Get VA route
+// @Tags	VA
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"Virtual Assistant Id"
+// @Success	200  {object}  vaEntity.FindByIdRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/va/{vaId} [get]
+func (v *vaSrv) GetVA(id string) (*vaEntity.FindByIdRes, *ResponseEntity.ServiceError) {
 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
 	defer cancelFunc()
 
