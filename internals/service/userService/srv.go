@@ -45,6 +45,18 @@ type userSrv struct {
 	tokenSrv  tokenservice.TokenSrv
 }
 
+// Login User godoc
+// @Summary	Provide email and password to be logged in
+// @Description	Login to the server
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	request	body	userEntity.LoginReq	true "Login Details"
+// @Success	200  {object}  userEntity.LoginRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/user/login [post]
 func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *ResponseEntity.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -80,8 +92,19 @@ func (u *userSrv) Login(req *userEntity.LoginReq) (*userEntity.LoginRes, *Respon
 	return &loggedInUser, nil
 }
 
+// Register User godoc
+// @Summary	Register route
+// @Description	Register route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	request	body	userEntity.CreateUserReq	true "Signup Details"
+// @Success	200  {object}  userEntity.CreateUserRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/user [post]
 func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUserRes, *ResponseEntity.ServiceError) {
-	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
 		log.Println(err)
@@ -132,6 +155,20 @@ func (u *userSrv) SaveUser(req *userEntity.CreateUserReq) (*userEntity.CreateUse
 	return data, nil
 }
 
+// Update User godoc
+// @Summary	Update a user profile
+// @Description	Register route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	userId	path	string	true	"User Id"
+// @Param	request	body	userEntity.UpdateUserReq	true "Update User Details"
+// @Success	200  {object}  userEntity.UpdateUserRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/user/{userId} [put]
 func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*userEntity.UpdateUserRes, *ResponseEntity.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -154,6 +191,19 @@ func (u *userSrv) UpdateUser(req *userEntity.UpdateUserReq, userId string) (*use
 	return data, nil
 }
 
+// Update Profile Picture godoc
+// @Summary	Update the current user profile image
+// @Description	Upload image route
+// @Tags	Users
+// @Accept	mpfd
+// @Produce	json
+// @Param	Upload-Image	formData	file	true	"Update profile picture"
+// @Success	200  {object}	userEntity.ProfileImageRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security BasicAuth
+// @Router	/user/upload [post]
 func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userEntity.ProfileImageRes, error) {
 	var res userEntity.ProfileImageRes
 	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
@@ -168,11 +218,11 @@ func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userE
 
 	res.Image = fmt.Sprintf("https://ticked-v1-backend-bucket.s3.amazonaws.com/%v", fileName)
 	err = u.repo.UpdateImage(userId, res.Image)
-	log.Println("heererrerer 2")
+
 	if err != nil {
 		return nil, err
 	}
-	log.Println("heererrerer 3")
+
 	res.Size = file.Size
 	res.FileType = fileType
 	return &res, nil
@@ -185,14 +235,14 @@ func (u *userSrv) UploadImage(file *multipart.FileHeader, userId string) (*userE
 // @Accept	json
 // @Produce	json
 // @Param	userId	path	string	true	"User Id"
+// @Param	request	body	userEntity.ChangePasswordReq	true	"New password"
 // @Success	200  {string}  string    "ok"
 // @Failure	400  {object}  ResponseEntity.ServiceError
 // @Failure	404  {object}  ResponseEntity.ServiceError
 // @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
+// @Security ApiKeyAuth
 // @Router	/user/{userId}/change-password [put]
 func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEntity.ServiceError {
-	// validate request
 	err := u.validator.Validate(req)
 	if err != nil {
 		return ResponseEntity.NewValidatingError(err)
@@ -240,7 +290,7 @@ func (u *userSrv) ChangePassword(req *userEntity.ChangePasswordReq) *ResponseEnt
 // @Failure	400  {object}  ResponseEntity.ServiceError
 // @Failure	404  {object}  ResponseEntity.ServiceError
 // @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
+// @Security ApiKeyAuth
 // @Router	/user [get]
 func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 	users, err := u.repo.GetUsers(page)
@@ -262,7 +312,7 @@ func (u *userSrv) GetUsers(page int) ([]*userEntity.UsersRes, error) {
 // @Failure	400  {object}  ResponseEntity.ServiceError
 // @Failure	404  {object}  ResponseEntity.ServiceError
 // @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
+// @Security ApiKeyAuth
 // @Router	/user/{userId} [get]
 func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 	user, err := u.repo.GetById(user_id)
@@ -284,7 +334,7 @@ func (u *userSrv) GetUser(user_id string) (*userEntity.GetByIdRes, error) {
 // @Failure	400  {object}  ResponseEntity.ServiceError
 // @Failure	404  {object}  ResponseEntity.ServiceError
 // @Failure	500  {object}  ResponseEntity.ServiceError
-// @Security BasicAuth
+// @Security ApiKeyAuth
 // @Router	/user/{userId} [delete]
 func (u *userSrv) DeleteUser(user_id string) error {
 	_, idErr := u.repo.GetById(user_id)
@@ -300,6 +350,18 @@ func (u *userSrv) DeleteUser(user_id string) error {
 	return nil
 }
 
+// Reset password godoc
+// @Summary	Generate a token to reset users password
+// @Description	Generate token
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	request	body userEntity.ResetPasswordReq	true "Input your email"
+// @Success	200  {object}  userEntity.ResetPasswordRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/user/reset-password [post]
 func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.ResetPasswordRes, *ResponseEntity.ServiceError) {
 	var token userEntity.ResetPasswordRes
 	var message emailEntity.SendEmailReq
@@ -345,6 +407,19 @@ func (u *userSrv) ResetPassword(req *userEntity.ResetPasswordReq) (*userEntity.R
 	return &token, nil
 }
 
+// Reset password with token godoc
+// @Summary	Check the provided token and reset the user's password
+// @Description	Reset password
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	token	query	string	true	"Token"
+// @Param	user_id	query	string	true	"User Id"
+// @Success	200  {string}  string    "ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/reset-password-token [post]
 func (u *userSrv) ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenReq, token, userId string) *ResponseEntity.ServiceError {
 	err := u.validator.Validate(req)
 	if err != nil {
@@ -382,6 +457,19 @@ func (u *userSrv) ResetPasswordWithToken(req *userEntity.ResetPasswordWithTokenR
 	return nil
 }
 
+// Assign VA To User godoc
+// @Summary	Assign VA to a User
+// @Description	Assing VA to User route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	vaId	path	string	true	"VA Id"
+// @Success	200  {string}	string	"Ok"
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Security ApiKeyAuth
+// @Router	/assign-va/{vaId} [post]
 func (u *userSrv) AssignVAToUser(user_id, va_id string) *ResponseEntity.ServiceError {
 	err := u.repo.AssignVAToUser(user_id, va_id)
 	if err != nil {
