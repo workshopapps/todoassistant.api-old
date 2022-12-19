@@ -406,6 +406,98 @@
         }
       }
     },
+    "/facebooklogin": {
+      "post": {
+        "description": "Facebook login route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Facebook Login"],
+        "summary": "Login user using facebook account",
+        "parameters": [
+          {
+            "description": "Facebook login",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userEntity.FacebookLoginReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/userEntity.LoginRes"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/googlelogin": {
+      "post": {
+        "description": "Google login route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Google Login"],
+        "summary": "Login user using google account",
+        "parameters": [
+          {
+            "description": "Google login",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userEntity.GoogleLoginReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/userEntity.LoginRes"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
     "/reset-password-token": {
       "post": {
         "description": "Reset password",
@@ -2246,6 +2338,18 @@
         }
       }
     },
+    "userEntity.FacebookLoginReq": {
+      "type": "object",
+      "required": ["email", "name"],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "userEntity.GetByIdRes": {
       "type": "object",
       "properties": {
@@ -2274,6 +2378,30 @@
           "type": "string"
         },
         "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "userEntity.GoogleLoginReq": {
+      "type": "object",
+      "required": ["email", "familyName", "givenName", "name"],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "familyName": {
+          "type": "string"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "googleId": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "name": {
           "type": "string"
         }
       }

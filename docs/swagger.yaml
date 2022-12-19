@@ -322,6 +322,16 @@ definitions:
       user_id:
         type: string
     type: object
+  userEntity.FacebookLoginReq:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
   userEntity.GetByIdRes:
     properties:
       avatar:
@@ -342,6 +352,26 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  userEntity.GoogleLoginReq:
+    properties:
+      email:
+        type: string
+      familyName:
+        type: string
+      givenName:
+        type: string
+      googleId:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - familyName
+    - givenName
+    - name
     type: object
   userEntity.LoginReq:
     properties:
@@ -902,6 +932,74 @@ paths:
       summary: Get all comments by both user and VA on a task
       tags:
       - Tasks
+  /facebooklogin:
+    post:
+      consumes:
+      - application/json
+      description: Facebook login route
+      parameters:
+      - description: Facebook login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.FacebookLoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.LoginRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Login user using facebook account
+      tags:
+      - Facebook Login
+  /googlelogin:
+    post:
+      consumes:
+      - application/json
+      description: Google login route
+      parameters:
+      - description: Google login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userEntity.GoogleLoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/userEntity.LoginRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Login user using google account
+      tags:
+      - Google Login
   /reset-password-token:
     post:
       consumes:
