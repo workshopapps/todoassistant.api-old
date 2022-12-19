@@ -13,11 +13,140 @@
       "name": "Apache 2.0",
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "1.0"
+    "version": "2.0"
   },
-  "host": "api.ticked.hng.tech:2022",
+  "host": "https://api.ticked.hng.tech:2022",
   "basePath": "/api/v1",
   "paths": {
+    "/all": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "All tasks for VA route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks-VA"],
+        "summary": "Get all tasks for a VA",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/vaEntity.VATaskAll"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/all/pendingtasks": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get all pending task",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks-VA"],
+        "summary": "Get list of pending tasks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/taskEntity.GetAllPendingRes"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/all/va": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Tasks assigned to VA route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks-VA"],
+        "summary": "Get all tasks assigned to a VA",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/vaEntity.VATask"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
     "/assign-va/{vaId}": {
       "post": {
         "security": [
@@ -44,6 +173,259 @@
             "description": "Ok",
             "schema": {
               "type": "string"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/assign/{taskId}": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Assign task to VA route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "A user assign task to a VA",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Task Id",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Task Details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/taskEntity.AssignReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/comment": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Create comment route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Create comment for a task",
+        "parameters": [
+          {
+            "description": "Create Comment",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/taskEntity.CreateCommentReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/taskEntity.CreateCommentRes"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/comment/all": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Create task",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Get all comments by both user and VA on a task",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/taskEntity.GetCommentRes"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/comment/{commentId}": {
+      "delete": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Delete comment route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Delete a particular comment using it's id",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Comment Id",
+            "name": "commentId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ResponseMessage"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/comment/{taskId}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get comments for a task route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Get all comments by both user and VA on a task",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Task Id",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/taskEntity.GetCommentRes"
+              }
             }
           },
           "400": {
@@ -118,11 +500,103 @@
         }
       }
     },
+    "/task": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get all tasks",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Get all tasks created by a user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/taskEntity.GetAllTaskRes"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Create task",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Create a task",
+        "parameters": [
+          {
+            "description": "Tasks Details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/taskEntity.CreateTaskReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/taskEntity.CreateTaskRes"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
     "/task/expired": {
       "get": {
         "security": [
           {
-            "BasicAuth": []
+            "ApiKeyAuth": []
           }
         ],
         "description": "Get all expired task",
@@ -161,11 +635,172 @@
         }
       }
     },
+    "/task/pending/{userId}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get all pending task",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Get pending tasks of a particular user",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User Id",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/taskEntity.GetPendingTasksRes"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/task/search": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Search task route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Search task by title",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "name search by q",
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/taskEntity.SearchTaskRes"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
+    "/task/status/{taskId}": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Update task status route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Update the status of a task",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Task Id",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Update task status",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/taskEntity.UpdateTaskStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ResponseMessage"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      }
+    },
     "/task/{taskId}": {
       "get": {
         "security": [
           {
-            "BasicAuth": []
+            "ApiKeyAuth": []
           }
         ],
         "description": "Get a particular task",
@@ -187,6 +822,100 @@
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/taskEntity.GetTasksByIdRes"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Update task status route",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Update the status of a task",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Task Id",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ResponseMessage"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ServiceError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Delete task by taskId",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Tasks"],
+        "summary": "Delete task by Id",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Task Id",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity.ResponseMessage"
             }
           },
           "400": {
@@ -658,6 +1387,29 @@
     }
   },
   "definitions": {
+    "ResponseEntity.ResponseMessage": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "data": {},
+        "error": {
+          "description": "for errors that occur even if request is successful"
+        },
+        "extra": {},
+        "message": {
+          "type": "string"
+        },
+        "name": {
+          "description": "name of the error",
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "ResponseEntity.ServiceError": {
       "type": "object",
       "properties": {
@@ -670,10 +1422,244 @@
         }
       }
     },
+    "taskEntity.AssignReq": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.CreateCommentReq": {
+      "type": "object",
+      "required": ["comment", "sender_id", "status", "task_id"],
+      "properties": {
+        "comment": {
+          "type": "string",
+          "minLength": 3
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "is_emoji": {
+          "type": "integer"
+        },
+        "sender_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "minLength": 2
+        },
+        "task_id": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.CreateCommentRes": {
+      "type": "object",
+      "required": ["comment"],
+      "properties": {
+        "comment": {
+          "type": "string",
+          "minLength": 3
+        },
+        "id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.CreateTaskReq": {
+      "type": "object",
+      "required": ["description", "end_time", "start_time", "title", "user_id"],
+      "properties": {
+        "assigned": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/taskEntity.TaskFile"
+          }
+        },
+        "repeat": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "va_option": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.CreateTaskRes": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "repeat": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "va_option": {
+          "type": "string"
+        }
+      }
+    },
     "taskEntity.GetAllExpiredRes": {
       "type": "object",
       "properties": {
         "created_at": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.GetAllPendingRes": {
+      "type": "object",
+      "properties": {
+        "end_time": {
+          "description": "VAOption string `json:\"va_option\"`",
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.GetAllTaskRes": {
+      "type": "object",
+      "properties": {
+        "comment_count": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "repeat": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "va_id": {
+          "type": "string"
+        },
+        "va_option": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.GetCommentRes": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "isEmoji": {
+          "type": "integer"
+        },
+        "sender_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.GetPendingTasksRes": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "status": {
           "type": "string"
         },
         "task_id": {
@@ -728,6 +1714,23 @@
         }
       }
     },
+    "taskEntity.SearchTaskRes": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
     "taskEntity.TaskFile": {
       "type": "object",
       "properties": {
@@ -735,6 +1738,14 @@
           "type": "string"
         },
         "file_type": {
+          "type": "string"
+        }
+      }
+    },
+    "taskEntity.UpdateTaskStatus": {
+      "type": "object",
+      "properties": {
+        "status": {
           "type": "string"
         }
       }
@@ -1004,6 +2015,98 @@
           "type": "string"
         },
         "last_name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "vaEntity.NewVAUser": {
+      "type": "object",
+      "properties": {
+        "avatar": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "vaEntity.VATask": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/vaEntity.VAUser"
+        },
+        "va_id": {
+          "type": "string"
+        },
+        "va_option": {
+          "type": "string"
+        }
+      }
+    },
+    "vaEntity.VATaskAll": {
+      "type": "object",
+      "properties": {
+        "comment_count": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/vaEntity.NewVAUser"
+        },
+        "va_id": {
+          "type": "string"
+        },
+        "va_option": {
+          "type": "string"
+        }
+      }
+    },
+    "vaEntity.VAUser": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         },
         "phone": {

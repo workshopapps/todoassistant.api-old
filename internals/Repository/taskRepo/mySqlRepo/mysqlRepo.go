@@ -432,10 +432,9 @@ func (s *sqlRepo) GetListOfExpiredTasks(ctx context.Context) ([]*taskEntity.GetA
 		return nil, err
 	}
 
-	stmt := fmt.Sprintf(`
-		SELECT task_id, user_id, title, start_time
-		FROM Tasks
-		WHERE status = 'EXPIRED'`)
+	stmt := `SELECT task_id, user_id, title, start_time
+				FROM Tasks
+				WHERE status = 'EXPIRED'`
 
 	rows, err := db.QueryContext(ctx, stmt)
 	if err != nil {
@@ -468,10 +467,9 @@ func (s *sqlRepo) GetListOfPendingTasks(ctx context.Context) ([]*taskEntity.GetA
 		return nil, err
 	}
 
-	stmt := fmt.Sprintf(`
-		SELECT task_id, user_id, title, end_time
-		FROM Tasks
-		WHERE status = 'PENDING'`)
+	stmt := `SELECT task_id, user_id, title, end_time
+				FROM Tasks
+				WHERE status = 'PENDING'`
 
 	rows, err := db.QueryContext(ctx, stmt)
 	if err != nil {
@@ -727,9 +725,7 @@ func (s *sqlRepo) GetComments(ctx context.Context) ([]*taskEntity.GetCommentRes,
 		return nil, err
 	}
 
-	stmt := fmt.Sprintf(`
-		SELECT id, sender_id, task_id, comment, created_at, status, isEmoji
-		FROM Comments`)
+	stmt := `SELECT id, sender_id, task_id, comment, created_at, status, isEmoji FROM Comments`
 
 	rows, err := db.QueryContext(ctx, stmt)
 	if err != nil {

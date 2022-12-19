@@ -1,5 +1,21 @@
 basePath: /api/v1
 definitions:
+  ResponseEntity.ResponseMessage:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error:
+        description: for errors that occur even if request is successful
+      extra: {}
+      message:
+        type: string
+      name:
+        description: name of the error
+        type: string
+      status:
+        type: string
+    type: object
   ResponseEntity.ServiceError:
     properties:
       description:
@@ -8,9 +24,175 @@ definitions:
       time:
         type: string
     type: object
+  taskEntity.AssignReq:
+    properties:
+      taskId:
+        type: string
+      userId:
+        type: string
+    type: object
+  taskEntity.CreateCommentReq:
+    properties:
+      comment:
+        minLength: 3
+        type: string
+      created_at:
+        type: string
+      is_emoji:
+        type: integer
+      sender_id:
+        type: string
+      status:
+        minLength: 2
+        type: string
+      task_id:
+        type: string
+    required:
+    - comment
+    - sender_id
+    - status
+    - task_id
+    type: object
+  taskEntity.CreateCommentRes:
+    properties:
+      comment:
+        minLength: 3
+        type: string
+      id:
+        type: string
+      task_id:
+        type: string
+    required:
+    - comment
+    type: object
+  taskEntity.CreateTaskReq:
+    properties:
+      assigned:
+        type: string
+      created_at:
+        type: string
+      description:
+        minLength: 3
+        type: string
+      end_time:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/taskEntity.TaskFile'
+        type: array
+      repeat:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        minLength: 3
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      va_option:
+        type: string
+    required:
+    - description
+    - end_time
+    - start_time
+    - title
+    - user_id
+    type: object
+  taskEntity.CreateTaskRes:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      repeat:
+        type: string
+      start_time:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      va_option:
+        type: string
+    type: object
   taskEntity.GetAllExpiredRes:
     properties:
       created_at:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.GetAllPendingRes:
+    properties:
+      end_time:
+        description: VAOption string `json:"va_option"`
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  taskEntity.GetAllTaskRes:
+    properties:
+      comment_count:
+        type: integer
+      description:
+        type: string
+      end_time:
+        type: string
+      repeat:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      va_id:
+        type: string
+      va_option:
+        type: string
+    type: object
+  taskEntity.GetCommentRes:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      isEmoji:
+        type: integer
+      sender_id:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+    type: object
+  taskEntity.GetPendingTasksRes:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+      status:
         type: string
       task_id:
         type: string
@@ -46,11 +228,27 @@ definitions:
       va_id:
         type: string
     type: object
+  taskEntity.SearchTaskRes:
+    properties:
+      created_at:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
   taskEntity.TaskFile:
     properties:
       file_link:
         type: string
       file_type:
+        type: string
+    type: object
+  taskEntity.UpdateTaskStatus:
+    properties:
+      status:
         type: string
     type: object
   userEntity.ChangePasswordReq:
@@ -243,7 +441,67 @@ definitions:
       user_id:
         type: string
     type: object
-host: api.ticked.hng.tech:2022
+  vaEntity.NewVAUser:
+    properties:
+      avatar:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: string
+    type: object
+  vaEntity.VATask:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user:
+        $ref: '#/definitions/vaEntity.VAUser'
+      va_id:
+        type: string
+      va_option:
+        type: string
+    type: object
+  vaEntity.VATaskAll:
+    properties:
+      comment_count:
+        type: string
+      description:
+        type: string
+      end_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      title:
+        type: string
+      user:
+        $ref: '#/definitions/vaEntity.NewVAUser'
+      va_id:
+        type: string
+      va_option:
+        type: string
+    type: object
+  vaEntity.VAUser:
+    properties:
+      name:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: https://api.ticked.hng.tech:2022
 info:
   contact:
     email: support@swagger.io
@@ -255,8 +513,101 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
   title: Ticked
-  version: "1.0"
+  version: "2.0"
 paths:
+  /all:
+    get:
+      consumes:
+      - application/json
+      description: All tasks for VA route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/vaEntity.VATaskAll'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all tasks for a VA
+      tags:
+      - Tasks-VA
+  /all/pendingtasks:
+    get:
+      consumes:
+      - application/json
+      description: Get all pending task
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetAllPendingRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get list of pending tasks
+      tags:
+      - Tasks-VA
+  /all/va:
+    get:
+      consumes:
+      - application/json
+      description: Tasks assigned to VA route
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/vaEntity.VATask'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all tasks assigned to a VA
+      tags:
+      - Tasks-VA
   /assign-va/{vaId}:
     post:
       consumes:
@@ -292,6 +643,186 @@ paths:
       summary: Assign VA to a User
       tags:
       - Users
+  /assign/{taskId}:
+    post:
+      consumes:
+      - application/json
+      description: Assign task to VA route
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      - description: Task Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/taskEntity.AssignReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: A user assign task to a VA
+      tags:
+      - Tasks
+  /comment:
+    post:
+      consumes:
+      - application/json
+      description: Create comment route
+      parameters:
+      - description: Create Comment
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/taskEntity.CreateCommentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taskEntity.CreateCommentRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create comment for a task
+      tags:
+      - Tasks
+  /comment/{commentId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete comment route
+      parameters:
+      - description: Comment Id
+        in: path
+        name: commentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a particular comment using it's id
+      tags:
+      - Tasks
+  /comment/{taskId}:
+    get:
+      consumes:
+      - application/json
+      description: Get comments for a task route
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetCommentRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all comments by both user and VA on a task
+      tags:
+      - Tasks
+  /comment/all:
+    get:
+      consumes:
+      - application/json
+      description: Create task
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetCommentRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all comments by both user and VA on a task
+      tags:
+      - Tasks
   /reset-password-token:
     post:
       consumes:
@@ -330,7 +861,107 @@ paths:
       summary: Check the provided token and reset the user's password
       tags:
       - Users
+  /task:
+    get:
+      consumes:
+      - application/json
+      description: Get all tasks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetAllTaskRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all tasks created by a user
+      tags:
+      - Tasks
+    post:
+      consumes:
+      - application/json
+      description: Create task
+      parameters:
+      - description: Tasks Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/taskEntity.CreateTaskReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taskEntity.CreateTaskRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a task
+      tags:
+      - Tasks
   /task/{taskId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete task by taskId
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete task by Id
+      tags:
+      - Tasks
     get:
       consumes:
       - application/json
@@ -361,8 +992,42 @@ paths:
           schema:
             $ref: '#/definitions/ResponseEntity.ServiceError'
       security:
-      - BasicAuth: []
+      - ApiKeyAuth: []
       summary: Get a single task
+      tags:
+      - Tasks
+    put:
+      consumes:
+      - application/json
+      description: Update task status route
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update the status of a task
       tags:
       - Tasks
   /task/expired:
@@ -392,8 +1057,122 @@ paths:
           schema:
             $ref: '#/definitions/ResponseEntity.ServiceError'
       security:
-      - BasicAuth: []
+      - ApiKeyAuth: []
       summary: Get all expired tasks
+      tags:
+      - Tasks
+  /task/pending/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get all pending task
+      parameters:
+      - description: User Id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.GetPendingTasksRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get pending tasks of a particular user
+      tags:
+      - Tasks
+  /task/search:
+    get:
+      consumes:
+      - application/json
+      description: Search task route
+      parameters:
+      - description: name search by q
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taskEntity.SearchTaskRes'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Search task by title
+      tags:
+      - Tasks
+  /task/status/{taskId}:
+    post:
+      consumes:
+      - application/json
+      description: Update task status route
+      parameters:
+      - description: Task Id
+        in: path
+        name: taskId
+        required: true
+        type: string
+      - description: Update task status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/taskEntity.UpdateTaskStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseEntity.ResponseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update the status of a task
       tags:
       - Tasks
   /user:
