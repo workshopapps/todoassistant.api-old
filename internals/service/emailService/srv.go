@@ -9,6 +9,7 @@ import (
 type EmailService interface {
 	SendMail(req emailEntity.SendEmailReq) error
 	SendBatchEmail(req emailEntity.SendBatchEmail) error
+	SendMailToSupport(req emailEntity.SendEmailReq) error
 }
 type emailSrv struct {
 	FromEmail string
@@ -28,6 +29,7 @@ func (e emailSrv) SendBatchEmail(req emailEntity.SendBatchEmail) error {
 	}
 	return nil
 }
+
 func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
 	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
 	addr := e.Host + ":" + e.Port
@@ -37,6 +39,20 @@ func (e emailSrv) SendMail(req emailEntity.SendEmailReq) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (e emailSrv) SendMailToSupport(req emailEntity.SendEmailReq) error {
+	auth := smtp.PlainAuth("", e.FromEmail, e.Password, e.Host)
+	addr := e.Host + ":" + e.Port
+	header := fmt.Sprintf("From: %v\nTo: %v\n", req.EmailAddress, e.FromEmail)
+	body := []byte(header + req.EmailSubject + req.EmailBody)
+	err := smtp.SendMail(addr, auth, req.EmailAddress, []string{e.FromEmail}, body)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
