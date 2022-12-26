@@ -65,6 +65,24 @@ definitions:
       user_id:
         type: string
     type: object
+  subscribeEntity.ContactUsReq:
+    properties:
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+    type: object
+  subscribeEntity.ContactUsRes:
+    properties:
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+    type: object
   subscribeEntity.SubscribeReq:
     properties:
       email:
@@ -1033,6 +1051,40 @@ paths:
       summary: Get all comments by both user and VA on a task
       tags:
       - Tasks
+  /contact-us:
+    post:
+      consumes:
+      - application/json
+      description: Contact us route
+      parameters:
+      - description: Contact Us request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/subscribeEntity.ContactUsReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/subscribeEntity.ContactUsRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseEntity.ServiceError'
+      summary: Contact us with any complaint or feedback
+      tags:
+      - Contact-Us
   /facebooklogin:
     post:
       consumes:

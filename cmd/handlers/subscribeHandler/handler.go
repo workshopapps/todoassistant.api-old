@@ -37,3 +37,23 @@ func (t *subscribeHandler) AddSubscriber(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
+
+func (t *subscribeHandler) ContactUs(c *gin.Context) {
+	var req subscribeEntity.ContactUsReq
+
+	// copy data from gin context to req
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			ResponseEntity.BuildErrorResponse(http.StatusBadRequest, "Invalid request", err, nil))
+		return
+	}
+	// call function from service that saves email to DB
+	response, errRes := t.srv.Contact(&req)
+	if errRes != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			ResponseEntity.BuildErrorResponse(http.StatusInternalServerError, "Error sending email", errRes, nil))
+		return
+	}
+	c.JSON(http.StatusOK, response)
+}

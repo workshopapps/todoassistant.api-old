@@ -2,6 +2,7 @@ package subscribeService
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"test-va/internals/Repository/subscribeRepo"
 	"test-va/internals/entity/ResponseEntity"
@@ -13,6 +14,7 @@ import (
 
 type SubscribeService interface {
 	PersistEmail(req *subscribeEntity.SubscribeReq) (*subscribeEntity.SubscribeRes, *ResponseEntity.ServiceError)
+	Contact(req *subscribeEntity.ContactUsReq) (*subscribeEntity.ContactUsRes, *ResponseEntity.ServiceError)
 }
 
 type subscribeSrv struct {
@@ -69,11 +71,57 @@ func (t *subscribeSrv) PersistEmail(req *subscribeEntity.SubscribeReq) (*subscri
 	return &data, nil
 }
 
+// Contact us godoc
+// @Summary	Contact us with any complaint or feedback
+// @Description	Contact us route
+// @Tags	Contact-Us
+// @Accept	json
+// @Produce	json
+// @Param	request	body	subscribeEntity.ContactUsReq	true	"Contact Us request"
+// @Success	200  {object}  subscribeEntity.ContactUsRes
+// @Failure	400  {object}  ResponseEntity.ServiceError
+// @Failure	404  {object}  ResponseEntity.ServiceError
+// @Failure	500  {object}  ResponseEntity.ServiceError
+// @Router	/contact-us [post]
+func (t *subscribeSrv) Contact(req *subscribeEntity.ContactUsReq) (*subscribeEntity.ContactUsRes, *ResponseEntity.ServiceError) {
+	// create context of 1 minute
+	_, cancelFunc := context.WithTimeout(context.TODO(), time.Minute*1)
+	defer cancelFunc()
+
+	message := CreateMessageBodySupport(req)
+	err := t.emailSrv.SendMailToSupport(message)
+	if err != nil {
+		return nil, ResponseEntity.NewInternalServiceError(err)
+	}
+
+	data := subscribeEntity.ContactUsRes{
+		Email:   req.Email,
+		Name:    req.Name,
+		Message: req.Message,
+	}
+
+	return &data, nil
+}
+
 // Auxillary function
 func CreateMessageBody() string {
-	subject := "Subscription to Ticked!\n\n"
-	mainBody := "Thank you for subscribing to our newsletter!\n\nGet ready for an awesome ride"
+	title := "Subscription to Ticked!\n\n"
+	mainBody := "Thank you for subscribing to our newsletter!\n\nGet ready for an awesome ride!!"
 
-	message := subject + mainBody
+	message := title + mainBody
 	return string(message)
+}
+
+func CreateMessageBodySupport(req *subscribeEntity.ContactUsReq) emailEntity.SendEmailReq {
+	var message emailEntity.SendEmailReq
+
+	message.EmailAddress = req.Email
+	message.EmailSubject = fmt.Sprintf("Subject: %s (%s)\n", req.Name, req.Email)
+
+	title := "" // fmt.Sprintf("Feedback from %s\n\n", req.Email)
+	mainBody := req.Message
+
+	message.EmailBody = title + mainBody
+
+	return message
 }
